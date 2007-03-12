@@ -95,7 +95,7 @@ public class SmtpRequest {
           response = new SmtpResponse(503, "Bad sequence of commands: "+action, this.state);
         }
       } else if (SmtpActionType.MAIL == action) {
-        if (SmtpState.MAIL == state || SmtpState.QUIT == state) {
+        if (SmtpState.GREET == state || SmtpState.MAIL == state || SmtpState.QUIT == state) {
           response = new SmtpResponse(250, "OK", SmtpState.RCPT);
         } else {
           response = new SmtpResponse(503, "Bad sequence of commands: "+action, this.state);
@@ -146,12 +146,19 @@ public class SmtpRequest {
   }
 
   /**
-   * Create an SMTP request object given a line of the input stream from the client and the current internal state.
+   * Create an SMTP request object given a line of the input stream from the client, the current internal state and
+   * the previous SMTP request (determines if CR is needed in message).
+   * 
+   * Modified : corrected unit test bug concerning incorrect body restitution
+   * 
+   * @author De Oliveira Edouard
+   * 
    * @param s line of input
    * @param state current state
+   * @param previous previous request
    * @return a populated SmtpRequest object
    */
-  public static SmtpRequest createRequest(String s, SmtpState state) {
+  public static SmtpRequest createRequest(String s, SmtpState state, SmtpRequest previous) {
     SmtpActionType action = null;
     String params = null;
 
@@ -169,11 +176,7 @@ public class SmtpRequest {
         action = SmtpActionType.DATA_END;
       } else {
         action = SmtpActionType.UNRECOG;
-        if (s.length() < 1) {
-          params = "\n";
-        } else {
-          params = s+'\n';
-        }
+        params = previous.state == SmtpState.DATA_BODY ? "\n"+s : s;
       }
     } else {
       String su = s.toUpperCase();
@@ -215,5 +218,9 @@ public class SmtpRequest {
    */
   public String getParams() {
     return params;
+  }
+  
+  public SmtpActionType getAction() {
+      return action;
   }
 }

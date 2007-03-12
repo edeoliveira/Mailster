@@ -9,165 +9,185 @@ import java.util.StringTokenizer;
 
 import org.mailster.util.MailUtilities;
 
-public class SmtpHeaders
+/**
+ * ---<br>
+ * Mailster (C) 2007 De Oliveira Edouard
+ * <p>
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * <p>
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * <p>
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 675 Mass
+ * Ave, Cambridge, MA 02139, USA.
+ * <p>
+ * See&nbsp; <a href="http://mailster.sourceforge.net" target="_parent">Mailster
+ * Web Site</a> <br>
+ * ---
+ * <p>
+ * SmtpHeaders.java - Enter your Comment HERE.
+ * 
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
+ * @version %I%, %G%
+ */
+public class SmtpHeaders implements SmtpHeadersInterface
 {
-    public final static String HEADER_TO = "To";
-    public final static String HEADER_DATE = "Date";
-    public final static String HEADER_SUBJECT = "Subject";
-    public final static String HEADER_MESSAGE_ID = "Message-ID";
-    public final static String HEADER_CONTENT_TYPE = "Content-Type";
-    public final static String HEADER_ENCODING = "Content-Transfer-Encoding";
-
     /** Headers: Map of List of String hashed on header name. */
     private Map<String, SmtpHeader> headers = new HashMap<String, SmtpHeader>(
-	    10);
-
+            10);
     private String lastHeaderName;
 
     public class SmtpHeader
     {
-	private String name;
+        private String name;
 
-	private List<String> values;
+        private List<String> values;
 
-	public SmtpHeader(String name, List<String> values)
-	{
-	    this.name = name;
-	    this.values = values;
-	}
+        public SmtpHeader(String name, List<String> values) {
+            this.name = name;
+            this.values = values;
+        }
 
-	public String getName()
-	{
-	    return name;
-	}
+        public String getName()
+        {
+            return name;
+        }
 
-	public void setName(String name)
-	{
-	    this.name = name;
-	}
+        public void setName(String name)
+        {
+            this.name = name;
+        }
 
-	public List<String> getValues()
-	{
-	    return values;
-	}
+        public List<String> getValues()
+        {
+            return values;
+        }
 
-	public void setValues(List<String> values)
-	{
-	    this.values = values;
-	}
+        public void setValues(List<String> values)
+        {
+            this.values = values;
+        }
 
-	public String toString()
-	{
-	    StringBuffer sb = new StringBuffer(getName());
-	    sb.append(": ");
-	    Iterator<String> it = values.iterator();
-	    while (it.hasNext())
-	    {
-		sb.append(it.next());
-		if (it.hasNext())
-		    sb.append("; ");
-	    }
+        public String toString()
+        {
+            StringBuffer sb = new StringBuffer(getName());
+            sb.append(": ");
+            Iterator<String> it = values.iterator();
+            while (it.hasNext())
+            {
+                sb.append(it.next());
+                if (it.hasNext())
+                    sb.append("; ");
+            }
 
-	    return sb.toString();
-	}
+            return sb.toString();
+        }
     }
 
-    public SmtpHeaders()
-    {}
+    public SmtpHeaders() {
+    }
 
     /**
-         * Get the value(s) associated with the given header name.
-         * 
-         * @param name
-         *                header name
-         * @return value(s) associated with the header name
-         */
+     * Get the value(s) associated with the given header name.
+     * 
+     * @param name header name
+     * @return value(s) associated with the header name
+     */
     public String[] getHeaderValues(String name)
     {
-	SmtpHeader h = headers.get(name);
-	if (h == null || h.getValues() == null)
-	    return new String[0];
-	else
-	    return h.getValues().toArray(new String[h.getValues().size()]);
+        SmtpHeader h = headers.get(name);
+        if (h == null || h.getValues() == null)
+            return new String[0];
+        else
+            return h.getValues().toArray(new String[h.getValues().size()]);
     }
 
     /**
-         * Get the first value associated with a given header name.
-         * 
-         * @param name
-         *                header name
-         * @return first value associated with the header name
-         */
+     * Get the first value associated with a given header name.
+     * 
+     * @param name header name
+     * @return first value associated with the header name
+     */
     public String getHeaderValue(String name)
     {
-	SmtpHeader h = headers.get(name);
-	if (h == null || h.getValues() == null || h.getValues().get(0) == null)
-	    return "";
-	else
-	    return h.getValues().get(0);
+        SmtpHeader h = headers.get(name);
+        if (h == null || h.getValues() == null || h.getValues().get(0) == null)
+            return null;
+        else
+            return h.getValues().get(0);
     }
 
     /**
-         * Adds a header to the Map.
-         */
+     * Adds a header to the Map.
+     */
     public void addHeader(String name, String value)
     {
-	List<String> vals = new ArrayList<String>(1);
-	if (name.equals(HEADER_SUBJECT))
-	    value = MailUtilities.decodeText(value);
-	vals.add(value);
+        List<String> vals = new ArrayList<String>(1);
+        if (SmtpHeadersInterface.SUBJECT.equals(name))
+            vals.add(MailUtilities.decodeHeaderValue(value));
+        else
+            vals.add(value);
 
-	headers.put(name, new SmtpHeader(name, vals));
+        headers.put(name, new SmtpHeader(name, vals));
     }
 
     /**
-         * Adds a header to the Map.
-         */
+     * Adds a header to the Map.
+     */
     public void addHeaderLine(String line)
     {
-	if (line != null && !line.equals(""))
-	{
-	    int pos = line.indexOf(':');
-	    int termPos = line.indexOf('=');
+        if (line != null && !"".equals(line))
+        {
+            int pos = line.indexOf(':');
+            int termPos = line.indexOf('=');
 
-	    if (pos >= 0 && (termPos == -1 || pos < termPos))
-	    {
-		String name = line.substring(0, pos).trim();
-		lastHeaderName = name;
-		String values = MailUtilities.decodeText(line
-			.substring(pos + 1).trim());
+            if (pos >= 0 && (termPos == -1 || pos < termPos))
+            {
+                String name = line.substring(0, pos);
+                lastHeaderName = name;
+                String values = MailUtilities.decodeHeaderValue(line
+                        .substring(pos + 1));
 
-		StringTokenizer tk = new StringTokenizer(values, ";");
-		List<String> vals = new ArrayList<String>(tk.countTokens());
+                StringTokenizer tk = new StringTokenizer(values, ";");
+                List<String> vals = new ArrayList<String>(tk.countTokens());
 
-		while (tk.hasMoreTokens())
-		    vals.add(tk.nextToken().trim());
+                while (tk.hasMoreTokens())
+                    vals.add(tk.nextToken().trim());
 
-		headers.put(name, new SmtpHeader(name, vals));
-	    }
-	    else
-	    {
-		// Additional header value
-		SmtpHeader h = headers.get(lastHeaderName);
-		if (lastHeaderName.equals(HEADER_SUBJECT))
-		    h.getValues().set(0, h.getValues().get(0) + MailUtilities.decodeText(line));
-		else
-		    h.getValues().add(line.trim());
-	    }
-	}
+                headers.put(name, new SmtpHeader(name, vals));
+            }
+            else
+            {
+                // Additional header value
+                SmtpHeader h = headers.get(lastHeaderName);
+                if (SmtpHeadersInterface.SUBJECT.equals(lastHeaderName))
+                    h.getValues().set(
+                            0,
+                            h.getValues().get(0)
+                                    + MailUtilities.decodeHeaderValue(line.trim()));
+                else
+                    h.getValues().add(line.trim());
+            }
+        }
     }
 
     public String toString()
     {
-	StringBuffer sb = new StringBuffer();
-	for (Iterator i = headers.keySet().iterator(); i.hasNext();)
-	{
-	    String name = (String) i.next();
-	    SmtpHeader hdr = headers.get(name);
-	    sb.append(hdr);
-	    if (i.hasNext())
-		sb.append('\n');
-	}
-	return sb.toString();
+        StringBuffer sb = new StringBuffer();
+        for (Iterator i = headers.keySet().iterator(); i.hasNext();)
+        {
+            String name = (String) i.next();
+            SmtpHeader hdr = headers.get(name);
+            sb.append(hdr);
+            if (i.hasNext())
+                sb.append('\n');
+        }
+        return sb.toString();
     }
 }

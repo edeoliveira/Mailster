@@ -14,8 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+ * Mailster additions : (c) De Oliveira Edouard
+ * Some modifications to original code have been made in order to get
+ * efficient parsing
+ */
 package com.dumbster.smtp;
 
+import org.mailster.util.MailUtilities;
 
 /**
  * Container for a complete SMTP message - headers and message body.
@@ -23,9 +30,15 @@ package com.dumbster.smtp;
 public class SmtpMessage {
   
   /** Headers: Map of List of String hashed on header name. */
-  private SmtpHeaders headers;
+  private SmtpHeadersInterface headers;
   /** Message body. */
   private StringBuffer body;
+  
+  private SmtpMessagePart internalParts;
+  private StringBuffer rawMessage = new StringBuffer();
+  
+  private String content;
+  private String oldPreferredContentType;  
 
   /**
    * Constructor. Initializes headers Map and body buffer.
@@ -41,12 +54,24 @@ public class SmtpMessage {
    * @param params remainder of input line after SMTP command has been removed
    */
   public void store(SmtpResponse response, String params) {
+      boolean log = response.getNextState() == SmtpState.DATA_HDR || 
+      			response.getNextState() == SmtpState.DATA_BODY;
     if (params != null) {
-      if (SmtpState.DATA_HDR.equals(response.getNextState())) 
-	  headers.addHeaderLine(params);
+      if (SmtpState.DATA_HDR == response.getNextState()) 
+    	  headers.addHeaderLine(params);
       else if (SmtpState.DATA_BODY == response.getNextState()) 
-        body.append(params);      
+        body.append(params);
+      
+      if (log)
+      {
+	  rawMessage.append(params);
+	  if (response.getNextState() != SmtpState.DATA_BODY)
+		  rawMessage.append('\n');
+      }
     }
+    else
+	if (response.getNextState() == SmtpState.DATA_BODY)
+	    rawMessage.append('\n');
   }
 
   /**
@@ -74,31 +99,52 @@ public class SmtpMessage {
   public String getBody() {
     return body.toString();
   }
-
-  /**
-   * String representation of the SmtpMessage.
-   * @return a String
-   */
-  public String outputHeadersToString() {
-      return headers.toString();
+  
+  public String getRawMessage()
+  {
+      return rawMessage.toString();
   }
   
   /**
    * String representation of the SmtpMessage.
    * @return a String
    */
-  public String outputToString() {
-    StringBuffer msg = new StringBuffer(outputHeadersToString());
-    msg.append('\n').append(body).append('\n');
-    
-    return msg.toString();
-  }
-   
   public String toString() {
-      return getHeaderValue(SmtpHeaders.HEADER_SUBJECT);
-  }
+		StringBuffer msg = new StringBuffer(headers.toString());
+		msg.append('\n').append(body).append('\n');
+		return msg.toString();
+	}
 
-  public SmtpHeaders getHeaders() {
+  public SmtpHeadersInterface getHeaders() {
     return headers;
   }
+  
+	public String getDate() 
+	{
+		return MailUtilities.getNonNullHeaderValue(getHeaders(), SmtpHeadersInterface.DATE);
+	}  
+
+	public String getSubject() 
+	{
+		return MailUtilities.getNonNullHeaderValue(getHeaders(), SmtpHeadersInterface.SUBJECT);
+	}
+	
+  public SmtpMessagePart getInternalParts()
+  {
+	  if (internalParts == null)
+		  internalParts = MailUtilities.parseInternalParts(this);
+	  
+	  return internalParts;
+  }
+  
+  public String getContent(String preferredContentType)
+  {
+      if (content == null || !oldPreferredContentType.equals(preferredContentType))
+      {
+	  oldPreferredContentType = preferredContentType;
+	  content = getInternalParts().getContent(preferredContentType);	  
+      }
+      
+      return content;
+  }  
 }

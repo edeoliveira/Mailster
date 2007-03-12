@@ -14,12 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+ * Mailster additions : (c) De Oliveira Edouard
+ * Minor modifications as for example compliance with Java5.0 generics
+ */
 package com.dumbster.smtp;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -38,10 +44,15 @@ public class SimpleSmtpServer implements Runnable {
   private List<SmtpMessage> receivedMail;
 
   /**
+   * Defaut SMTP host is localhost
+   */
+  public static final String DEFAULT_SMTP_HOST = "localhost";  
+  
+  /**
    * Default SMTP port is 25.
    */
   public static final int DEFAULT_SMTP_PORT = 25;
-
+  
   /**
    * Indicates whether this server is stopped or not.
    */
@@ -58,19 +69,26 @@ public class SimpleSmtpServer implements Runnable {
   private int port = DEFAULT_SMTP_PORT;
 
   /**
+   * Hostname the server listens on
+   */
+  private String hostname = DEFAULT_SMTP_HOST;  
+  
+  /**
    * Timeout listening on server socket.
    */
   private static final int TIMEOUT = 500;
 
   /**
    * Constructor.
+   * @param hostname host name
    * @param port port number
    */
-  public SimpleSmtpServer(int port) {
+  public SimpleSmtpServer(String hostname, int port) {
     receivedMail = new ArrayList<SmtpMessage>();
+    this.hostname = hostname;
     this.port = port;
   }
-
+  
   /**
    * Main loop of the SMTP server.
    */
@@ -78,8 +96,10 @@ public class SimpleSmtpServer implements Runnable {
     try {
 
       try {
-        serverSocket = new ServerSocket(port);
+        serverSocket = new ServerSocket();
+        serverSocket.bind(new InetSocketAddress(hostname, port));
         serverSocket.setSoTimeout(TIMEOUT); // Block for maximum of 0.5 seconds
+        stopped = false;
       }
       finally {
         synchronized (this) {
@@ -88,7 +108,6 @@ public class SimpleSmtpServer implements Runnable {
         }
       }
       
-      stopped = false;
       // Server: loop until stopped
       while (!isStopped()) {
         // Start server socket and listen for client connections
@@ -121,14 +140,9 @@ public class SimpleSmtpServer implements Runnable {
     } catch (IOException ioex) {
       /** @todo Should throw an appropriate exception here. */
       throw new RuntimeException(ioex);
-    } finally {
-      if (serverSocket != null) {
-        try {
-          serverSocket.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
+    } 
+    finally { 
+    	stop();
     }
   }
 
@@ -146,13 +160,16 @@ public class SimpleSmtpServer implements Runnable {
    */
   public synchronized void stop() {
     // Mark us closed
+	  if (serverSocket != null)
+	  {
+		  try {
+	      // Kick the server accept loop
+	      serverSocket.close();
+	    } catch (IOException e) {
+	      // Ignore
+	    }
+	  }
     stopped = true;
-    try {
-      // Kick the server accept loop
-      serverSocket.close();
-    } catch (IOException e) {
-      // Ignore
-    }
   }
 
   /**
@@ -166,7 +183,9 @@ public class SimpleSmtpServer implements Runnable {
   private List<SmtpMessage> handleTransaction(PrintWriter out, BufferedReader input) throws IOException {
     // Initialize the state machine
     SmtpState smtpState = SmtpState.CONNECT;
+    SmtpRequest previous = null;
     SmtpRequest smtpRequest = new SmtpRequest(SmtpActionType.CONNECT, "", smtpState);
+    SmtpRequest request = null;
 
     // Execute the connection request
     SmtpResponse smtpResponse = smtpRequest.execute();
@@ -184,13 +203,13 @@ public class SimpleSmtpServer implements Runnable {
       if (line == null) {
         break;
       }
-      System.out.println(line);
       
       // Create request from client input and current state
-      SmtpRequest request = SmtpRequest.createRequest(line, smtpState);
+      previous = request;
+      request = SmtpRequest.createRequest(line, smtpState, previous);
       // Execute request and create response object
       SmtpResponse response = request.execute();
-      // Move to next internal state
+      // Move to next internal state      
       smtpState = response.getNextState();
       // Send reponse to client
       sendResponse(out, response);
@@ -200,7 +219,7 @@ public class SimpleSmtpServer implements Runnable {
       msg.store(response, params);
 
       // If message reception is complete save it
-      if (smtpState == SmtpState.QUIT) {
+      if (request.getAction() != SmtpActionType.NOOP && smtpState == SmtpState.QUIT) {
         msgList.add(msg);
         msg = new SmtpMessage();
       }
@@ -254,19 +273,20 @@ public class SimpleSmtpServer implements Runnable {
 
   /**
    * Creates an instance of SimpleSmtpServer and starts it.
+   * @param hostname hostname the server should listen on
    * @param port port number the server should listen to
    * @return a reference to the SMTP server
- * @throws InterruptedException 
+   * @throws InterruptedException 
    */
-  public static SimpleSmtpServer start(int port){
-    SimpleSmtpServer server = new SimpleSmtpServer(port);
+  public static SimpleSmtpServer start(String hostname, int port){
+    SimpleSmtpServer server = new SimpleSmtpServer(hostname, port);
     Thread t = new Thread(server);    
     t.setUncaughtExceptionHandler(Thread.currentThread().getUncaughtExceptionHandler());
-    t.start();
     
     // Block until the server socket is created
     synchronized (server) {
         try {
+            t.start();
 			server.wait();
 		} catch (InterruptedException e) {			
 			e.printStackTrace();
@@ -274,5 +294,15 @@ public class SimpleSmtpServer implements Runnable {
     }
     return server;
   }
+  
+  /**
+   * Creates an instance of SimpleSmtpServer and starts it. Will listen on the
+   * default hostname.
+   * @param port port number the server should listen to
+   * @return a reference to the SMTP server
+   */
+   public static SimpleSmtpServer start(int port) {
+    return start(DEFAULT_SMTP_HOST, port);
+   }  
 
 }
