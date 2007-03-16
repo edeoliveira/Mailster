@@ -228,7 +228,7 @@ public class MailView
 
             if (event.item.getData() != null)
                 openedMailsIds.remove(((SmtpMessage) event.item.getData())
-                        .getHeaderValue(SmtpHeadersInterface.MESSAGE_ID));
+                        .getMessageID());
             else
                 restore(event);
         }
@@ -348,7 +348,7 @@ public class MailView
 
     private void createMailTab(SmtpMessage msg)
     {
-        String id = msg.getHeaderValue(SmtpHeadersInterface.MESSAGE_ID);
+        String id = msg.getMessageID();
         if (!openedMailsIds.contains(id))
         {
             final CTabItem item = new CTabItem(folder, SWT.CLOSE);
@@ -400,16 +400,14 @@ public class MailView
 
     private void selectMailTab(SmtpMessage msg)
     {
-        String id = msg.getHeaderValue(SmtpHeadersInterface.MESSAGE_ID);
+        String id = msg.getMessageID();
         if (openedMailsIds.contains(id))
         {
             for (int i = 0, max = folder.getItemCount(); i < max; i++)
             {
                 if (folder.getItems()[i].getData() != null
-                        && id
-                                .equals(((SmtpMessage) folder.getItems()[i]
-                                        .getData())
-                                        .getHeaderValue(SmtpHeadersInterface.MESSAGE_ID)))
+                        && id.equals(((SmtpMessage) folder.getItems()[i]
+                                .getData()).getMessageID()))
                 {
                     folder.setSelection(folder.getItems()[i]);
                     updateFolderToolbar(msg.getInternalParts());
@@ -783,7 +781,7 @@ public class MailView
 
             if (item.getData() != null)
                 openedMailsIds.remove(((SmtpMessage) item.getData())
-                        .getHeaderValue(SmtpHeadersInterface.MESSAGE_ID));
+                        .getMessageID());
 
             item.dispose();
         }

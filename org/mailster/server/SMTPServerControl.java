@@ -13,7 +13,6 @@ import org.eclipse.swt.widgets.Display;
 import org.mailster.MailsterSWT;
 
 import com.dumbster.smtp.SimpleSmtpServer;
-import com.dumbster.smtp.SmtpHeadersInterface;
 import com.dumbster.smtp.SmtpMessage;
 
 /**
@@ -115,8 +114,7 @@ public class SMTPServerControl
                 while (it.hasNext())
                 {
                     SmtpMessage msg = (SmtpMessage) it.next();
-                    String id = msg
-                            .getHeaderValue(SmtpHeadersInterface.MESSAGE_ID);
+                    String id = msg.getMessageID();
                     if (retrievedMessages.get(id) == null)
                     {
                         retrievedMessages.put(id, msg);
