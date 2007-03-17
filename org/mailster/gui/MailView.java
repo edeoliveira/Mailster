@@ -80,6 +80,8 @@ public class MailView
 {
     private Color[] tabGradient;
 
+    private boolean forcedMozillaBrowserUse = false;
+    
     /**
      * This class provides the "drop down" functionality for our attached file
      * dropdown.
@@ -343,7 +345,10 @@ public class MailView
 
     private Browser createBrowser(Composite parent)
     {
-        return new Browser(parent, SWT.BORDER);
+        if (isForcedMozillaBrowserUse())
+            return new Browser(parent, SWT.BORDER | SWT.MOZILLA);
+        else
+            return new Browser(parent, SWT.BORDER);
     }
 
     private void createMailTab(SmtpMessage msg)
@@ -365,7 +370,7 @@ public class MailView
             sash.setOrientation(SWT.VERTICAL);
             sash.setLayoutData(gridData);
             item.setControl(sash);
-            Text hdr = createRawMailView(sash);
+            Text rawView = createRawMailView(sash);
             Browser _browser = null;
 
             try
@@ -380,7 +385,7 @@ public class MailView
             }
 
             _browser.setText(msg.getContent(preferredContentType));
-            hdr.setText(msg.getRawMessage());
+            rawView.setText(msg.getRawMessage());
 
             item.setData(msg);
             openedMailsIds.add(id);
@@ -675,12 +680,12 @@ public class MailView
             }
         });
 
-        ToolBar right = new ToolBar(folder, SWT.FILL | SWT.FLAT);
-        right.setLayoutData(new FillLayout());
+        ToolBar rightToolbar = new ToolBar(folder, SWT.FILL | SWT.FLAT);
+        rightToolbar.setLayoutData(new FillLayout());
         ToolItem home = main
                 .getSWTHelper()
                 .createToolItem(
-                        right,
+                        rightToolbar,
                         SWT.PUSH,
                         "", //$NON-NLS-1$
                         Messages.getString("MailView.home.page.tooltip"), "home.gif", false); //$NON-NLS-1$ //$NON-NLS-2$
@@ -698,7 +703,7 @@ public class MailView
         toggleView = main
                 .getSWTHelper()
                 .createToolItem(
-                        right,
+                        rightToolbar,
                         SWT.CHECK,
                         "", //$NON-NLS-1$
                         Messages.getString("MailView.toggle.tooltip"), "mail.gif", true); //$NON-NLS-1$ //$NON-NLS-2$
@@ -710,17 +715,16 @@ public class MailView
             }
         });
 
-        ToolItem item = main.getSWTHelper().createToolItem(right,
+        ToolItem item = main.getSWTHelper().createToolItem(rightToolbar,
                 SWT.FLAT | SWT.DROP_DOWN, "", "", "attach.gif", true); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        new ToolItem(right, SWT.SEPARATOR);
+        new ToolItem(rightToolbar, SWT.SEPARATOR);
         dropdownListener = new DropdownSelectionListener(item);
         item.addSelectionListener(dropdownListener);
-        folder.setTopRight(right);
+        folder.setTopRight(rightToolbar);
 
-        Display display = Display.getCurrent();
         folder.setSelectionBackground(tabGradient,
                 new int[] { 10, 20, 30, 40 }, true);
-        folder.setSelectionForeground(display.getSystemColor(SWT.COLOR_WHITE));
+        folder.setSelectionForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
     }
 
     public void showURL(String url, boolean setURLAsTitle)
@@ -800,4 +804,14 @@ public class MailView
     {
         this.preferredContentType = preferredContentType;
     }
+
+    public boolean isForcedMozillaBrowserUse()
+    {
+        return forcedMozillaBrowserUse;
+    }
+
+    public void setForcedMozillaBrowserUse(boolean forcedMozillaBrowserUse)
+    {
+        this.forcedMozillaBrowserUse = forcedMozillaBrowserUse;
+    }    
 }

@@ -74,7 +74,7 @@ import org.mailster.server.SMTPServerListener;
  */
 public class MailsterSWT
 {
-    public final static String MAILSTER_VERSION = "Mailster v0.6.0"; //$NON-NLS-1$
+    public final static String MAILSTER_VERSION = "Mailster v0.6.1"; //$NON-NLS-1$
     public final static SimpleDateFormat df = new SimpleDateFormat(
             "dd/MM/yyyy kk:mm:ss"); //$NON-NLS-1$
 
@@ -82,15 +82,18 @@ public class MailsterSWT
     private final Image trayImage = sWTHelper.loadImage("mail_earth.gif"); //$NON-NLS-1$
     private final Image stopImage = sWTHelper.loadImage("stop.gif"); //$NON-NLS-1$
     private final Image startImage = sWTHelper.loadImage("start.gif"); //$NON-NLS-1$
-
+    private final Image debugImage = sWTHelper.loadImage("startDebug.gif"); //$NON-NLS-1$
+    
     // Visual components
     private Shell sShell;
     private Text log;
     private MailView mailView;
 
     private MenuItem serverStartMenuItem;
+    private MenuItem serverDebugMenuItem;
     private MenuItem serverStopMenuItem;
     private ToolItem serverStartToolItem;
+    private ToolItem serverDebugToolItem;
     private ToolItem serverStopToolItem;
 
     private SMTPServerControl ctrl = new SMTPServerControl(this);
@@ -123,7 +126,7 @@ public class MailsterSWT
         return layout;
     }
 
-    private void createExpandBarAndMailView()
+    private void createExpandBarAndMailView(Composite parent)
     {
         GridData gridData = new GridData();
         gridData.horizontalAlignment = GridData.FILL;
@@ -131,7 +134,7 @@ public class MailsterSWT
         gridData.grabExcessVerticalSpace = true;
         gridData.verticalAlignment = GridData.FILL;
 
-        SashForm sash = new SashForm(sShell, SWT.NONE);
+        SashForm sash = new SashForm(parent, SWT.NONE);
         sash.setOrientation(SWT.HORIZONTAL);
         sash.setLayoutData(gridData);
 
@@ -162,6 +165,35 @@ public class MailsterSWT
                 getMailView().setPreferredContentType(combo.getText());
             }
         });
+
+        if (System.getProperty("os.name").toLowerCase().startsWith("win"))
+        {
+            gdata = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+            gdata.horizontalSpan = 1;
+            label = new Label(composite, SWT.WRAP);
+            label.setText(Messages
+                    .getString("MailsterSWT.preferred.browser.label")); //$NON-NLS-1$
+            label.setLayoutData(gdata);
+
+            gdata = new GridData();
+            gdata.grabExcessHorizontalSpace = true;
+            gdata.horizontalSpan = 2;
+            gdata.horizontalAlignment = GridData.FILL;
+            final Combo comboBrowser = new Combo(composite, SWT.READ_ONLY);
+            comboBrowser
+                    .setItems(new String[] {
+                            Messages.getString("MailsterSWT.default.browser"), "Mozilla/XulRunner" }); //$NON-NLS-1$ //$NON-NLS-2$
+            comboBrowser.setText(Messages
+                    .getString("MailsterSWT.default.browser")); //$NON-NLS-1$
+            comboBrowser.setLayoutData(gdata);
+            comboBrowser.addSelectionListener(new SelectionAdapter() {
+                public void widgetSelected(SelectionEvent event)
+                {
+                    getMailView().setForcedMozillaBrowserUse(
+                            comboBrowser.getSelectionIndex() != 0);
+                }
+            });
+        }
 
         gdata = new GridData();
         gdata.horizontalSpan = 2;
@@ -297,7 +329,9 @@ public class MailsterSWT
             public void widgetSelected(SelectionEvent e)
             {
                 if (e.widget == serverStartToolItem)
-                    ctrl.startServer();
+                    ctrl.startServer(false);
+                else if (e.widget == serverDebugToolItem)
+                    ctrl.startServer(true);
                 else if (e.widget == serverStopToolItem)
                     ctrl.shutdownServer(false);
             }
@@ -309,6 +343,12 @@ public class MailsterSWT
                 .getString("MailsterSWT.start.label")); //$NON-NLS-1$
         serverStartToolItem.addSelectionListener(adapter);
 
+        serverDebugToolItem = new ToolItem(toolBar, SWT.PUSH);
+        serverDebugToolItem.setImage(debugImage);
+        serverDebugToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.debug.label")); //$NON-NLS-1$
+        serverDebugToolItem.addSelectionListener(adapter);
+        
         serverStopToolItem = new ToolItem(toolBar, SWT.PUSH);
         serverStopToolItem.setImage(stopImage);
         serverStopToolItem.setEnabled(false);
@@ -346,13 +386,13 @@ public class MailsterSWT
         coolItem.setSize(coolSize);
     }
 
-    private void createLogView()
+    private void createLogView(Composite parent)
     {
         GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
         gridData.verticalAlignment = GridData.BEGINNING;
         gridData.heightHint = 60;
         gridData.grabExcessHorizontalSpace = true;
-        log = new Text(sShell, SWT.MULTI | SWT.H_SCROLL | SWT.BORDER
+        log = new Text(parent, SWT.MULTI | SWT.H_SCROLL | SWT.BORDER
                 | SWT.V_SCROLL);
         log.setLayoutData(gridData);
     }
@@ -369,10 +409,8 @@ public class MailsterSWT
     private static MailsterSWT showSplashScreen(Display display,
             final String[] args)
     {
-        final Image image = new Image(
-                display,
-                MailsterSWT.class
-                        .getResourceAsStream("/org/mailster/gui/resources/splash.png")); //$NON-NLS-1$
+        final Image image = new Image(display, MailsterSWT.class
+                .getResourceAsStream("/org/mailster/gui/resources/splash.png")); //$NON-NLS-1$
         GC gc = new GC(image);
         gc.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
         gc.drawText("Copyright (C) De Oliveira Edouard 2007", 5, //$NON-NLS-1$
@@ -405,7 +443,7 @@ public class MailsterSWT
                     e.printStackTrace();
                 }
                 splash.close();
-                image.dispose();                
+                image.dispose();
             }
         });
 
@@ -489,8 +527,20 @@ public class MailsterSWT
         sShell.setImage(trayImage);
         createSystemTray();
         createToolBar();
-        createExpandBarAndMailView();
-        createLogView();
+
+        GridData gridData = new GridData();
+        gridData.horizontalAlignment = GridData.FILL;
+        gridData.grabExcessHorizontalSpace = true;
+        gridData.grabExcessVerticalSpace = true;
+        gridData.verticalAlignment = GridData.FILL;
+
+        SashForm sash = new SashForm(sShell, SWT.NONE);
+        sash.setOrientation(SWT.VERTICAL);
+        sash.setLayoutData(gridData);
+
+        createExpandBarAndMailView(sash);
+        createLogView(sash);
+        sash.setWeights(new int[] { 80, 20 });
 
         sShell.setSize(new Point(800, 600));
         Rectangle splashRect = sShell.getBounds();
@@ -503,8 +553,10 @@ public class MailsterSWT
             public void updateUI(boolean stopped)
             {
                 serverStartMenuItem.setEnabled(stopped);
+                serverDebugMenuItem.setEnabled(stopped);
                 serverStopMenuItem.setEnabled(!stopped);
                 serverStartToolItem.setEnabled(stopped);
+                serverDebugToolItem.setEnabled(stopped);
                 serverStopToolItem.setEnabled(!stopped);
             }
 
@@ -529,7 +581,7 @@ public class MailsterSWT
         });
 
         if (ctrl.isAutoStart())
-            ctrl.startServer();
+            ctrl.startServer(System.getProperty("com.dumbster.smtp.debug") != null);
     }
 
     private void createSystemTray()
@@ -576,12 +628,16 @@ public class MailsterSWT
         serverStartMenuItem.setText(Messages
                 .getString("MailsterSWT.start.label")); //$NON-NLS-1$
         serverStartMenuItem.setImage(startImage);
+        serverDebugMenuItem = new MenuItem(menu, SWT.PUSH);
+        serverDebugMenuItem.setText(Messages
+                .getString("MailsterSWT.debug.label")); //$NON-NLS-1$
+        serverDebugMenuItem.setImage(debugImage);
         serverStopMenuItem = new MenuItem(menu, SWT.PUSH);
         serverStopMenuItem
                 .setText(Messages.getString("MailsterSWT.stop.label")); //$NON-NLS-1$
         serverStopMenuItem.setImage(stopImage);
         serverStopMenuItem.setEnabled(false);
-        new MenuItem(menu, SWT.SEPARATOR);        
+        new MenuItem(menu, SWT.SEPARATOR);
 
         final MenuItem quitMenuItem = new MenuItem(menu, SWT.PUSH);
         quitMenuItem.setText(Messages.getString("MailsterSWT.quit.menuitem")); //$NON-NLS-1$
@@ -590,7 +646,9 @@ public class MailsterSWT
             public void handleEvent(Event event)
             {
                 if (event.widget == serverStartMenuItem)
-                    ctrl.startServer();
+                    ctrl.startServer(false);
+                else if (event.widget == serverDebugMenuItem)
+                    ctrl.startServer(true);
                 else if (event.widget == serverStopMenuItem)
                     ctrl.shutdownServer(false);
                 else if (event.widget == quitMenuItem)
@@ -599,6 +657,7 @@ public class MailsterSWT
         };
 
         serverStartMenuItem.addListener(SWT.Selection, menuListener);
+        serverDebugMenuItem.addListener(SWT.Selection, menuListener);
         serverStopMenuItem.addListener(SWT.Selection, menuListener);
         quitMenuItem.addListener(SWT.Selection, menuListener);
 

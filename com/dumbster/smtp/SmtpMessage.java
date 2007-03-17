@@ -19,6 +19,9 @@ package com.dumbster.smtp;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.mailster.util.MailUtilities;
 
@@ -31,6 +34,8 @@ public class SmtpMessage
     private SmtpHeadersInterface headers;
     /** Message body. */
     private StringBuffer body;
+    /** Recipients (read from envelope) */
+    private List<String> recipients;
 
     private SmtpMessagePart internalParts;
     private StringBuffer rawMessage = new StringBuffer();
@@ -51,6 +56,7 @@ public class SmtpMessage
     {
         headers = new SmtpHeaders();
         body = new StringBuffer();
+        recipients = new LinkedList<String>();
     }
 
     /**
@@ -209,5 +215,24 @@ public class SmtpMessage
         }
 
         return content;
+    }
+
+    /**
+     * Add a recipient to the list of recipients.
+     */
+    protected void addRecipient(String recipient)
+    {
+        recipients.add(recipient);
+    }
+
+    /**
+     * Returns a List of the recipients of this message (from the SMTP
+     * envelope). Bcc recipients are consequently exposed for testing.
+     * 
+     * @return the list of recipients
+     */
+    public List<String> getRecipients()
+    {
+        return Collections.unmodifiableList(recipients);
     }
 }

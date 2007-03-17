@@ -2,6 +2,7 @@ package org.mailster.server;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import java.text.MessageFormat;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
@@ -11,6 +12,7 @@ import java.util.concurrent.ScheduledFuture;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.mailster.MailsterSWT;
+import org.mailster.gui.Messages;
 
 import com.dumbster.smtp.SimpleSmtpServer;
 import com.dumbster.smtp.SmtpMessage;
@@ -68,13 +70,13 @@ public class SMTPServerControl
             public void run()
             {
                 try
-		{
-		    Display.getDefault().asyncExec(new MailQueueObserver());
-		}
-		catch (RuntimeException e)
-		{
-		    e.printStackTrace();
-		}
+                {
+                    Display.getDefault().asyncExec(new MailQueueObserver());
+                }
+                catch (RuntimeException e)
+                {
+                    e.printStackTrace();
+                }
             }
         };
 
@@ -103,12 +105,20 @@ public class SMTPServerControl
             int queueSize = main.getMailView().getTable().getItemCount();
 
             if (server == null || server.isStopped())
-                main.log("ERROR - Server not started");
+                main.log(Messages
+                        .getString("MailsterSWT.log.server.notStarted")); //$NON-NLS-1$
             else
             {
                 int nb = server.getReceivedEmailSize() - queueSize;
-                main.log("Updating email queue (" + nb + "/"
-                        + server.getReceivedEmailSize() + " new msgs) ... ");
+                main
+                        .log(MessageFormat
+                                .format(
+                                        Messages
+                                                .getString("MailsterSWT.log.server.updated.emailQueue"),
+                                        new Object[] {
+                                                new Integer(nb),
+                                                new Integer(server
+                                                        .getReceivedEmailSize()) }));
                 Iterator it = server.getReceivedEmail();
 
                 while (it.hasNext())
@@ -198,15 +208,19 @@ public class SMTPServerControl
         (new MailQueueObserver()).run();
     }
 
-    public void startServer()
+    public void startServer(boolean debug)
     {
         retrievedMessages.clear();
         main.getMailView().getTable().removeAll();
-        server = SimpleSmtpServer.start();
+        server = SimpleSmtpServer.start(debug);
         updater.start();
         main.log(MailsterSWT.MAILSTER_VERSION
-                + " started (refresh timeout set to " + timeout
-                + " seconds) ...");
+                + (debug ? MessageFormat.format(Messages
+                        .getString("MailsterSWT.log.server.started.debugmode"),
+                        new Object[] { new Long(timeout) }) : MessageFormat
+                        .format(Messages
+                                .getString("MailsterSWT.log.server.started"),
+                                new Object[] { new Long(timeout) })));
         fireServerStateUpdated();
     }
 
@@ -218,12 +232,12 @@ public class SMTPServerControl
             if (!server.isStopped())
             {
                 server.stop();
-                main.log("Server stopped successfully");
+                main.log(Messages.getString("MailsterSWT.log.server.stopped")); //$NON-NLS-1$
             }
         }
         catch (Exception ex)
         {
-            main.log("ERROR - server failed to stop ...");
+            main.log("MailsterSWT.log.error.stopping.server"); //$NON-NLS-1$
         }
         fireServerStateUpdated();
     }

@@ -651,8 +651,7 @@ public class MailUtilities
             mPart.setHeaders(msg.getHeaders());
             mPart.setBody(msg.getBody());
         }
-        System.out
-                .println("*************************************************************");
+        debug("*************************************************************");
         debug(mPart.toString());
         return mPart;
     }
