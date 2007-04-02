@@ -43,11 +43,11 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.mailster.MailsterSWT;
+import org.mailster.smtp.SmtpHeadersInterface;
+import org.mailster.smtp.SmtpMessage;
+import org.mailster.smtp.SmtpMessagePart;
 import org.mailster.util.MailUtilities;
 
-import com.dumbster.smtp.SmtpHeadersInterface;
-import com.dumbster.smtp.SmtpMessage;
-import com.dumbster.smtp.SmtpMessagePart;
 
 /**
  * ---<br>

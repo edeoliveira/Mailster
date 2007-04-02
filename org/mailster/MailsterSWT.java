@@ -42,8 +42,8 @@ import org.mailster.gui.MailView;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.server.SMTPServerControl;
-import org.mailster.server.SMTPServerEvent;
-import org.mailster.server.SMTPServerListener;
+import org.mailster.smtp.events.SMTPServerAdapter;
+import org.mailster.smtp.events.SMTPServerEvent;
 
 /**
  * ---<br>
@@ -83,7 +83,7 @@ public class MailsterSWT
     private final Image stopImage = sWTHelper.loadImage("stop.gif"); //$NON-NLS-1$
     private final Image startImage = sWTHelper.loadImage("start.gif"); //$NON-NLS-1$
     private final Image debugImage = sWTHelper.loadImage("startDebug.gif"); //$NON-NLS-1$
-    
+
     // Visual components
     private Shell sShell;
     private Text log;
@@ -348,7 +348,7 @@ public class MailsterSWT
         serverDebugToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.debug.label")); //$NON-NLS-1$
         serverDebugToolItem.addSelectionListener(adapter);
-        
+
         serverStopToolItem = new ToolItem(toolBar, SWT.PUSH);
         serverStopToolItem.setImage(stopImage);
         serverStopToolItem.setEnabled(false);
@@ -549,7 +549,7 @@ public class MailsterSWT
         int y = (displayRect.height - splashRect.height) / 2;
         sShell.setLocation(x, y);
 
-        ctrl.addSMTPServerListener(new SMTPServerListener() {
+        ctrl.addSMTPServerListener(new SMTPServerAdapter() {
             public void updateUI(boolean stopped)
             {
                 serverStartMenuItem.setEnabled(stopped);
@@ -562,13 +562,23 @@ public class MailsterSWT
 
             public void stopped(SMTPServerEvent event)
             {
-                updateUI(true);
+                Display.getDefault().syncExec(new Thread() {
+                    public void run()
+                    {
+                        updateUI(true);
+                    }
+                });
             }
 
             public void started(SMTPServerEvent event)
             {
-                updateUI(false);
-                sShell.setMinimized(true);
+                Display.getDefault().syncExec(new Thread() {
+                    public void run()
+                    {
+                        updateUI(false);
+                        sShell.setMinimized(true);
+                    }
+                });                
             }
         });
 
@@ -581,7 +591,8 @@ public class MailsterSWT
         });
 
         if (ctrl.isAutoStart())
-            ctrl.startServer(System.getProperty("com.dumbster.smtp.debug") != null);
+            ctrl
+                    .startServer(System.getProperty("com.dumbster.smtp.debug") != null);
     }
 
     private void createSystemTray()
@@ -666,7 +677,11 @@ public class MailsterSWT
 
     public void log(String msg)
     {
-        log.append("[" + df.format(new Date()) + "] " + msg + "\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        String logMessage = "[" + df.format(new Date()) + "] " + msg + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        if (log != null)
+            log.append(logMessage);
+        else
+            System.out.println(logMessage);
     }
 
     public String getDefaultOutputDirectory()

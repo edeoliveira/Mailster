@@ -9,13 +9,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
+import org.mailster.smtp.SimpleSmtpServer;
+import org.mailster.smtp.SmtpMessage;
+import org.mailster.smtp.events.SMTPServerListener;
 
-import com.dumbster.smtp.SimpleSmtpServer;
-import com.dumbster.smtp.SmtpMessage;
 
 /**
  * ---<br>
@@ -47,8 +47,6 @@ import com.dumbster.smtp.SmtpMessage;
 public class SMTPServerControl
 {
     public final static long DEFAULT_REFRESH_TIMEOUT = 5;
-
-    SMTPServerListener[] serverListeners = new SMTPServerListener[0];
 
     private Hashtable<String, SmtpMessage> retrievedMessages = new Hashtable<String, SmtpMessage>();
     private MailQueueControl updater = new MailQueueControl();
@@ -141,66 +139,19 @@ public class SMTPServerControl
     public SMTPServerControl(MailsterSWT main)
     {
         this.main = main;
+        server = new SimpleSmtpServer();
     }
 
     public void addSMTPServerListener(SMTPServerListener listener)
     {
-        if (listener == null)
-            SWT.error(SWT.ERROR_NULL_ARGUMENT);
-
-        // add to array
-        SMTPServerListener[] newListeners = new SMTPServerListener[serverListeners.length + 1];
-        System.arraycopy(serverListeners, 0, newListeners, 0,
-                serverListeners.length);
-        serverListeners = newListeners;
-        serverListeners[serverListeners.length - 1] = listener;
+        if (server != null)
+            server.addSMTPServerListener(listener);
     }
 
     public void removeSMTPServerListener(SMTPServerListener listener)
     {
-        if (listener == null)
-            SWT.error(SWT.ERROR_NULL_ARGUMENT);
-        if (serverListeners.length == 0)
-            return;
-        int index = -1;
-        for (int i = 0; i < serverListeners.length; i++)
-        {
-            if (listener == serverListeners[i])
-            {
-                index = i;
-                break;
-            }
-        }
-        if (index == -1)
-            return;
-        if (serverListeners.length == 1)
-        {
-            serverListeners = new SMTPServerListener[0];
-            return;
-        }
-        SMTPServerListener[] newTabListeners = new SMTPServerListener[serverListeners.length - 1];
-        System.arraycopy(serverListeners, 0, newTabListeners, 0, index);
-        System.arraycopy(serverListeners, index + 1, newTabListeners, index,
-                serverListeners.length - index - 1);
-        serverListeners = newTabListeners;
-    }
-
-    public void fireServerStateUpdated()
-    {
-        Thread thread = new Thread() {
-            public void run()
-            {
-                SMTPServerEvent e = new SMTPServerEvent(this);
-                for (int i = 0; i < serverListeners.length; i++)
-                {
-                    if (isStopped())
-                        serverListeners[i].stopped(e);
-                    else
-                        serverListeners[i].started(e);
-                }
-            }
-        };
-        Display.getCurrent().syncExec(thread);
+        if (server != null)
+            server.removeSMTPServerListener(listener);
     }
 
     public void refreshEmailQueue()
@@ -212,16 +163,15 @@ public class SMTPServerControl
     {
         retrievedMessages.clear();
         main.getMailView().getTable().removeAll();
-        server = SimpleSmtpServer.start(debug);
+        server.setDebug(debug);
+        server.start();
         updater.start();
+
         main.log(MailsterSWT.MAILSTER_VERSION
-                + (debug ? MessageFormat.format(Messages
-                        .getString("MailsterSWT.log.server.started.debugmode"),
-                        new Object[] { new Long(timeout) }) : MessageFormat
-                        .format(Messages
-                                .getString("MailsterSWT.log.server.started"),
-                                new Object[] { new Long(timeout) })));
-        fireServerStateUpdated();
+                + MessageFormat.format(Messages.getString(debug
+                        ? "MailsterSWT.log.server.started.debugmode"
+                        : "MailsterSWT.log.server.started"),
+                        new Object[] { new Long(timeout) }));
     }
 
     public void shutdownServer(boolean force)
@@ -239,7 +189,6 @@ public class SMTPServerControl
         {
             main.log("MailsterSWT.log.error.stopping.server"); //$NON-NLS-1$
         }
-        fireServerStateUpdated();
     }
 
     public boolean isStopped()

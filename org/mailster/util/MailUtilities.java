@@ -18,10 +18,11 @@ import java.util.Locale;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeUtility;
 
-import com.dumbster.smtp.SmtpHeaders;
-import com.dumbster.smtp.SmtpHeadersInterface;
-import com.dumbster.smtp.SmtpMessage;
-import com.dumbster.smtp.SmtpMessagePart;
+import org.mailster.smtp.SmtpHeaders;
+import org.mailster.smtp.SmtpHeadersInterface;
+import org.mailster.smtp.SmtpMessage;
+import org.mailster.smtp.SmtpMessagePart;
+
 
 /**
  * ---<br>
@@ -69,7 +70,7 @@ public class MailUtilities
      * RFC 822 compliant date formatter
      */
     public final static SimpleDateFormat rfc822DateFormatter = new SimpleDateFormat(
-            "E, dd MMM yyyy kk:mm:ss Z", Locale.ENGLISH);
+            "E, dd MMM yyyy kk:mm:ss Z", Locale.US);
 
     /**
      * Outputs messages to System.out if debug var is true.

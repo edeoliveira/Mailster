@@ -1,4 +1,4 @@
-package org.mailster.server;
+package org.mailster.smtp.events;
 
 import java.util.EventListener;
 
@@ -34,4 +34,6 @@ public interface SMTPServerListener extends EventListener
     public void started(SMTPServerEvent event);
 
     public void stopped(SMTPServerEvent event);
+    
+    public void emailReceived(SMTPServerEvent event);
 }

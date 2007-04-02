@@ -1,6 +1,9 @@
-package org.mailster.server;
+package org.mailster.smtp.events;
 
 import java.util.EventObject;
+
+import org.mailster.smtp.SmtpMessage;
+
 
 /**
  * ---<br>
@@ -33,6 +36,8 @@ public class SMTPServerEvent extends EventObject
 {
     private static final long serialVersionUID = 6285711085999392526L;
 
+    private SmtpMessage message;
+    
     /**
      * Constructs a new instance of this class.
      * 
@@ -51,5 +56,15 @@ public class SMTPServerEvent extends EventObject
     public String toString()
     {
         return super.toString();
+    }
+
+    public SmtpMessage getMessage()
+    {
+        return message;
+    }
+
+    public void setMessage(SmtpMessage message)
+    {
+        this.message = message;
     }
 }

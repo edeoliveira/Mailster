@@ -1,4 +1,4 @@
-package com.dumbster.smtp;
+package org.mailster.smtp;
 
 import java.io.IOException;
 import java.io.OutputStream;

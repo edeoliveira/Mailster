@@ -1,4 +1,4 @@
-package com.dumbster.smtp;
+package org.mailster.smtp;
 
 import java.util.Enumeration;
 import java.util.StringTokenizer;

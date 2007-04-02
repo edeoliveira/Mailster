@@ -15,8 +15,9 @@
  * Some modifications to original code have been made in order to get efficient
  * parsing and to make bug corrections.
  */
-package com.dumbster.smtp;
+package org.mailster.smtp;
 
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
@@ -75,7 +76,23 @@ public class SmtpMessage
             if (SmtpState.DATA_HDR == response.getNextState())
                 headers.addHeaderLine(params);
             else if (SmtpState.DATA_BODY == response.getNextState())
+            {
+                String charset = getBodyCharset();
+                if (charset != null)
+                {
+                    try
+                    {
+                        params = new String(params
+                                .getBytes(SimpleSmtpServer.DEFAULT_CHARSET),
+                                charset);
+                    }
+                    catch (UnsupportedEncodingException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
                 body.append(params);
+            }
 
             if (log)
             {
@@ -218,6 +235,18 @@ public class SmtpMessage
     }
 
     /**
+     * Get the charset specified in Content-Type header.
+     * 
+     * @return charset, null if none specified.
+     */
+    public String getBodyCharset()
+    {
+        return MailUtilities.getHeaderParameterValue(headers,
+                SmtpHeadersInterface.CONTENT_TYPE,
+                SmtpHeadersInterface.CHARSET_PARAMETER);
+    }
+
+    /**
      * Add a recipient to the list of recipients.
      */
     protected void addRecipient(String recipient)
@@ -234,5 +263,26 @@ public class SmtpMessage
     public List<String> getRecipients()
     {
         return Collections.unmodifiableList(recipients);
+    }
+
+    /**
+     * Return the size of the content of this message in bytes. Return -1 if the
+     * size cannot be determined.
+     * <p>
+     * Note that this number may not be an exact measure of the content size and
+     * may or may not account for any transfer encoding of the content.
+     * <p>
+     * This implementation returns the size of the message body (if not null),
+     * otherwise, it returns -1.
+     * 
+     * @return size of content in bytes
+     */
+    public int getSize()
+    {
+        String s = getBody();
+        if (s != null)
+            return s.length();
+
+        return -1;
     }
 }

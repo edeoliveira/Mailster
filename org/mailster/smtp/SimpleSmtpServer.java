@@ -13,7 +13,7 @@
  * Mailster additions : (c) De Oliveira Edouard Minor modifications as for
  * example compliance with Java5.0 generics
  */
-package com.dumbster.smtp;
+package org.mailster.smtp;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.mailster.smtp.events.SMTPServerEvent;
+import org.mailster.smtp.events.SMTPServerListener;
+
 /**
  * Dummy SMTP server for testing purposes.
  * 
@@ -34,9 +37,9 @@ import java.util.List;
 public class SimpleSmtpServer implements Runnable
 {
     /**
-     * Output client/server commands for debugging.
+     * Output client/server commands for debugging. Off by default.
      */
-    private boolean debug;
+    private boolean debug = false;
 
     /**
      * Stores all of the email received since this instance started up.
@@ -79,11 +82,71 @@ public class SimpleSmtpServer implements Runnable
     private static final int TIMEOUT = 500;
 
     /**
-     * Constructor.
+     * Charset used when reading input on sockets.
+     */
+    protected static final String DEFAULT_CHARSET = "ISO-8859-1";
+
+    /**
+     * The listeners list.
+     */
+    private SMTPServerListener[] serverListeners = new SMTPServerListener[0];
+
+    /**
+     * Creates an instance of SimpleSmtpServer. Server will listen on the
+     * default host:port. Debug mode is off by default.
      * 
-     * @param hostname host name
-     * @param port port number
      * @param debug if true debug mode is enabled
+     * @return a reference to the SMTP server
+     */
+    public SimpleSmtpServer()
+    {
+        this(DEFAULT_SMTP_HOST, DEFAULT_SMTP_PORT, false);
+    }
+
+    /**
+     * Creates an instance of SimpleSmtpServer. Server will listen on the
+     * default host:port.
+     * 
+     * @param debug if true debug mode is enabled
+     * @return a reference to the SMTP server
+     */
+    public SimpleSmtpServer(boolean debug)
+    {
+        this(DEFAULT_SMTP_HOST, DEFAULT_SMTP_PORT, debug);
+    }
+
+    /**
+     * Creates an instance of SimpleSmtpServer. Server will listen on the
+     * default host. Debug mode is off by default.
+     * 
+     * @param port port number the server should listen to
+     * @return a reference to the SMTP server
+     */
+    public SimpleSmtpServer(int port)
+    {
+        this(DEFAULT_SMTP_HOST, port, false);
+    }
+
+    /**
+     * Creates an instance of SimpleSmtpServer. Server will listen on the
+     * default host.
+     * 
+     * @param port port number the server should listen to
+     * @param debug if true debug mode is enabled
+     * @return a reference to the SMTP server
+     */
+    public SimpleSmtpServer(int port, boolean debug)
+    {
+        this(DEFAULT_SMTP_HOST, port, debug);
+    }
+
+    /**
+     * Creates an instance of SimpleSmtpServer.
+     * 
+     * @param hostname hostname the server should listen on
+     * @param port port number the server should listen to
+     * @param debug if true debug mode is enabled
+     * @return a reference to the SMTP server
      */
     public SimpleSmtpServer(String hostname, int port, boolean debug)
     {
@@ -91,6 +154,81 @@ public class SimpleSmtpServer implements Runnable
         this.hostname = hostname;
         this.port = port;
         this.debug = debug;
+    }
+
+    public void addSMTPServerListener(SMTPServerListener listener)
+    {
+        if (listener == null)
+            throw new IllegalArgumentException("Argument is null");
+
+        // add to array
+        SMTPServerListener[] newListeners = new SMTPServerListener[serverListeners.length + 1];
+        System.arraycopy(serverListeners, 0, newListeners, 0,
+                serverListeners.length);
+        serverListeners = newListeners;
+        serverListeners[serverListeners.length - 1] = listener;
+    }
+
+    public void removeSMTPServerListener(SMTPServerListener listener)
+    {
+        if (listener == null)
+            throw new IllegalArgumentException("Argument is null");
+
+        if (serverListeners.length == 0)
+            return;
+        int index = -1;
+        for (int i = 0; i < serverListeners.length; i++)
+        {
+            if (listener == serverListeners[i])
+            {
+                index = i;
+                break;
+            }
+        }
+        if (index == -1)
+            return;
+        if (serverListeners.length == 1)
+        {
+            serverListeners = new SMTPServerListener[0];
+            return;
+        }
+        SMTPServerListener[] newTabListeners = new SMTPServerListener[serverListeners.length - 1];
+        System.arraycopy(serverListeners, 0, newTabListeners, 0, index);
+        System.arraycopy(serverListeners, index + 1, newTabListeners, index,
+                serverListeners.length - index - 1);
+        serverListeners = newTabListeners;
+    }
+
+    public void fireMessageReceived(final SmtpMessage msg)
+    {
+        Thread thread = new Thread() {
+            public void run()
+            {
+                SMTPServerEvent e = new SMTPServerEvent(this);
+                e.setMessage(msg);
+                for (int i = 0; i < serverListeners.length; i++)
+                    serverListeners[i].emailReceived(e);
+            }
+        };
+        thread.start();
+    }
+
+    public void fireServerStateUpdated()
+    {
+        Thread thread = new Thread() {
+            public void run()
+            {
+                SMTPServerEvent e = new SMTPServerEvent(this);
+                for (int i = 0; i < serverListeners.length; i++)
+                {
+                    if (isStopped())
+                        serverListeners[i].stopped(e);
+                    else
+                        serverListeners[i].started(e);
+                }
+            }
+        };
+        thread.start();
     }
 
     /**
@@ -117,6 +255,7 @@ public class SimpleSmtpServer implements Runnable
                     notifyAll();
                 }
             }
+            fireServerStateUpdated();
 
             // Server: loop until stopped
             while (!isStopped())
@@ -139,7 +278,8 @@ public class SimpleSmtpServer implements Runnable
 
                 // Get the input and output streams
                 BufferedReader input = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
+                        new InputStreamReader(socket.getInputStream(),
+                                DEFAULT_CHARSET));
                 PrintWriter out = new PrintWriter(socket.getOutputStream());
 
                 synchronized (this)
@@ -185,22 +325,27 @@ public class SimpleSmtpServer implements Runnable
      * Stops the server. Server is shutdown after processing of the current
      * request is complete.
      */
-    public synchronized void stop()
+    public void stop()
     {
-        // Mark us closed
-        if (serverSocket != null)
+        synchronized (this)
         {
-            try
+            // Mark us closed
+            if (serverSocket != null)
             {
-                // Kick the server accept loop
-                serverSocket.close();
+                try
+                {
+                    // Kick the server accept loop
+                    serverSocket.close();
+                }
+                catch (IOException e)
+                {
+                    // Ignore
+                }
             }
-            catch (IOException e)
-            {
-                // Ignore
-            }
+            stopped = true;
         }
-        stopped = true;
+
+        fireServerStateUpdated();
     }
 
     /**
@@ -265,6 +410,7 @@ public class SimpleSmtpServer implements Runnable
                     && smtpState == SmtpState.QUIT)
             {
                 msgList.add(msg);
+                fireMessageReceived(msg);
                 msg = new SmtpMessage();
             }
         }
@@ -320,72 +466,36 @@ public class SimpleSmtpServer implements Runnable
     }
 
     /**
-     * Creates an instance of SimpleSmtpServer and starts it. Will listen on the
-     * default port.
-     * 
-     * @param debug if true debug mode is enabled 
-     * @return a reference to the SMTP server
+     * Starts an instance of SimpleSmtpServer.
      */
-    public static SimpleSmtpServer start(boolean debug)
+    public void start()
     {
-        return start(DEFAULT_SMTP_PORT, debug);
-    }
-
-    /**
-     * Creates an instance of SimpleSmtpServer and starts it. Will listen on the
-     * default hostname. debug mode is off by default.
-     * 
-     * @param port port number the server should listen to
-     * @return a reference to the SMTP server
-     */
-    public static SimpleSmtpServer start(int port)
-    {
-        return start(DEFAULT_SMTP_HOST, port, false);
-    }
-    
-    /**
-     * Creates an instance of SimpleSmtpServer and starts it. Will listen on the
-     * default hostname.
-     * 
-     * @param port port number the server should listen to
-     * @param debug if true debug mode is enabled
-     * @return a reference to the SMTP server
-     */
-    public static SimpleSmtpServer start(int port, boolean debug)
-    {
-        return start(DEFAULT_SMTP_HOST, port, debug);
-    }
-    
-    /**
-     * Creates an instance of SimpleSmtpServer and starts it.
-     * 
-     * @param hostname hostname the server should listen on
-     * @param port port number the server should listen to
-     * @param debug if true debug mode is enabled
-     * 
-     * @return a reference to the SMTP server
-     * @throws InterruptedException
-     */
-    public static SimpleSmtpServer start(String hostname, int port, boolean debug)
-    {
-        SimpleSmtpServer server = new SimpleSmtpServer(hostname, port, debug);
-        Thread t = new Thread(server);
+        Thread t = new Thread(this);
         t.setUncaughtExceptionHandler(Thread.currentThread()
                 .getUncaughtExceptionHandler());
 
         // Block until the server socket is created
-        synchronized (server)
+        synchronized (this)
         {
             try
             {
                 t.start();
-                server.wait();
+                wait();
             }
             catch (InterruptedException e)
             {
                 e.printStackTrace();
             }
         }
-        return server;
+    }
+
+    public boolean isDebug()
+    {
+        return debug;
+    }
+
+    public void setDebug(boolean debug)
+    {
+        this.debug = debug;
     }
 }

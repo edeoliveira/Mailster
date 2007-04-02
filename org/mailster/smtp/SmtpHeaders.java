@@ -1,4 +1,4 @@
-package com.dumbster.smtp;
+package org.mailster.smtp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +38,9 @@ import org.mailster.util.MailUtilities;
  */
 public class SmtpHeaders implements SmtpHeadersInterface
 {
-    /** Headers: Map of List of String hashed on header name. */
+    /** 
+     * Headers: Map of List of String hashed on header name. 
+     */
     private Map<String, SmtpHeader> headers = new HashMap<String, SmtpHeader>(
             10);
     private String lastHeaderName;
@@ -151,14 +153,26 @@ public class SmtpHeaders implements SmtpHeadersInterface
             {
                 String name = line.substring(0, pos);
                 lastHeaderName = name;
-                String values = MailUtilities.decodeHeaderValue(line
-                        .substring(pos + 1));
-
-                StringTokenizer tk = new StringTokenizer(values, ";");
-                List<String> vals = new ArrayList<String>(tk.countTokens());
-
-                while (tk.hasMoreTokens())
-                    vals.add(tk.nextToken().trim());
+                List<String> vals = null;
+                
+                if (lastHeaderName.startsWith("X-"))
+                {
+                    // eXtended header so leave it intact 
+                    vals = new ArrayList<String>(1);
+                    // strips first blank character
+                    vals.add(line.substring(pos + 2));
+                }
+                else
+                {
+                    String values = MailUtilities.decodeHeaderValue(line
+                            .substring(pos + 2));
+    
+                    StringTokenizer tk = new StringTokenizer(values, ";");
+                    vals = new ArrayList<String>(tk.countTokens());
+    
+                    while (tk.hasMoreTokens())
+                        vals.add(tk.nextToken().trim());
+                }
 
                 headers.put(name, new SmtpHeader(name, vals));
             }
@@ -166,7 +180,9 @@ public class SmtpHeaders implements SmtpHeadersInterface
             {
                 // Additional header value
                 SmtpHeader h = headers.get(lastHeaderName);
-                if (SmtpHeadersInterface.SUBJECT.equals(lastHeaderName))
+                if (lastHeaderName.startsWith("X-"))
+                    h.getValues().add(line);
+                else if (SmtpHeadersInterface.SUBJECT.equals(lastHeaderName))
                     h.getValues().set(
                             0,
                             h.getValues().get(0)
