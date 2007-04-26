@@ -1,0 +1,98 @@
+#####
+Version 0.7.0 (2007-04-26) - Codename FireHawk
+
+GUI :
+- Fixed exception when closing app without shutting down the server
+- Added an advanced mail header view which exposes cc and bcc recipients
+- When clicking on an individual attached file in the list UI now tries
+  to start the shell associated program.
+- A search toolbar now offer LIVE mail filtering capabilities based on 
+  'subject', and 'to' header fields.
+- Improved table and log view look and feel.
+- Log view can now be scroll locked.
+- UI translation effort on the way ;p 
+
+CORE :
+- Fixed server socket creation : socket was listening only to localhost 
+  connections since dumbster core modifications introduced hostname binding.
+
+#####
+Version 0.6.1 (2007-04-03)
+
+GUI :
+- log view is now resizeable
+- added choice of rendering browser on windows platforms when IE
+  and mozilla/Xul are available
+- Internationalized log window messages
+- added a debug mode start
+- Fixed bug [1680783] : UI locks on email with no Message-Id header
+
+CORE :
+- Implemented RFE [1354569] : Bcc recipients are now exposed in API
+- Implemented RFE [1474894] : Provided a way to output debugging information
+  if VM argument "com.dumbster.smtp.debug" is set then debug info is output 
+  to System.err when autostart is set at command line
+- Code refactoring 
+
+DUMBSTER :
+- Event system tightly integrated into Dumbster and new emailReceived event added
+- Fixed bug [1313597] : Fix for non-ASCII charsets (like for example Japanese chars)
+  (JDK seems to be required as JRE doesn't install the additionals charset codecs
+  required for correct handling of non-ASCII charsets) based on Shinya Kasatani patch
+  proposal.
+- Fixed issue with extended headers, they're not parsed as regular headers do, leaving
+  them intact for further treatment.
+
+#####
+Version 0.6.0 (2007-03-13)
+
+Many improvements made to core and GUI !
+
+GUI :
+- splash screen added
+- added command line options to auto start server and to set default 
+  timeout for email queue refreshing
+- now fully hands over OS ressources (Colors and images)
+- improved mail view
+- added browsing capabilities to show project related web pages
+- added raw message view
+- multi language support effort started (currently supports english and french locals)
+- added column sorting in mail table
+- improved SWT browser use robustness
+
+CORE :
+- support for multipart messages related, mixed, alternative (Dumbster RFE 1059109)
+- added support for attached files handling
+- now fully supports encoded headers
+- support for preferred content-type selection
+- new & improved mail parsing code robustness
+- code refactoring & reformatting
+- documentation effort on the way 
+
+DUMBSTER :
+- Bugs 1307560, 1432371 fixed : bad CR handling in messages
+- Bug 1229248 fixed : server state now is correctly reported
+- Bug 1354564 fixed : multiple line headers handled but server 
+  fails to return exact headers format because they're interpreted 
+- Bug 1615268 fixed : calling javax.mail.Transport.isConnected() 
+  doesn't create extra msg anymore
+- Bug 1354551 fixed : no more deadlocks in SimpleSmtpServer.start()
+- Bug 1474700 fixed : using ddkilzer fix for accepting MAIL FROM after RSET
+
+- added security fix : socket is now binding to localhost by default but it is possible
+  to specify another hostname
+- rewrited some code portions to comply with Java 1.5
+- added event system to communicate with UI
+
+#####
+Version 0.2 (2007-03-01)
+
+upgraded to SWT 3.3 M5 widgets
+- much easier library loading 
+- mailster released for Linux (see README.txt for release notes)
+
+Added CHANGELOG.txt and README.txt
+
+#####
+Version 0.1 (2007-02-22)
+- initial release on sourceforge
