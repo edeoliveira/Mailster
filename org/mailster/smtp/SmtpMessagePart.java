@@ -239,8 +239,8 @@ public class SmtpMessagePart
         }
 
         String body = getDecodedBody();
-        if (body.toLowerCase().indexOf("<html>") == -1)
-            body = "<html>" + body + "</html>";
+        //if (body.toUpperCase().indexOf("<HTML>") == -1)
+        //    body = "<html>" + body + "</html>";
 
         return body;
     }

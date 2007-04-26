@@ -23,7 +23,7 @@ package org.mailster.smtp.events;
  * Web Site</a> <br>
  * ---
  * <p>
- * SMTPServerListener.java - Enter your Comment HERE.
+ * SMTPServerAdapter.java - Enter your Comment HERE.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version %I%, %G%

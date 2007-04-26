@@ -3,8 +3,8 @@ package org.mailster.server;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.text.MessageFormat;
-import java.util.Hashtable;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -14,8 +14,9 @@ import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
 import org.mailster.smtp.SimpleSmtpServer;
 import org.mailster.smtp.SmtpMessage;
+import org.mailster.smtp.events.SMTPServerAdapter;
+import org.mailster.smtp.events.SMTPServerEvent;
 import org.mailster.smtp.events.SMTPServerListener;
-
 
 /**
  * ---<br>
@@ -48,7 +49,7 @@ public class SMTPServerControl
 {
     public final static long DEFAULT_REFRESH_TIMEOUT = 5;
 
-    private Hashtable<String, SmtpMessage> retrievedMessages = new Hashtable<String, SmtpMessage>();
+    private List<SmtpMessage> receivedMessages = new ArrayList<SmtpMessage>();
     private MailQueueControl updater = new MailQueueControl();
     private SimpleSmtpServer server;
 
@@ -89,7 +90,6 @@ public class SMTPServerControl
         public void stop()
         {
             handle.cancel(false);
-            main.getMailView().getTableData().clear();
         }
     }
 
@@ -99,39 +99,22 @@ public class SMTPServerControl
         {
             if (main.getMailView().getTable().isDisposed())
                 return;
-
-            int queueSize = main.getMailView().getTable().getItemCount();
-
             if (server == null || server.isStopped())
                 main.log(Messages
                         .getString("MailsterSWT.log.server.notStarted")); //$NON-NLS-1$
             else
             {
-                int nb = server.getReceivedEmailSize() - queueSize;
                 main
                         .log(MessageFormat
                                 .format(
                                         Messages
                                                 .getString("MailsterSWT.log.server.updated.emailQueue"),
-                                        new Object[] {
-                                                new Integer(nb),
-                                                new Integer(server
-                                                        .getReceivedEmailSize()) }));
-                Iterator it = server.getReceivedEmail();
-
-                while (it.hasNext())
-                {
-                    SmtpMessage msg = (SmtpMessage) it.next();
-                    String id = msg.getMessageID();
-                    if (retrievedMessages.get(id) == null)
-                    {
-                        retrievedMessages.put(id, msg);
-                        main.getMailView().getTableData().add(msg);
-                    }
-                }
-                main.getMailView().getTable().setItemCount(
-                        main.getMailView().getTableData().size());
-                main.getMailView().getTable().clearAll();
+                                        new Object[] { new Integer(
+                                                receivedMessages.size()) }));
+                for (SmtpMessage msg : receivedMessages)
+                    main.getMailView().getDataList().add(msg);
+                
+                receivedMessages.clear();
             }
         }
     }
@@ -140,6 +123,12 @@ public class SMTPServerControl
     {
         this.main = main;
         server = new SimpleSmtpServer();
+        server.addSMTPServerListener(new SMTPServerAdapter() {
+            public void emailReceived(SMTPServerEvent event)
+            {
+                receivedMessages.add(event.getMessage());
+            }
+        });
     }
 
     public void addSMTPServerListener(SMTPServerListener listener)
@@ -161,8 +150,9 @@ public class SMTPServerControl
 
     public void startServer(boolean debug)
     {
-        retrievedMessages.clear();
-        main.getMailView().getTable().removeAll();
+        receivedMessages.clear();
+        main.getMailView().getDataList().clear();
+        server.clearQueue();
         server.setDebug(debug);
         server.start();
         updater.start();

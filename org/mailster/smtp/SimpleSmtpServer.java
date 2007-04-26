@@ -31,8 +31,6 @@ import org.mailster.smtp.events.SMTPServerListener;
 
 /**
  * Dummy SMTP server for testing purposes.
- * 
- * @todo constructor allowing user to pass preinitialized ServerSocket
  */
 public class SimpleSmtpServer implements Runnable
 {
@@ -47,9 +45,13 @@ public class SimpleSmtpServer implements Runnable
     private List<SmtpMessage> receivedMail;
 
     /**
-     * Defaut SMTP host is localhost
+     * Defaut SMTP host is null to listen on all subnets. If a hostname is
+     * specified, then server socket will ONLY listen on this particular ip
+     * address this is not the preferred default behaviour.
+     * 
+     * @see java.net.InetSocketAddress
      */
-    public static final String DEFAULT_SMTP_HOST = "localhost";
+    public static final String DEFAULT_SMTP_HOST = null;
 
     /**
      * Default SMTP port is 25.
@@ -242,9 +244,12 @@ public class SimpleSmtpServer implements Runnable
             try
             {
                 serverSocket = new ServerSocket();
-                serverSocket.bind(new InetSocketAddress(hostname, port));
+                if (hostname != null)
+                    serverSocket.bind(new InetSocketAddress(hostname, port));
+                else
+                    serverSocket.bind(new InetSocketAddress(port));
                 serverSocket.setSoTimeout(TIMEOUT); // Block for maximum of 0.5
-                                                    // seconds
+                // seconds
                 stopped = false;
             }
             finally
@@ -447,6 +452,11 @@ public class SimpleSmtpServer implements Runnable
     public synchronized Iterator getReceivedEmail()
     {
         return receivedMail.iterator();
+    }
+    
+    public synchronized void clearQueue()
+    {
+        receivedMail.clear();
     }
 
     public synchronized void copyReceivedEmailList(List<SmtpMessage> dest)

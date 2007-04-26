@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 
 import org.eclipse.swt.SWT;
@@ -15,6 +14,7 @@ import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.DisposeEvent;
@@ -28,26 +28,39 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.mailster.MailsterSWT;
+import org.mailster.gui.glazedlists.SmtpMessageTableFormat;
+import org.mailster.gui.glazedlists.swt.EventTableViewer;
+import org.mailster.gui.glazedlists.swt.TableComparatorChooser;
 import org.mailster.smtp.SmtpHeadersInterface;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.smtp.SmtpMessagePart;
 import org.mailster.util.MailUtilities;
 
+import ca.odell.glazedlists.AbstractEventList;
+import ca.odell.glazedlists.BasicEventList;
+import ca.odell.glazedlists.FilterList;
+import ca.odell.glazedlists.GlazedLists;
+import ca.odell.glazedlists.SortedList;
+import ca.odell.glazedlists.TextFilterator;
+import ca.odell.glazedlists.event.ListEvent;
+import ca.odell.glazedlists.event.ListEventListener;
+import ca.odell.glazedlists.swt.TextWidgetMatcherEditor;
 
 /**
  * ---<br>
@@ -78,10 +91,6 @@ import org.mailster.util.MailUtilities;
  */
 public class MailView
 {
-    private Color[] tabGradient;
-
-    private boolean forcedMozillaBrowserUse = false;
-    
     /**
      * This class provides the "drop down" functionality for our attached file
      * dropdown.
@@ -133,7 +142,25 @@ public class MailView
             menuItem.addSelectionListener(new SelectionAdapter() {
                 public void widgetSelected(SelectionEvent event)
                 {
-                    saveAttachedFile((SmtpMessagePart) event.widget.getData());
+                    String fileName = ((SmtpMessagePart) event.widget.getData())
+                            .getFileName();
+                    Program p = Program.findProgram(fileName.substring(fileName
+                            .lastIndexOf('.')));
+                    if (p != null)
+                    {
+                        fileName = main.getDefaultOutputDirectory()
+                                + File.separator + fileName;
+                        saveAllAttachments(
+                                new MenuItem[] { (MenuItem) event.widget },
+                                main.getDefaultOutputDirectory());
+                        main
+                                .log(Messages
+                                        .getString("MailView.execute.file") + fileName + " ..."); //$NON-NLS-1$
+                        p.execute(fileName);
+                    }
+                    else
+                        saveAttachedFile((SmtpMessagePart) event.widget
+                                .getData());
                 }
             });
         }
@@ -151,7 +178,7 @@ public class MailView
          */
         public void widgetSelected(SelectionEvent event)
         {
-            // If they clicked the arrow, we show the list
+            // If arrow is clicked then show the list
             if (event.detail == SWT.ARROW)
             {
                 // Determine where to put the dropdown list
@@ -164,7 +191,7 @@ public class MailView
             }
             else
             {
-                // They pushed the button so take appropriate action
+                // Button has been pushed so take appropriate action
                 saveAllAttachments(menu.getItems(), main
                         .getDefaultOutputDirectory());
             }
@@ -238,11 +265,16 @@ public class MailView
 
     public final static String DEFAULT_PREFERRED_CONTENT = "text/html"; //$NON-NLS-1$
 
+    private String preferredContentType = DEFAULT_PREFERRED_CONTENT;
+
     public final Image attachedFilesImage;
     public final Image mailImage;
     public final Image homeImage;
 
-    private ArrayList<SmtpMessage> tableData = new ArrayList<SmtpMessage>();
+    public final Image rawViewImage;
+    public final Image browserImage;
+
+    private SortedList<SmtpMessage> dataList;
     private ArrayList<String> openedMailsIds = new ArrayList<String>();
 
     private TableColumn to;
@@ -254,11 +286,12 @@ public class MailView
     private MailsterSWT main;
 
     private MCTabFolder2Listener folderLayoutListener;
+    private DropdownSelectionListener dropdownListener;
+
     private ToolItem toggleView;
 
-    private String preferredContentType = DEFAULT_PREFERRED_CONTENT;
-
-    private DropdownSelectionListener dropdownListener;
+    private Color[] tabGradient;
+    private boolean forcedMozillaBrowserUse = false;
 
     public MailView(Composite parent, MailsterSWT main)
     {
@@ -268,15 +301,17 @@ public class MailView
         attachedFilesImage = main.getSWTHelper().loadImage("attach.gif"); //$NON-NLS-1$
         mailImage = main.getSWTHelper().loadImage("mail_into.gif"); //$NON-NLS-1$
         homeImage = main.getSWTHelper().loadImage("home.gif"); //$NON-NLS-1$
+        rawViewImage = main.getSWTHelper().loadImage("rawView.gif"); //$NON-NLS-1$
+        browserImage = main.getSWTHelper().loadImage("mail.gif"); //$NON-NLS-1$
 
         tabGradient = main.getSWTHelper().getGradientColors(5,
                 new Color(Display.getCurrent(), 0, 84, 227),
                 new Color(Display.getCurrent(), 61, 149, 255));
 
-        createView();
+        createView(main.getFilterTextField());
     }
 
-    private void createView()
+    private void createView(Text filterTextField)
     {
         GridData gridData = new GridData();
         gridData.horizontalAlignment = GridData.FILL;
@@ -287,9 +322,9 @@ public class MailView
         SashForm sashForm = new SashForm(parent, SWT.NONE);
         sashForm.setOrientation(SWT.VERTICAL);
         sashForm.setLayoutData(gridData);
-        createTable(sashForm);
+        createTable(sashForm, filterTextField);
         createTabFolder(sashForm);
-        sashForm.setWeights(new int[] { 20, 80 });
+        sashForm.setWeights(new int[] { 30, 70 });
     }
 
     private Comparable getFieldValue(SmtpMessage msg, TableColumn selected)
@@ -353,6 +388,8 @@ public class MailView
 
     private void createMailTab(SmtpMessage msg)
     {
+        if (msg == null)
+            return;
         String id = msg.getMessageID();
         if (!openedMailsIds.contains(id))
         {
@@ -360,22 +397,42 @@ public class MailView
             item.setText(msg.getSubject());
             item.setImage(mailImage);
 
-            GridData gridData = new GridData();
-            gridData.horizontalAlignment = GridData.FILL;
-            gridData.grabExcessHorizontalSpace = true;
-            gridData.grabExcessVerticalSpace = true;
-            gridData.verticalAlignment = GridData.FILL;
+            final Composite itemComposite = new Composite(folder, SWT.NONE);
+            final StackLayout layout = new StackLayout();
+            itemComposite.setLayout(layout);
+            item.setControl(itemComposite);
 
-            SashForm sash = new SashForm(folder, SWT.NONE);
-            sash.setOrientation(SWT.VERTICAL);
-            sash.setLayoutData(gridData);
-            item.setControl(sash);
-            Text rawView = createRawMailView(sash);
+            Text rawView = createRawMailView(itemComposite);
             Browser _browser = null;
 
             try
             {
-                _browser = createBrowser(sash);
+                Composite browserComposite = new Composite(itemComposite, 0);
+                GridLayout g = new GridLayout();
+                g.marginHeight = 0;
+                g.marginWidth = 0;
+                g.horizontalSpacing = 0;
+                g.verticalSpacing = 0;
+                browserComposite.setLayout(g);
+
+                HeadersView h = new HeadersView(browserComposite, main
+                        .getSWTHelper(), msg);
+                GridData data = new GridData();
+                data.grabExcessHorizontalSpace = true;
+                data.horizontalAlignment = GridData.FILL;
+                data.verticalAlignment = GridData.BEGINNING;
+                h.getComposite().setLayoutData(data);
+
+                _browser = createBrowser(browserComposite);
+                data = new GridData();
+                data.verticalAlignment = GridData.FILL;
+                data.horizontalAlignment = GridData.FILL;
+                data.grabExcessVerticalSpace = true;
+                data.grabExcessHorizontalSpace = true;
+                _browser.setLayoutData(data);
+
+                layout.topControl = browserComposite;
+                browserComposite.layout(true);
             }
             catch (SWTError swt)
             {
@@ -405,6 +462,8 @@ public class MailView
 
     private void selectMailTab(SmtpMessage msg)
     {
+        if (msg == null)
+            return;
         String id = msg.getMessageID();
         if (openedMailsIds.contains(id))
         {
@@ -435,106 +494,39 @@ public class MailView
         }
     }
 
-    private void createTable(Composite parent)
+    @SuppressWarnings("deprecation")
+    private void createTable(Composite parent, Text filterTextField)
     {
-        table = new Table(parent, SWT.VIRTUAL | SWT.BORDER | SWT.FULL_SELECTION);
-        table.setHeaderVisible(true);
-        table.setLinesVisible(true);
-        table.setItemCount(0);
-        TableColumn attachments = new TableColumn(table, SWT.NONE);
-        attachments.setResizable(false);
-        attachments.setMoveable(true);
-        attachments.setWidth(20);
-        to = new TableColumn(table, SWT.NONE);
-        to.setText(Messages.getString("MailView.column.to")); //$NON-NLS-1$
-        to.setResizable(true);
-        to.setMoveable(true);
-        to.setWidth(100);
-        subject = new TableColumn(table, SWT.NONE);
-        subject.setText(Messages.getString("MailView.column.subject")); //$NON-NLS-1$
-        subject.setResizable(true);
-        subject.setMoveable(true);
-        subject.setWidth(100);
-        date = new TableColumn(table, SWT.NONE);
-        date.setText(Messages.getString("MailView.column.date")); //$NON-NLS-1$
-        date.setResizable(true);
-        date.setMoveable(true);
-        date.setWidth(100);
+        final Composite tableComposite = new Composite(parent, SWT.NONE);
+        GridLayout layout = new GridLayout(1, false);
+        layout.marginBottom = 0;
+        layout.marginTop = 0;
+        layout.marginRight = 0;
+        layout.marginLeft = 0;
+        layout.horizontalSpacing = 2;
+        layout.verticalSpacing = 0;
+        layout.marginHeight = 0;
+        layout.marginWidth = 0;
+        tableComposite.setLayout(layout);
 
-        Listener tableListener = new Listener() {
-            public void handleEvent(Event e)
-            {
-                if (e.type == SWT.SetData)
-                {
-                    TableItem item = (TableItem) e.item;
-                    SmtpMessage msg = (SmtpMessage) tableData.get(table
-                            .indexOf(item));
-                    String date = msg.getDate();
-                    try
-                    {
-                        date = MailsterSWT.df
-                                .format(MailUtilities.rfc822DateFormatter
-                                        .parse(date));
-                    }
-                    catch (ParseException ex)
-                    {
-                        ex.printStackTrace();
-                    }
-                    item.setText(new String[] {
-                            "", //$NON-NLS-1$
-                            msg.getHeaderValue(SmtpHeadersInterface.TO),
-                            msg.getSubject(), date });
-                    if (msg.getInternalParts().getAttachedFiles().length > 0)
-                        item.setImage(attachedFilesImage);
-                    item.setData(msg);
-                }
-                else if (e.type == SWT.DefaultSelection)
-                    createMailTab((SmtpMessage) table.getSelection()[0]
-                            .getData());
-                else if (e.type == SWT.Selection)
-                    selectMailTab((SmtpMessage) table.getSelection()[0]
-                            .getData());
-            }
-        };
+        final BasicEventList<SmtpMessage> eventList = new BasicEventList<SmtpMessage>();
+        String[] filterProperties = new String[] { "to", "subject" };
+        TextFilterator<SmtpMessage> filterator = GlazedLists
+                .textFilterator(filterProperties);
+        TextWidgetMatcherEditor matcher = new TextWidgetMatcherEditor(
+                filterTextField, filterator);
 
-        table.addListener(SWT.Selection, tableListener);
-        table.addListener(SWT.DefaultSelection, tableListener);
-        table.addListener(SWT.SetData, tableListener);
+        @SuppressWarnings("unchecked")
+        final FilterList<SmtpMessage> filterList = new FilterList<SmtpMessage>(
+                eventList, matcher);
 
-        table.addControlListener(new ControlAdapter() {
-            public void controlResized(ControlEvent e)
-            {
-                updateTableColumnsWidth();
-            }
-        });
-
-        // Add sort indicator and sort data when column selected
-        Listener sortListener = new Listener() {
-            public void handleEvent(Event e)
-            {
-                // determine new sort column and direction
-                TableColumn sortColumn = table.getSortColumn();
-                final TableColumn currentColumn = (TableColumn) e.widget;
-                int dir = table.getSortDirection();
-                if (sortColumn == currentColumn)
-                {
-                    dir = dir == SWT.UP ? SWT.DOWN : SWT.UP;
-                }
-                else
-                {
-                    table.setSortColumn(currentColumn);
-                    dir = SWT.UP;
-                }
-
-                // sort the data based on column and direction
-                final int direction = dir;
-                Collections.sort(tableData, new Comparator<SmtpMessage>() {
+        dataList = new SortedList<SmtpMessage>(filterList,
+                new Comparator<SmtpMessage>() {
                     public int compare(SmtpMessage row0, SmtpMessage row1)
                     {
                         try
                         {
-                            int result = compareTo(row0, row1, currentColumn);
-                            return direction == SWT.UP ? result : -result;
+                            return compareTo(row0, row1, table.getSortColumn());
                         }
                         catch (Exception ex)
                         {
@@ -544,27 +536,141 @@ public class MailView
                     }
                 });
 
-                // update data displayed in table
+        table = new Table(tableComposite, SWT.VIRTUAL | SWT.BORDER
+                | SWT.FULL_SELECTION);
+
+        SmtpMessageTableFormat tf = new SmtpMessageTableFormat(main
+                .getSWTHelper());
+        EventTableViewer<SmtpMessage> msgTableViewer = new EventTableViewer<SmtpMessage>(
+                dataList, table, tf);
+        TableComparatorChooser.install(msgTableViewer, dataList, false);
+
+        table.setHeaderVisible(true);
+        table.setLinesVisible(false);
+        table.setItemCount(0);
+
+        TableColumn attachments = table.getColumn(0);
+        attachments.setResizable(false);
+        attachments.setMoveable(true);
+        attachments.setWidth(20);
+
+        to = table.getColumn(1);
+        to.setResizable(true);
+        to.setMoveable(true);
+        to.setWidth(100);
+
+        subject = table.getColumn(2);
+        subject.setResizable(true);
+        subject.setMoveable(true);
+        subject.setWidth(100);
+
+        date = table.getColumn(3);
+        date.setResizable(true);
+        date.setMoveable(true);
+        date.setWidth(100);
+        date.setAlignment(SWT.RIGHT);
+
+        Listener tableListener = new Listener() {
+            public void handleEvent(Event e)
+            {
+                try
+                {
+                    if (e.type == SWT.DefaultSelection)
+                        createMailTab((SmtpMessage) table.getSelection()[0]
+                                .getData());
+                    else if (e.type == SWT.Selection)
+                        selectMailTab((SmtpMessage) table.getSelection()[0]
+                                .getData());
+                }
+                catch (SWTError ex)
+                {
+                    main.log(ex.getMessage());
+                }
+            }
+        };
+
+        table.addListener(SWT.Selection, tableListener);
+        table.addListener(SWT.DefaultSelection, tableListener);
+
+        table.addControlListener(new ControlAdapter() {
+            public void controlResized(ControlEvent e)
+            {
+                updateTableColumnsWidth();
+            }
+        });
+
+        // Add sort indicator
+        Listener sortListener = new Listener() {
+            public void handleEvent(Event e)
+            {
+                // determine new sort column and direction
+                TableColumn sortColumn = table.getSortColumn();
+                TableColumn currentColumn = (TableColumn) e.widget;
+                int dir = table.getSortDirection();
+                if (sortColumn == currentColumn)
+                {
+                    dir = dir == SWT.UP ? SWT.DOWN : (dir == SWT.DOWN
+                            ? SWT.NONE
+                            : SWT.UP);
+                }
+                else
+                {
+                    table.setSortColumn(currentColumn);
+                    dir = SWT.UP;
+                }
                 table.setSortDirection(dir);
-                table.clearAll();
             }
         };
         to.addListener(SWT.Selection, sortListener);
         subject.addListener(SWT.Selection, sortListener);
         date.addListener(SWT.Selection, sortListener);
         table.setSortColumn(to);
-        table.setSortDirection(SWT.UP);
+        table.setSortDirection(SWT.NONE);
+
+        GridData gd = new GridData(GridData.FILL_BOTH);
+        gd.grabExcessHorizontalSpace = true;
+        gd.grabExcessVerticalSpace = true;
+        table.setLayoutData(gd);
+
+        final Label countLabel = new Label(tableComposite, SWT.NONE);
+        countLabel.setText("<0/0>"); //$NON-NLS-1$
+        filterList.addListEventListener(new ListEventListener<SmtpMessage>() {
+            public void listChanged(ListEvent<SmtpMessage> arg0)
+            {
+                countLabel.setText("<" + filterList.size() + "/"
+                        + eventList.size() + ">");
+                if (filterList.size() < eventList.size())
+                    countLabel.setForeground(main.getSWTHelper().createColor(0,
+                            127, 0));
+                else
+                    countLabel.setForeground(Display.getDefault()
+                            .getSystemColor(SWT.COLOR_BLACK));
+                tableComposite.layout(true);
+            }
+        });
+
+        gd = new GridData();
+        gd.grabExcessHorizontalSpace = true;
+        gd.horizontalAlignment = GridData.END;
+        countLabel.setLayoutData(gd);
     }
 
     private void updateTableColumnsWidth()
     {
+        Rectangle area = table.getClientArea();
+        Point size = table.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+        int scroll = size.y > area.height + table.getHeaderHeight()
+                && table.getVerticalBar() != null ? table.getVerticalBar()
+                .getSize().x : 0;
+
         int w = (table.getSize().x
-                - (table.getBorderWidth() * (table.getColumnCount() - 1)) - table
-                .getColumn(0).getWidth())
+                - (table.getBorderWidth() * (table.getColumnCount() - 1))
+                - table.getColumn(0).getWidth() - scroll)
                 / (table.getColumnCount() - 1);
 
         for (int i = 1, max = table.getColumnCount(); i < max; i++)
-            table.getColumn(i).setWidth(w);
+            table.getColumn(i).setWidth(
+                    i < max - 1 ? (int) (w * 1.2) : (int) (w * 0.6));
     }
 
     private void saveAllAttachments(MenuItem[] items, String dir)
@@ -628,6 +734,13 @@ public class MailView
 
     private void setMailViewMode()
     {
+        toggleView.setHotImage(toggleView.getSelection()
+                ? rawViewImage
+                : browserImage);
+        toggleView.setToolTipText(toggleView.getSelection()
+                ? Messages.getString("MailView.toggle.toInterpretedViewTooltip")
+                : Messages.getString("MailView.toggle.toRawViewTooltip"));
+
         if (folder.getSelection() == null)
             return;
 
@@ -635,11 +748,15 @@ public class MailView
 
         if (msg == null)
             return;
-        SashForm sash = ((SashForm) folder.getSelection().getControl());
+
+        Composite c = (Composite) folder.getSelection().getControl();
+        StackLayout layout = (StackLayout) c.getLayout();
         if (toggleView.getSelection())
-            sash.setWeights(new int[] { 100, 0 });
+            layout.topControl = c.getChildren()[0];
         else
-            sash.setWeights(new int[] { 0, 100 });
+            layout.topControl = c.getChildren()[1];
+
+        c.layout();
     }
 
     private void createTabFolder(final SashForm sash)
@@ -706,7 +823,7 @@ public class MailView
                         rightToolbar,
                         SWT.CHECK,
                         "", //$NON-NLS-1$
-                        Messages.getString("MailView.toggle.tooltip"), "mail.gif", true); //$NON-NLS-1$ //$NON-NLS-2$
+                        Messages.getString("MailView.toggle.toRawViewTooltip"), "mail.gif", true); //$NON-NLS-1$ //$NON-NLS-2$
 
         toggleView.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e)
@@ -715,16 +832,21 @@ public class MailView
             }
         });
 
-        ToolItem item = main.getSWTHelper().createToolItem(rightToolbar,
-                SWT.FLAT | SWT.DROP_DOWN, "", "", "attach.gif", true); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        ToolItem item = main
+                .getSWTHelper()
+                .createToolItem(
+                        rightToolbar,
+                        SWT.FLAT | SWT.DROP_DOWN,
+                        "", Messages.getString("MailView.attach.tooltip"), "attach.gif", true); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         new ToolItem(rightToolbar, SWT.SEPARATOR);
         dropdownListener = new DropdownSelectionListener(item);
         item.addSelectionListener(dropdownListener);
+        
         folder.setTopRight(rightToolbar);
-
         folder.setSelectionBackground(tabGradient,
                 new int[] { 10, 20, 30, 40 }, true);
-        folder.setSelectionForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+        folder.setSelectionForeground(Display.getCurrent().getSystemColor(
+                SWT.COLOR_WHITE));
     }
 
     public void showURL(String url, boolean setURLAsTitle)
@@ -772,9 +894,9 @@ public class MailView
         return table;
     }
 
-    public ArrayList<SmtpMessage> getTableData()
+    public AbstractEventList<SmtpMessage> getDataList()
     {
-        return tableData;
+        return dataList;
     }
 
     public void closeAllTabs()
@@ -813,5 +935,5 @@ public class MailView
     public void setForcedMozillaBrowserUse(boolean forcedMozillaBrowserUse)
     {
         this.forcedMozillaBrowserUse = forcedMozillaBrowserUse;
-    }    
+    }
 }

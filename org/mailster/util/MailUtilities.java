@@ -1,5 +1,6 @@
 package org.mailster.util;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -22,7 +23,6 @@ import org.mailster.smtp.SmtpHeaders;
 import org.mailster.smtp.SmtpHeadersInterface;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.smtp.SmtpMessagePart;
-
 
 /**
  * ---<br>
@@ -58,7 +58,7 @@ public class MailUtilities
      * Set debug option.
      */
     public static boolean debug = false;
-    
+
     /**
      * Maximum SMTP communication line width (RFC 822 sets it to "72 or 73
      * characters" so we give some extra characters just to ensure not loosing
@@ -70,7 +70,7 @@ public class MailUtilities
      * RFC 822 compliant date formatter
      */
     public final static SimpleDateFormat rfc822DateFormatter = new SimpleDateFormat(
-            "E, dd MMM yyyy kk:mm:ss Z", Locale.US);
+            "E, dd MMM yyyy HH:mm:ss Z", Locale.US);
 
     /**
      * Outputs messages to System.out if debug var is true.
@@ -82,7 +82,7 @@ public class MailUtilities
         if (debug)
             System.out.println(msg);
     }
-    
+
     /**
      * Temporary directory name used when saving temporary data. Value is set to
      * the value of the 'java.io.tmpdir' system property.
@@ -580,8 +580,7 @@ public class MailUtilities
 
         BufferedReader mpReader = new BufferedReader(new StringReader(bodyPart
                 .toString()));
-        debug("[DEBUG] --- MULTI PART START (boundary " + boundary
-                + ") --- ");
+        debug("[DEBUG] --- MULTI PART START (boundary " + boundary + ") --- ");
 
         int i = 1;
         String line = null;
@@ -598,17 +597,16 @@ public class MailUtilities
             if (line == null || line.equals(end))
                 break;
 
-            debug("[DEBUG] --- MULTI PART " + i + " (boundary "
-                    + boundary + ") START ---");
+            debug("[DEBUG] --- MULTI PART " + i + " (boundary " + boundary
+                    + ") START ---");
             mParts.add(handleBodyPart(mpReader, parentHeaders, true));
-            debug("[DEBUG] --- MULTI PART " + i + " (boundary "
-                    + boundary + ") END ---");
+            debug("[DEBUG] --- MULTI PART " + i + " (boundary " + boundary
+                    + ") END ---");
             i++;
         }
         while (mpReader.ready());
 
-        debug("[DEBUG] --- MULTI PART END (boundary " + boundary
-                + ") ---");
+        debug("[DEBUG] --- MULTI PART END (boundary " + boundary + ") ---");
         return mParts;
     }
 
@@ -665,5 +663,95 @@ public class MailUtilities
     public static void setDebug(boolean debug)
     {
         MailUtilities.debug = debug;
-    }    
+    }
+
+    /**
+     * Returns an escaped HTML string.
+     * 
+     * @param string the string to escape
+     * @return the escaped string
+     */
+    public static String escapeHTMLString(String string)
+    {
+        StringBuffer sb = new StringBuffer(string.length());
+        boolean lastWasBlankChar = false; // true if last char was blank
+
+        for (int i = 0, len = string.length(); i < len; i++)
+        {
+            char c = string.charAt(i);
+            if (c == ' ')
+            {
+                // blank gets extra work,
+                // this solves the problem you get if you replace all
+                // blanks with &nbsp;, if you do that you loss
+                // word breaking
+                if (lastWasBlankChar)
+                    sb.append("&nbsp;");
+                else
+                    sb.append(' ');
+                lastWasBlankChar = true;
+            }
+            else
+            {
+                lastWasBlankChar = false;
+
+                // HTML Special Chars
+                if (c == '"')
+                    sb.append("&quot;");
+                else if (c == '&')
+                    sb.append("&amp;");
+                else if (c == '<')
+                    sb.append("&lt;");
+                else if (c == '>')
+                    sb.append("&gt;");
+                else if (c == '\n')
+                    // Handle Newline
+                    sb.append("&lt;br/&gt;");
+                else
+                {
+                    int ci = 0xffff & c;
+                    if (ci < 160)
+                        sb.append(c);
+                    else
+                        // Not 7 Bit use the unicode system
+                        sb.append("&#").append(new Integer(ci).toString())
+                                .append(';');
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Writes the stream to the specified directory and filename.
+     * 
+     * @param directory the directory to write to
+     * @param fileName the image file name
+     * @param in the inputstream to read from
+     * @return true if write succeeded
+     */
+    public static boolean outputStreamToFile(String directory, String fileName,
+            InputStream bin)
+    {
+        try
+        {
+            BufferedOutputStream bos = new BufferedOutputStream(
+                    new FileOutputStream(new File(directory + fileName)));
+            byte[] buffer = new byte[4096];
+
+            int nb;
+            while ((nb = bin.read(buffer)) > 0)
+                bos.write(buffer, 0, nb);
+
+            bos.flush();
+            bos.close();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -208,6 +208,11 @@ public class SmtpMessage
                 SmtpHeadersInterface.DATE);
     }
 
+    public String getTo()
+    {
+        return getHeaderValue(SmtpHeadersInterface.TO);
+    }
+    
     public String getSubject()
     {
         return MailUtilities.getNonNullHeaderValue(getHeaders(),
@@ -229,6 +234,17 @@ public class SmtpMessage
         {
             oldPreferredContentType = preferredContentType;
             content = getInternalParts().getContent(preferredContentType);
+            String upperContent = content.toUpperCase();
+            if (upperContent.indexOf("<HTML>") == -1)
+            {
+                if (upperContent.indexOf("<BODY>") == -1)
+                    content = "<html><head> <style type=\"text/css\"><!--\n" +
+                        "html,body {margin:2px;font: 10px Verdana;}" +
+                        "--></style></head><body>"
+                        + content + "</body></html>";
+                else
+                    content = "<html>"+content+"</html>";
+            }
         }
 
         return content;

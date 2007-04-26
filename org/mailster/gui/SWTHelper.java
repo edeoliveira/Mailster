@@ -1,5 +1,8 @@
 package org.mailster.gui;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -12,6 +15,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.mailster.MailsterSWT;
+import org.mailster.util.MailUtilities;
 
 /**
  * ---<br>
@@ -45,7 +49,14 @@ public class SWTHelper
     /**
      * The directory in which images and icons are stored.
      */
-    private final static String ICON_DIRECTORY = "/org/mailster/gui/resources/images/"; //$NON-NLS-1$
+    public final static String IMAGES_DIRECTORY = "/org/mailster/gui/resources/images/"; //$NON-NLS-1$
+
+    /**
+     * The temporary directory path.
+     */
+    private final String tempDir = MailUtilities.tempDirectory.replace(
+            File.separatorChar, '/')
+            + "/";
 
     /**
      * The resource tracker.
@@ -66,7 +77,7 @@ public class SWTHelper
         if (resourceTracker.get(fileName) == null)
         {
             Image i = new Image(Display.getCurrent(), MailsterSWT.class
-                    .getResourceAsStream(ICON_DIRECTORY + fileName));
+                    .getResourceAsStream(IMAGES_DIRECTORY + fileName));
 
             resourceTracker.put(fileName, i);
             return i;
@@ -157,5 +168,67 @@ public class SWTHelper
             resourceTracker.put(colors[i].getRGB().toString(), colors[i]);
         }
         return colors;
+    }
+
+    /**
+     * Creates a Color object and register in the resource tracker for later
+     * disposal.
+     * 
+     * @param r the red composant of the color
+     * @param g the green composant of the color
+     * @param b the blue composant of the color
+     * @return the generated color object
+     */
+    public Color createColor(int r, int g, int b)
+    {
+        Color c = new Color(Display.getDefault(), r, g, b);
+        resourceTracker.put(c.getRGB().toString(), c);
+        return c;
+    }
+
+    /**
+     * Returns the file URL of the image on the local temporary directory. If
+     * image isn't already created it creates it before.
+     * 
+     * @param fileName the image file name
+     * @return the url if file exists or "file:///" if file couldn't be written
+     *         to temporary directory
+     */
+    public String getImageURL(String fileName)
+    {
+        // Generate files in temporary directory if needed
+        boolean exists = (new File(tempDir + fileName)).exists();
+        if (!exists)
+            exists = writeImageToTempDirectory(fileName);
+
+        if (!exists)
+            return "file:///";
+        else
+            return "file:///" + tempDir + fileName;
+    }
+
+    /**
+     * Writes the resource image to the temporary directory.
+     * 
+     * @param fileName the image file name
+     * @return true if write succeeded
+     */
+    private boolean writeImageToTempDirectory(String fileName)
+    {
+        try
+        {
+            BufferedInputStream bin = new BufferedInputStream(SWTHelper.class
+                    .getResourceAsStream(IMAGES_DIRECTORY + fileName));
+
+            MailUtilities.outputStreamToFile(tempDir, fileName, bin);
+            bin.close();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 }
