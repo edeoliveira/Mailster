@@ -61,7 +61,8 @@ public class EventTableViewer<E> implements ListEventListener<E> {
      * contents in response to changes on the specified {@link EventList}.  The
      * {@link Table} is formatted with the specified {@link TableFormat}.
      */
-    public EventTableViewer(EventList<E> source, Table table, ExtendedTableFormat<E> tableFormat) {
+    @SuppressWarnings("unchecked")
+	public EventTableViewer(EventList<E> source, Table table, ExtendedTableFormat<E> tableFormat) {
         swtSource = (TransformedList<E, E>) GlazedListsSWT.swtThreadProxyList(source, table.getDisplay());
         disposeSource = swtSource;
 
@@ -343,6 +344,7 @@ public class EventTableViewer<E> implements ListEventListener<E> {
     /**
      * Allows manipulation of standard SWT Tables.
      */
+    @SuppressWarnings("unchecked")
     private final class DefaultTableHandler implements TableHandler {
         /**
          * Populate the Table with initial data.
@@ -389,6 +391,7 @@ public class EventTableViewer<E> implements ListEventListener<E> {
      * like providing the SetData callback method and tracking which values
      * are Virtual.
      */
+    @SuppressWarnings("unchecked")
     private final class VirtualTableHandler implements TableHandler, Listener {
 
         /** to keep track of what's been requested */

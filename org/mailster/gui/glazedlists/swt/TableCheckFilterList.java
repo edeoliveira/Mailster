@@ -35,6 +35,7 @@ import ca.odell.glazedlists.matchers.Matchers;
  *
  * @author <a href="mailto:jesse@swank.ca">Jesse Wilson</a>
  */
+@SuppressWarnings("unchecked")
 final class TableCheckFilterList<S, E> extends TransformedList<S, E> implements org.eclipse.swt.events.SelectionListener {
 
     /** filter out unchecked elements */
@@ -53,8 +54,8 @@ final class TableCheckFilterList<S, E> extends TransformedList<S, E> implements 
      * @param tableFormat if this class implements {@link CheckableTableFormat}
      *      it will be used to store check state. Otherwise check state will be
      *      stored transiently within this class' state.
-     */
-    public TableCheckFilterList(EventList<S> source, Table table, TableFormat tableFormat) {
+     */    
+	public TableCheckFilterList(EventList<S> source, Table table, TableFormat tableFormat) {
         super(new FilterList<S>(tableFormat instanceof CheckableTableFormat ? source : new CheckableWrapperList(source), Matchers.trueMatcher()));
         this.table = table;
         if(tableFormat instanceof CheckableTableFormat) {
@@ -77,8 +78,8 @@ final class TableCheckFilterList<S, E> extends TransformedList<S, E> implements 
 
     /**
      * Set the specified list element in the source list as checked.
-     */
-    private void setChecked(Object element, boolean checked) {
+     */    
+	private void setChecked(Object element, boolean checked) {
         if(checkableTableFormat != null) {
             checkableTableFormat.setChecked(element, checked);
         } else {
@@ -94,7 +95,7 @@ final class TableCheckFilterList<S, E> extends TransformedList<S, E> implements 
     /**
      * Get whether the specified element in the source list is checked.
      */
-    private boolean getChecked(Object element) {
+	private boolean getChecked(Object element) {
         if(checkableTableFormat != null) {
             return checkableTableFormat.getChecked(element);
         } else {
@@ -133,7 +134,7 @@ final class TableCheckFilterList<S, E> extends TransformedList<S, E> implements 
     /**
      * Gets a static snapshot of the checked Objects in this list.
      */
-    public List getAllChecked() {
+	public List getAllChecked() {
         List result = new ArrayList();
         for(int i = 0; i < size(); i++) {
             if(getChecked(i)) {
@@ -163,7 +164,7 @@ final class TableCheckFilterList<S, E> extends TransformedList<S, E> implements 
      * Returns the element at the specified position in this list. This unwraps
      * a {@link CheckWrapped} object from the source if necessary.
      */
-    public E get(int index) {
+	public E get(int index) {
         if(checkableTableFormat != null) {
             return super.get(index);
         } else {
@@ -234,7 +235,7 @@ final class TableCheckFilterList<S, E> extends TransformedList<S, E> implements 
      * This is because the TableCheckFilterList may not have any lists between it
      * and the EventTableViewer.
      */
-    public void addListEventListener(ListEventListener listChangeListener) {
+	public void addListEventListener(ListEventListener listChangeListener) {
         super.addListEventListener(listChangeListener);
 
         // also adjust the table's checked rows
@@ -285,12 +286,13 @@ final class TableCheckFilterList<S, E> extends TransformedList<S, E> implements 
  * All get() calls return from the mirror collection rather than from the source
  * list.
  */
+@SuppressWarnings("unchecked")
 class CheckableWrapperList extends TransformedList {
 
     /** wrapped list contains CheckWrapped elements only */
     private List wrappedSource = new ArrayList();
 
-    public CheckableWrapperList(EventList source) {
+	public CheckableWrapperList(EventList source) {
         super(source);
 
         source.getReadWriteLock().readLock().lock();
@@ -308,12 +310,12 @@ class CheckableWrapperList extends TransformedList {
      * is an instance of CheckWrapped, which is the only value that this list
      * supports.
      */
-    public Object set(int index, Object value) {
+	public Object set(int index, Object value) {
         CheckWrapped checkWrapped = (CheckWrapped)value;
         return source.set(index, checkWrapped.getWrapped());
     }
 
-    private void prepareElements() {
+	private void prepareElements() {
         for(int i = 0; i < source.size(); i++) {
             CheckWrapped checkWrapped = new CheckWrapped(source.get(i));
             wrappedSource.add(i, checkWrapped);
@@ -324,7 +326,7 @@ class CheckableWrapperList extends TransformedList {
         return wrappedSource.get(index);
     }
 
-    public void listChanged(ListEvent listChanges) {
+	public void listChanged(ListEvent listChanges) {
         updates.beginEvent();
         while(listChanges.next()) {
             int changeIndex = listChanges.getIndex();

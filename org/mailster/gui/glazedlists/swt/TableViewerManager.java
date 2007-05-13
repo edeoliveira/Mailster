@@ -55,6 +55,7 @@ import ca.odell.glazedlists.swt.GlazedListsSWT;
  * @author <a href="mailto:jplemieux@...">James Lemieux</a>
  * @author <a href="mailto:jesse@...">Jesse Wilson</a>
  */
+@SuppressWarnings("unchecked")
 public class TableViewerManager {
         /** the heavyweight TableViewer **/
         private TableViewer tableViewer;
@@ -231,7 +232,7 @@ public class TableViewerManager {
                  * @param aOldInput the old EventList
                  * @param aNewInput the new EventList
                  */
-                public void inputChanged(Viewer aViewer, Object aOldInput, Object aNewInput) {
+				public void inputChanged(Viewer aViewer, Object aOldInput, Object aNewInput) {
                         // update viewer
                         tableViewer = (TableViewer)aViewer;
                        
@@ -301,7 +302,7 @@ public class TableViewerManager {
                         return tableFormat;
                 }
                
-                public String getColumnText(Object aElement, int aColumnIndex) {
+				public String getColumnText(Object aElement, int aColumnIndex) {
                         Object cellValue = tableFormat.getColumnValue(aElement, aColumnIndex);
                         if (cellValue != null)
                                 return cellValue.toString();
@@ -333,7 +334,7 @@ public class TableViewerManager {
         /**
          * Handle common initialization for private resources we do not expose
          */
-        private void init() {
+		private void init() {
                 /**
                  * Listener for programmatic changes to the ListSelection that syncs the
                  * TableViewer's IStructuredSelection accordingly.
@@ -372,6 +373,7 @@ public class TableViewerManager {
                  * writable, and the developer installs CellEditors by calling:
                  * TableViewerManager.getTableViewer().setCellEditors(CellEditor[] editors)
                  */
+                @SuppressWarnings("unchecked")
                 final class CellModifier implements ICellModifier {
                         private WritableTableFormat format = null;
                        
@@ -379,16 +381,16 @@ public class TableViewerManager {
                                 format = aFormat;
                         }
 
-                        public boolean canModify(Object aElement, String aProperty) {
+						public boolean canModify(Object aElement, String aProperty) {
                                 int index = columnIndex(aProperty);
                                 return index != -1 ? format.isEditable(aElement, index) : false;
                         }
 
-                        public Object getValue(Object aElement, String aProperty) {
+						public Object getValue(Object aElement, String aProperty) {
                                 return format.getColumnValue(aElement, columnIndex(aProperty));
                         }
 
-                        public void modify(Object aElement, String aProperty, Object aValue) {
+						public void modify(Object aElement, String aProperty, Object aValue) {
                                 if (aElement instanceof Item)
                                  aElement = ((Item) aElement).getData();
                                
