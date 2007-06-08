@@ -29,6 +29,7 @@ import ca.odell.glazedlists.impl.gui.SortingStrategy;
  *
  * @author <a href="mailto:jesse@swank.ca">Jesse Wilson</a>
  */
+@SuppressWarnings("unchecked")
 public final class TableComparatorChooser<E> extends AbstractTableComparatorChooser<E> {
 
     private final SortingStrategy sortingStrategy;
@@ -49,11 +50,11 @@ public final class TableComparatorChooser<E> extends AbstractTableComparatorChoo
      * identical but uses a more fitting name to convey the action that is
      * performed.
      */
-    public TableComparatorChooser(EventTableViewer<E> eventTableViewer, SortedList<E> sortedList, boolean multipleColumnSort) {
-        super(sortedList, eventTableViewer.getTableFormat());
+	public TableComparatorChooser(TableViewerManager tableViewer, SortedList<E> sortedList, boolean multipleColumnSort) {
+        super(sortedList, tableViewer.getTableFormat());
 
         // save the SWT-specific state
-        this.table = eventTableViewer.getTable();
+        this.table = tableViewer.getTableViewer().getTable();
 
         // listen for events on the specified table
         for(int c = 0; c < table.getColumnCount(); c++) {
@@ -76,8 +77,8 @@ public final class TableComparatorChooser<E> extends AbstractTableComparatorChoo
      *      not as simple and this strategy should only be used where necessary.
      */
     @SuppressWarnings("deprecation")
-    public static <E> TableComparatorChooser<E> install(EventTableViewer<E> eventTableViewer, SortedList<E> sortedList, boolean multipleColumnSort) {
-        return new TableComparatorChooser<E>(eventTableViewer, sortedList,  multipleColumnSort);
+    public static <E> TableComparatorChooser<E> install(TableViewerManager tableViewer, SortedList<E> sortedList, boolean multipleColumnSort) {
+        return new TableComparatorChooser<E>(tableViewer, sortedList,  multipleColumnSort);
     }
 
     /**

@@ -1,4 +1,54 @@
 #####
+Version 0.8.0 (2007-06-08) - Codename Unicorn
+
+POP3 :
+- As HTML rendering can depend on the client emailer, i decided to include
+  a full pop3 implementation. Received mails can be retrieved on a per 
+  mailbox basis or using the special account mailbox named 
+  'pop3.all@Mailster.host.org'. The password used to retrieve any mailbox 
+  content is always the same 'pwd'. 
+  
+  The pop3 engine uses MINA high performance NIO library.
+  (see http://mina.apache.org)
+  
+GUI :
+- Added a read attribute to messages in order to provide visual information
+  on which mails were read by removing the bold attribute of the font. 
+- Fixed the table lines alternate background coloring.
+- Fixed table selection drawing.
+- Added an icon to the attachment column to provide some info on the 
+  column purpose.
+- Added an icon to the filter label.  
+- Fixed the width of the refresh spinner.
+- Information on UI events now appear on balloon tooltips over trayitem
+  icon (when supported by OS of course)
+- added a new command line argument to select UI language
+  (for example MailsterSWT -lang=PT would load UI using portuguese resource
+  bundle).
+- Internationalized mail header view.
+- Fix to prevent loosing messages while UI is updating received messages queue.
+- Added a UI button to expose CTRL+SHIFT+F4 shortcut that enables to close
+  all opened tabs at one time.
+- Refresh queue timeout modifications are now applied live. In previous versions
+  you had to restart the server to apply the new timeout value.
+- CTRL+A now selects all table elements.
+- Added POP3 options to configure port and authentication method of the POP3
+  service.
+- Added a tree filtering view that groups mail by target hosts. Also introduced a
+  trash folder where mails are moved when DEL is pressed. If Shift+DEL is pressed,
+  then mails are completely removed from UI and from the special account mailbox.
+- Added an about dialog box.     
+
+SWT :
+- Fixed Display handling. I will now use the current display if available 
+  and will revert to default one when not, except when display object 
+  is used for example to create objects like colors and fonts or in 
+  static initializations where i use direct calls to Display.getDefault().
+
+CORE :
+- Fixed SMTP server handling of clients premature disconnections.
+
+#####
 Version 0.7.0 (2007-04-26) - Codename FireHawk
 
 GUI :

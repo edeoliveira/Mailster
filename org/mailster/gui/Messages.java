@@ -1,5 +1,6 @@
 package org.mailster.gui;
 
+import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -25,19 +26,47 @@ import java.util.ResourceBundle;
  * Web Site</a> <br>
  * ---
  * <p>
- * Messages.java - Enter your Comment HERE.
+ * Messages.java - Handles localisation of UI.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version %I%, %G%
  */
 public class Messages
 {
+	/**
+	 * The current locale. Defaults to Locale.ENGLISH.
+	 */
+	private static Locale locale = Locale.ENGLISH;
+
+    /**
+     * The default ENGLISH resource bundle.
+     */
+    private static ResourceBundle defaultBundle = 
+    	ResourceBundle.getBundle("org.mailster.gui.resources.messages", locale);
+
     /**
      * The resource bundle.
      */
-    private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle
-            .getBundle("org.mailster.gui.resources.messages"); //$NON-NLS-1$
-
+    private static ResourceBundle bundle = defaultBundle;
+    
+    private Messages()
+    {
+    }
+    
+    private static void setupResourceBundle()
+    {
+		if (locale != null)
+		{
+			bundle = ResourceBundle
+    			.getBundle("org.mailster.gui.resources.messages", locale); //$NON-NLS-1$
+		
+			if (bundle == null)
+				bundle = defaultBundle;
+    	}
+		else
+			bundle = defaultBundle;
+    }
+    
     /**
      * Loads a string from the resource bundle file.
      * 
@@ -48,11 +77,38 @@ public class Messages
     {
         try
         {
-            return RESOURCE_BUNDLE.getString(key);
+        	String s = bundle.getString(key);
+            if ("".equals(s))
+            	s = defaultBundle.getString(key);
+            
+            return s;
         }
         catch (MissingResourceException e)
         {
-            return '!' + key + '!';
+        	if (bundle != defaultBundle)
+        	{
+        		try
+        		{
+        			defaultBundle.getString(key);
+        		}
+        		catch (MissingResourceException mex) {}
+        	}
+        	
+        	return "[" + key + "]";
         }
     }
+
+	public static Locale getLocale() 
+	{
+		return locale;
+	}
+
+	/**
+	 * NOTE : Will not reload the already loaded strings.
+	 */
+	public static void setLocale(Locale l) 
+	{
+		Messages.locale = l;
+		setupResourceBundle();
+	}
 }

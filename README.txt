@@ -1,6 +1,8 @@
 INSTALLATION NOTES for All platforms
 
-Correctly set the JAVA_HOME variable in the batch launch file (named
+- JAVA 1.5 is required.
+
+- Correctly set the JAVA_HOME variable in the batch launch file (named
 Mailster.bat for Windows systems and Mailster.sh for Linux).
 
 INSTALLATION NOTES for Linux

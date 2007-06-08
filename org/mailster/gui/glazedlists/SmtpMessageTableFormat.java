@@ -1,102 +1,134 @@
 package org.mailster.gui.glazedlists;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.TableItem;
 import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
-import org.mailster.gui.SWTHelper;
+import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.smtp.SmtpMessage;
-import org.mailster.util.MailUtilities;
 
-public class SmtpMessageTableFormat implements ExtendedTableFormat<SmtpMessage>
+import ca.odell.glazedlists.gui.WritableTableFormat;
+
+/**
+ * ---<br>
+ * Mailster (C) 2007 De Oliveira Edouard
+ * <p>
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * <p>
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * <p>
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 675 Mass
+ * Ave, Cambridge, MA 02139, USA.
+ * <p>
+ * See&nbsp; <a href="http://mailster.sourceforge.net" target="_parent">Mailster
+ * Web Site</a> <br>
+ * ---
+ * <p>
+ * SmtpMessageTableFormat.java - Defines columns order and values.
+ * 
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
+ * @version %I%, %G%
+ */
+public class SmtpMessageTableFormat
+    implements ExtendedTableFormat<StoredSmtpMessage>, WritableTableFormat<StoredSmtpMessage>
 {
     public final static SimpleDateFormat hourDateFormat = new SimpleDateFormat(
             "HH:mm:ss"); //$NON-NLS-1$
-    private String attachHeader, toHeader, subjectHeader, dateHeader;
-
-    private Image attachedFilesImage;
-    private Color tableRowColor;
-
-    public SmtpMessageTableFormat(SWTHelper swtHelper)
+    private String toHeader, subjectHeader, dateHeader;
+    
+    public final static int ATTACHMENT_COLUMN   = 0;
+    public final static int TO_COLUMN           = 1;
+    public final static int SUBJECT_COLUMN      = 2;
+    public final static int FLAG_COLUMN         = 3;
+    public final static int DATE_COLUMN         = 4;
+    
+    public SmtpMessageTableFormat()
     {
-        init(swtHelper);
+        init();
     }
 
-    private void init(SWTHelper swtHelper)
+    private void init()
     {
-        attachHeader = ""; //$NON-NLS-1$
         toHeader = Messages.getString("MailView.column.to"); //$NON-NLS-1$
         subjectHeader = Messages.getString("MailView.column.subject"); //$NON-NLS-1$
         dateHeader = Messages.getString("MailView.column.date"); //$NON-NLS-1$
-        attachedFilesImage = swtHelper.loadImage("attach.gif"); //$NON-NLS-1$
-        tableRowColor = swtHelper.createColor(240, 240, 255);
     }
 
     public int getColumnCount()
     {
-        return 4;
+        return 5;
     }
 
     public String getColumnName(int column)
     {
-        if (column == 0)
-            return attachHeader;
-        else if (column == 1)
+        if (column == ATTACHMENT_COLUMN)
+            return ""; //$NON-NLS-1$
+        else if (column == TO_COLUMN)
             return toHeader;
-        else if (column == 2)
+        else if (column == SUBJECT_COLUMN)
             return subjectHeader;
-        else if (column == 3)
+        else if (column == FLAG_COLUMN)
+            return ""; //$NON-NLS-1$
+        else if (column == DATE_COLUMN)
             return dateHeader;
 
         throw new IllegalStateException();
     }
 
-    public Object getColumnValue(SmtpMessage msg, int column)
+    public Object getColumnValue(StoredSmtpMessage stored, int column)
     {
-        if (column == 0)
+    	if (stored == null)
+    		return "";
+    	
+    	SmtpMessage msg = stored.getMessage();
+    	
+        if (column == ATTACHMENT_COLUMN)
             return ""; //$NON-NLS-1$
-        else if (column == 1)
+        else if (column == TO_COLUMN)
             return msg.getTo();
-        else if (column == 2)
+        else if (column == SUBJECT_COLUMN)
             return msg.getSubject();
-        else if (column == 3)
+        else if (column == FLAG_COLUMN)
+            return stored.isChecked();
+        else if (column == DATE_COLUMN)
         {
-            String date = msg.getDate();
+            Date d = stored.getInternalDate();
 
-            try
-            {
-                Date d = MailUtilities.rfc822DateFormatter.parse(date);
-                if ((int) (d.getTime() / 8.64E7) == (int) (((new Date())
-                        .getTime()) / 8.64E7))
-                    // same day
-                    date = hourDateFormat.format(d);
-                else
-                    date = MailsterSWT.df.format(d);
-            }
-            catch (ParseException ex)
-            {
-                ex.printStackTrace();
-            }
-
-            return date;
+            if ((int) (d.getTime() / 8.64E7) == (int) (((new Date())
+                    .getTime()) / 8.64E7))
+                // same day
+            	return hourDateFormat.format(d);
+            	
+            return MailsterSWT.df.format(d);
         }
 
         throw new IllegalStateException();
     }
 
-    public void setupItem(TableItem item, SmtpMessage msg, int realIndex)
+    public void setupItem(final TableItem item, StoredSmtpMessage msg, final int realIndex)
     {
-        //System.out.println(msg.getHeaderValue(SmtpInternetHeaders.TO)+" ; index = "+realIndex);
-        item.setData(msg);
-        if (msg.getInternalParts().getAttachedFiles().length > 0)
-            item.setImage(attachedFilesImage);
-        item.setData(msg);
-        if (realIndex % 2 == 1)
-            item.setBackground(tableRowColor);
+        item.setData(msg);        
     }
+
+	public boolean isEditable(StoredSmtpMessage msg, int column) 
+	{
+		return column == FLAG_COLUMN;
+	}
+
+	public StoredSmtpMessage setColumnValue(StoredSmtpMessage msg, Object obj, int column) 
+	{
+		if (column == FLAG_COLUMN)
+			msg.setChecked(((Boolean) obj).booleanValue());
+		
+		return msg;
+	}
 }

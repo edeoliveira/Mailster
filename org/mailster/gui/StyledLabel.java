@@ -31,7 +31,10 @@ import org.eclipse.swt.widgets.Display;
  * Web Site</a> <br>
  * ---
  * <p>
- * StyledLabel.java - Enter your Comment HERE.
+ * StyledLabel.java - An improved SWT Label that handles automatic styling of
+ * the label text. Currently only supports : <br>
+ * \<a\>...\<\/a\> : show a text as a fake hyperlink<br>
+ * \<b\>...\<\/b\> : set bold font<br>
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version %I%, %G%
@@ -45,7 +48,6 @@ public class StyledLabel extends StyledText
         getCaret().setVisible (false);
     }
 
-    @Override
     public void setText(String s)
     {
         if (s.indexOf("<") != -1)
@@ -100,15 +102,14 @@ public class StyledLabel extends StyledText
             super.setText(s);
     }
 
-    @Override
-    public Point computeSize(int wHint, int hHint, boolean arg2)
+    public Point computeSize(int wHint, int hHint, boolean flushCache)
     {
         return super.computeSize(wHint, hHint, true);
     }
 
-    @Override
     protected void checkSubclass()
     {
+        // Override SWT subclassing protection
         return;
     }
 }

@@ -94,11 +94,22 @@ public class SmtpMessagePart
         String encoding = headers
                 .getHeaderValue(SmtpHeadersInterface.CONTENT_TRANSFER_ENCODING);
         if (encoding == null)
-            // WARNING what is default encoding ? !
-            return "";
+            // By RFC 2045 '7bit' encoding is defined as default
+            return "7bit";
         else
             return encoding;
     }
+    
+    public String getCharset()
+    {
+        String charset = MailUtilities.getHeaderParameterValue(headers, SmtpHeadersInterface.CONTENT_TYPE,
+                    SmtpHeadersInterface.CHARSET_PARAMETER);
+        if (charset == null)
+            // By RFC 2045 us-ascii charset is defined as default
+            return "US-ASCII";
+        else
+            return charset;
+    }    
 
     public SmtpHeadersInterface getHeaders()
     {
@@ -164,23 +175,14 @@ public class SmtpMessagePart
         if (format != null && "flowed".equals(format))
             body = MailUtilities.formatFlowed(body);
         else
-        {
-            String charsetName = MailUtilities.getHeaderParameterValue(
-                    getHeaders(), SmtpHeadersInterface.CONTENT_TYPE,
-                    SmtpHeadersInterface.CHARSET_PARAMETER);
-            body = MailUtilities.decode(body, charsetName, getEncoding());
-        }
+            body = MailUtilities.decode(body, getCharset(), getEncoding());
 
         return body;
     }
 
     public void write(OutputStream os) throws IOException, MessagingException
     {
-        String charsetName = MailUtilities.getHeaderParameterValue(getHeaders(),
-                SmtpHeadersInterface.CONTENT_TYPE,
-                SmtpHeadersInterface.CHARSET_PARAMETER);
-        MailUtilities.write(os, getBody().toString(), charsetName,
-                getEncoding());
+        MailUtilities.write(os, getBody().toString(), getCharset(), getEncoding());
     }
 
     protected String getContent(String preferredContentType)

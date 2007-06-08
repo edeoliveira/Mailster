@@ -1,4 +1,4 @@
-package org.mailster.gui;
+package org.mailster.gui.views;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -23,6 +23,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.mailster.MailsterSWT;
+import org.mailster.gui.Messages;
+import org.mailster.gui.SWTHelper;
+import org.mailster.gui.StyledLabel;
 import org.mailster.smtp.SmtpHeadersInterface;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.util.MailUtilities;
@@ -49,13 +52,14 @@ import org.mailster.util.MailUtilities;
  * Web Site</a> <br>
  * ---
  * <p>
- * HeadersView.java - Enter your Comment HERE.
+ * HeadersView.java - A view that creates a mail header.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version %I%, %G%
  */
 public class HeadersView
 {
+    private static Font headerFont;
     private boolean minimized = false;
     private StyledLabel headersLabel;
     private Composite composite;
@@ -63,9 +67,16 @@ public class HeadersView
     private String fullText = "";
     private String resumeText = "";
     
-    public HeadersView(Composite parent, SWTHelper helper, SmtpMessage msg)
+    static
     {
-        createView(parent, helper, msg);
+        FontData fontData = SWTHelper.SYSTEM_FONT.getFontData()[0];
+        headerFont = new Font(Display.getDefault(), new FontData(
+                fontData.getName(), 7, fontData.getStyle()));
+    }
+    
+    public HeadersView(Composite parent, SmtpMessage msg)
+    {
+        createView(parent, msg);
     }    
     
     private static String formatEmailList(SmtpHeadersInterface headers,
@@ -78,16 +89,12 @@ public class HeadersView
     {
         StringBuffer sb = new StringBuffer();        
 
-        int count=0;
         for (String s : list)
         {
-            if (count>0)
+            if (sb.length()>0)
                 sb.append(';');
             if (s != null)
-            {
                 sb.append("<a>").append(s.trim()).append("</a>");
-                count++;
-            }
         }
         
         return sb.toString();
@@ -138,22 +145,22 @@ public class HeadersView
         }
         catch (ParseException pex) {}
         
-        sb.append("<b>Subject : ");
+        sb.append("<b>").append(Messages.getString("MailView.column.subject")).append(" : ");
         sb.append(MailUtilities.getNonNullHeaderValue(headers, SmtpHeadersInterface.SUBJECT));
         sb.append("</b>");
         resumeText = sb.toString();
         
-        sb.append("\n<b>Date : </b>");
+        sb.append("\n<b>").append(Messages.getString("MailView.column.date")).append(" : </b>");
         sb.append(date);
-        sb.append("\n<b>From : </b>");
+        sb.append("\n<b>").append(Messages.getString("MailView.column.from")).append(" : </b>");
         sb.append(formatEmailList(headers, SmtpHeadersInterface.FROM));
-        sb.append("\n<b>To : </b>");
+        sb.append("\n<b>").append(Messages.getString("MailView.column.to")).append(" : </b>");
         sb.append(formatEmailList(headers, SmtpHeadersInterface.TO));
         
         String list = formatEmailList(headers, SmtpHeadersInterface.CC);
         if (!"".equals(list))
         {
-            sb.append("\n<b>Cc : </b>");
+            sb.append("\n<b>").append(Messages.getString("MailView.column.cc")).append(" : </b>");
             sb.append(list);
         }
         
@@ -161,17 +168,17 @@ public class HeadersView
         
         if (!"".equals(list))
         {
-            sb.append("\n<b>Bcc : </b>");
+            sb.append("\n<b>").append(Messages.getString("MailView.column.bcc")).append(" : </b>");
             sb.append(list);
         }
         
         fullText = sb.toString();        
     }
     
-    public void createView(Composite parent, SWTHelper helper, SmtpMessage msg)
+    public void createView(Composite parent, SmtpMessage msg)
     {
-        final Color startColor = helper.createColor(239, 239, 255);
-        final Color endColor = helper.createColor(170, 170, 255);
+        final Color startColor = SWTHelper.createColor(243, 245, 248);
+        final Color endColor = SWTHelper.createColor(179, 192, 206);
         composite = new Composite(parent, SWT.BORDER);
         composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
         GridLayout g = new GridLayout(2, false);
@@ -183,7 +190,7 @@ public class HeadersView
         composite.addListener (SWT.Resize, new Listener () {
             public void handleEvent (Event event) {
                 Image oldImage = composite.getBackgroundImage();
-                Display display = Display.getDefault();
+                Display display = SWTHelper.getDisplay();
                 Rectangle rect = composite.getClientArea ();
                 Image newImage = new Image (display, Math.max (1, rect.width), 1);  
                 GC gc = new GC (newImage);
@@ -197,8 +204,8 @@ public class HeadersView
             }
         });
 
-        final Image minimizedImage = helper.loadImage("plus.gif");
-        final Image expandedImage = helper.loadImage("minus.gif");
+        final Image minimizedImage = SWTHelper.loadImage("plus.gif"); //$NON-NLS-1$
+        final Image expandedImage = SWTHelper.loadImage("minus.gif"); //$NON-NLS-1$
 
         final Label image = new Label(composite, 0);
         image.setImage(expandedImage);
@@ -227,9 +234,8 @@ public class HeadersView
 
         headersLabel = new StyledLabel(composite, 0);
         headersLabel.setText(fullText);
-        FontData fontData = headersLabel.getFont().getFontData()[0];
-        headersLabel.setFont(new Font(Display.getDefault(), new FontData(
-                fontData.getName(), 7, fontData.getStyle())));
+        
+        headersLabel.setFont(headerFont);
         data = new GridData();
         data.horizontalAlignment = GridData.BEGINNING;
         data.grabExcessHorizontalSpace = true;

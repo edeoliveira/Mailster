@@ -240,7 +240,6 @@ public class SimpleSmtpServer implements Runnable
     {
         try
         {
-
             try
             {
                 serverSocket = new ServerSocket();
@@ -248,8 +247,7 @@ public class SimpleSmtpServer implements Runnable
                     serverSocket.bind(new InetSocketAddress(hostname, port));
                 else
                     serverSocket.bind(new InetSocketAddress(port));
-                serverSocket.setSoTimeout(TIMEOUT); // Block for maximum of 0.5
-                // seconds
+                serverSocket.setSoTimeout(TIMEOUT); // Block for maximum of 0.5 seconds
                 stopped = false;
             }
             finally
@@ -265,50 +263,58 @@ public class SimpleSmtpServer implements Runnable
             // Server: loop until stopped
             while (!isStopped())
             {
-                // Start server socket and listen for client connections
-                Socket socket = null;
                 try
                 {
-                    socket = serverSocket.accept();
-                }
-                catch (Exception e)
-                {
-                    if (socket != null)
+                    // Start server socket and listen for client connections
+                    Socket socket = null;
+                    try
                     {
-                        socket.close();
+                        socket = serverSocket.accept();
                     }
-                    continue; // Non-blocking socket timeout occurred: try
-                    // accept() again
+                    catch (Exception e)
+                    {
+                        if (socket != null)
+                        {
+                            socket.close();
+                        }
+                        continue; // Non-blocking socket timeout occurred: try
+                        // accept() again
+                    }
+    
+                    // Get the input and output streams
+                    BufferedReader input = new BufferedReader(
+                            new InputStreamReader(socket.getInputStream(),
+                                    DEFAULT_CHARSET));
+                    PrintWriter out = new PrintWriter(socket.getOutputStream());
+    
+                    synchronized (this)
+                    {
+                        /*
+                         * We synchronize over the handle method and the list update
+                         * because the client call completes inside the handle
+                         * method and we have to prevent the client from reading the
+                         * list until we've updated it. For higher concurrency, we
+                         * could just change handle to return void and update the
+                         * list inside the method to limit the duration that we hold
+                         * the lock.
+                         */
+                        List<SmtpMessage> msgs = handleTransaction(out, input);
+                        receivedMail.addAll(msgs);
+                    }
+                    socket.close();
                 }
-
-                // Get the input and output streams
-                BufferedReader input = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream(),
-                                DEFAULT_CHARSET));
-                PrintWriter out = new PrintWriter(socket.getOutputStream());
-
-                synchronized (this)
+                catch (IOException ioex)
                 {
-                    /*
-                     * We synchronize over the handle method and the list update
-                     * because the client call completes inside the handle
-                     * method and we have to prevent the client from reading the
-                     * list until we've updated it. For higher concurrency, we
-                     * could just change handle to return void and update the
-                     * list inside the method to limit the duration that we hold
-                     * the lock.
-                     */
-                    List<SmtpMessage> msgs = handleTransaction(out, input);
-                    receivedMail.addAll(msgs);
+                    // Do not kill server if client fails
+                    ioex.printStackTrace();                    
                 }
-                socket.close();
             }
         }
         catch (IOException ioex)
         {
-            /** @todo Should throw an appropriate exception here. */
+            // Server did not start
             throw new RuntimeException(ioex);
-        }
+        }        
         finally
         {
             stop();
@@ -457,12 +463,6 @@ public class SimpleSmtpServer implements Runnable
     public synchronized void clearQueue()
     {
         receivedMail.clear();
-    }
-
-    public synchronized void copyReceivedEmailList(List<SmtpMessage> dest)
-    {
-        dest.clear();
-        dest.addAll(receivedMail);
     }
 
     /**

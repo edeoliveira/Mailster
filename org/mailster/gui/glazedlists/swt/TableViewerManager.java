@@ -7,7 +7,6 @@ package org.mailster.gui.glazedlists.swt;
 import java.util.ArrayList;
 import java.util.List;
 
-// JFace packages
 import org.eclipse.jface.viewers.ICellModifier;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -16,10 +15,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
-
-// SWT packages
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -27,8 +23,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.mailster.gui.glazedlists.tableviewerfix.FixedTableViewer;
 
-// Core GlazedList packages
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.ListSelection;
@@ -42,7 +38,7 @@ import ca.odell.glazedlists.swt.GlazedListsSWT;
  * A TableViewerManager is a decorator that binds a JFace TableViewer to an
  * EventList
  *
- * @see org.eclipse.jface.viewers.TableViewer
+ * @see org.mailster.gui.glazedlists.TableViewer
  *
  * This class is not thread-safe.  It must be used exclusively with the SWT
  * event handler thread.
@@ -58,11 +54,11 @@ import ca.odell.glazedlists.swt.GlazedListsSWT;
 @SuppressWarnings("unchecked")
 public class TableViewerManager {
         /** the heavyweight TableViewer **/
-        private TableViewer tableViewer;
+        private FixedTableViewer tableViewer;
        
         /** the list being displayed in the TableViewer **/
         private EventList sourceList;
-       
+        
         /** Specifies how to render table headers and sort */
         private TableFormat tableFormat;
        
@@ -89,17 +85,19 @@ public class TableViewerManager {
          * TableViewer.  Use the provided EventTableContentProvider and
          * EventTableLabelProvider
          */
-        public TableViewerManager(TableViewer aTableViewer, EventList aSourceList,
-                        EventTableContentProvider aContentProvider,
-                        EventTableLabelProvider aLabelProvider) {
+        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,                        
+                        EventTableLabelProvider aLabelProvider,
+                        EventTableContentProvider aContentProvider) {
                 tableViewer = aTableViewer;
                 sourceList = aSourceList;
                 tableFormat = aLabelProvider.getTableFormat();
-               
+                
                 createColumns(tableViewer.getTable());
                 tableViewer.setContentProvider(aContentProvider);
-                tableViewer.setLabelProvider(aLabelProvider);
+                tableViewer.setLabelProvider(aLabelProvider);                
                
+                tableViewer.setInput(sourceList);
+                
                 // finish the rest of the initialization
                 init();
         }
@@ -112,24 +110,24 @@ public class TableViewerManager {
          * @param aSourceList the EventList to display
          * @param aTableFormat the TableFormat to use
          */
-        public TableViewerManager(TableViewer aTableViewer, EventList aSourceList,
-                        TableFormat aTableFormat) {
-                tableViewer = aTableViewer;
-                sourceList = aSourceList;
-                tableFormat = aTableFormat;
-               
-                createColumns(tableViewer.getTable());
-                contentProvider = new EventTableContentProvider();
-                tableViewer.setContentProvider(contentProvider);
-               
-                labelProvider = new EventTableLabelProvider(tableFormat);
-                tableViewer.setLabelProvider(labelProvider);
-               
-                tableViewer.setInput(sourceList);
-               
-                // finish the rest of the initialization
-                init();
+        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,
+        			EventTableLabelProvider aLabelProvider) {                
+                this(aTableViewer, aSourceList, aLabelProvider, new EventTableContentProvider());
         }
+        
+        /**
+         * Creates a new TableViewerManager that binds an EventList to a JFace
+         * TableViewer.  The table is formatted according to the provided TableFormat.
+         *
+         * @param aTableViewer the TableViewer to display
+         * @param aSourceList the EventList to display
+         * @param aTableFormat the TableFormat to use
+         */
+        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,
+                        TableFormat aTableFormat) {
+                this(aTableViewer, aSourceList, new EventTableLabelProvider(aTableFormat), 
+                        new EventTableContentProvider());
+        }        
        
         /**
          * Creates a new TableViewerManager that binds an EventList to a JFace
@@ -141,7 +139,7 @@ public class TableViewerManager {
          * @param aPropertyNames the names of the JavaBean properties
          * @param aColumnLabels the column names displayed to the user
          */
-        public TableViewerManager(TableViewer aTableViewer, EventList aSourceList,
+        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,
                         String[] aPropertyNames, String[] aColumnLabels) {
                 this(aTableViewer, aSourceList,
                         GlazedLists.tableFormat(aPropertyNames, aColumnLabels));
@@ -163,7 +161,7 @@ public class TableViewerManager {
          * @param aColumnLabels the column names displayed to the user
          * @param aEditable indicates whether the column is editable
          */
-        public TableViewerManager(TableViewer aTableViewer, EventList aSourceList,
+        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,
                         String[] aPropertyNames, String[] aColumnLabels, boolean[] aEditable) {
                 this(aTableViewer, aSourceList,
                         GlazedLists.tableFormat(aPropertyNames, aColumnLabels, aEditable));
@@ -171,11 +169,11 @@ public class TableViewerManager {
        
         /**
          * Obtain the TableViewer that is being managed.
-         * @see org.eclipse.jface.viewers.TableViewer
+         * @see org.mailster.gui.glazedlists.TableViewer
          *
          * @return TableViewer
          */
-        public TableViewer getTableViewer() {
+        public FixedTableViewer getTableViewer() {
                 return tableViewer;
         }
        
@@ -208,7 +206,7 @@ public class TableViewerManager {
                 IStructuredContentProvider, ListEventListener {
        
                 private EventList swtSource = null;
-                private TableViewer tableViewer = null;
+                private FixedTableViewer tableViewer = null;
                
                 // Return an array of beans (rows) stored in the EventList
                 public Object[] getElements(Object aInputElements) {
@@ -234,7 +232,7 @@ public class TableViewerManager {
                  */
 				public void inputChanged(Viewer aViewer, Object aOldInput, Object aNewInput) {
                         // update viewer
-                        tableViewer = (TableViewer)aViewer;
+                        tableViewer = (FixedTableViewer)aViewer;
                        
                         // if not same input
                         if (aOldInput != aNewInput) {
@@ -254,36 +252,55 @@ public class TableViewerManager {
                         }
                 }
                
-        /**
-         * Refresh the TableViewer when the EventList changes
-         */
-        public void listChanged(ListEvent aListEvent) {
-        tableViewer.getControl().setRedraw(false);
-        try {
-                while (aListEvent.next()) {
-                    int index = aListEvent.getIndex();
-                    switch (aListEvent.getType()) {
-                        case ListEvent.INSERT:
-                            Object inserted = swtSource.get(index);
-                            tableViewer.insert(inserted, index);
-                            break;
-                        case ListEvent.DELETE:
-                            Object deleted = tableViewer.getElementAt(index);
-                            tableViewer.remove(deleted);
-                            break;
-                        case ListEvent.UPDATE:
-                            Object updated = swtSource.get(index);
-                            tableViewer.update(updated, null);
-                            break;
+                /**
+                 * Refresh the TableViewer when the EventList changes
+                 */
+                public void listChanged(ListEvent aListEvent)
+                {
+                    tableViewer.getControl().setRedraw(false);
+                    try
+                    {
+                        while (aListEvent.next())
+                        {
+                            int index = aListEvent.getIndex();
+                            switch (aListEvent.getType())
+                            {
+                                case ListEvent.INSERT :
+                                    Object inserted = swtSource.get(index);
+                                    tableViewer.insert(inserted, index);
+                                    break;
+                                case ListEvent.DELETE :
+                                	try
+                                	{
+	                                    Object deleted = swtSource.get(index); 
+	                                    //tableViewer.getElementAt(index);
+	                                    // WARNING Why the hell do i have to test this ?!
+	                                    if (deleted != null)
+	                                        tableViewer.remove(deleted);
+                                	}
+                                	catch (IndexOutOfBoundsException ex) 
+                                	{
+                                		//TOSEE silent fails from glazed lists
+                                	}
+                                    break;
+                                case ListEvent.UPDATE :
+                                    Object updated = swtSource.get(index);
+                                    tableViewer.update(updated, null);
+                                    break;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        tableViewer.getTable().setRedraw(true);
+                        tableViewer.refresh();
                     }
                 }
-        } finally {
-        tableViewer.getTable().setRedraw(true);
-        }
-        }
-       
-                public void dispose() { }
-        }
+        
+                public void dispose()
+                {
+                }
+            }
 
         /**
          * The EventTableLabelProvider specifies the contents, formatting, and
@@ -311,7 +328,7 @@ public class TableViewerManager {
                 }
                
                 public Image getColumnImage(Object aElement, int aColumnIndex) {
-                        return null;
+                	return null;
                 }
                
                 public boolean isLabelProperty(Object aElement, String aProperty) {
@@ -328,7 +345,7 @@ public class TableViewerManager {
                         listeners.remove(aListener);
                 }
                                
-                public void dispose() { }
+                public void dispose() { } 
         }
        
         /**
@@ -340,8 +357,8 @@ public class TableViewerManager {
                  * TableViewer's IStructuredSelection accordingly.
                  */
                 final class ListSelectionListener implements ListSelection.Listener {
-                        public void selectionChanged(int changeStart, int changeEnd) {
-                                if (!selectionInProgress && changeStart != -1) {
+                        public void selectionChanged(int changeStart, int changeEnd) {                            
+                                if (!selectionInProgress && changeStart != -1) {                                    
                                         selectionInProgress = true;
                                         tableViewer.setSelection(
                                                 new StructuredSelection(listSelection.getSelected()));
@@ -356,14 +373,14 @@ public class TableViewerManager {
                  */
                 final class SelectionChangedListener implements ISelectionChangedListener {
                         public void selectionChanged(SelectionChangedEvent aEvent) {
-                                if (!selectionInProgress) {
+                                if (!selectionInProgress) {                                    
                                         IStructuredSelection sSel =
                                                 (IStructuredSelection) aEvent.getSelection();
                                         selectionInProgress = true;
-                                        listSelection.deselectAll();
-                                        listSelection.select(sSel.toList());
-                                        selectionInProgress = false;
-                                }
+                                        listSelection.deselectAll();                                        
+                                        listSelection.select(sSel.toList());                                        
+                                        selectionInProgress = false;                                        
+                                }                                
                         }
                 }
 
@@ -394,7 +411,7 @@ public class TableViewerManager {
                                 if (aElement instanceof Item)
                                  aElement = ((Item) aElement).getData();
                                
-                            format.setColumnValue(aElement, aValue, columnIndex(aProperty));
+                                format.setColumnValue(aElement, aValue, columnIndex(aProperty));
                                 tableViewer.update(aElement, null);
                         }
                        
@@ -455,14 +472,14 @@ public class TableViewerManager {
          * @param aTable the table to work on
          */
         private void createColumns(Table aTable) {
-                aTable.setHeaderVisible(true);
-                aTable.setLinesVisible(true);
+            aTable.setHeaderVisible(true);
+            aTable.setLinesVisible(true);
                
-        for (int c = 0; c < tableFormat.getColumnCount(); c++) {
-            TableColumn column = new TableColumn(aTable, SWT.LEFT, c);
-            column.setText(tableFormat.getColumnName(c));
-            column.setMoveable(true);
-        }
+            for (int c = 0; c < tableFormat.getColumnCount(); c++) {
+                TableColumn column = new TableColumn(aTable, SWT.LEFT, c);
+                column.setText(tableFormat.getColumnName(c));
+                column.setMoveable(true);
+            }
         }
        
         /**

@@ -20,7 +20,6 @@ package org.mailster.smtp;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,11 +30,19 @@ import org.mailster.util.MailUtilities;
  */
 public class SmtpMessage
 {
-    /** Headers: Map of List of String hashed on header name. */
+    /** 
+     * Headers. 
+     */
     private SmtpHeadersInterface headers;
-    /** Message body. */
+    
+    /** 
+     * Message body. 
+     */
     private StringBuffer body;
-    /** Recipients (read from envelope) */
+    
+    /** 
+     * Recipients (read from envelope) 
+     */
     private List<String> recipients;
 
     private SmtpMessagePart internalParts;
@@ -278,7 +285,7 @@ public class SmtpMessage
      */
     public List<String> getRecipients()
     {
-        return Collections.unmodifiableList(recipients);
+        return recipients;
     }
 
     /**

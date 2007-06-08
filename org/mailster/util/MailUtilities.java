@@ -23,6 +23,8 @@ import org.mailster.smtp.SmtpHeaders;
 import org.mailster.smtp.SmtpHeadersInterface;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.smtp.SmtpMessagePart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ---<br>
@@ -54,11 +56,11 @@ import org.mailster.smtp.SmtpMessagePart;
  */
 public class MailUtilities
 {
-    /**
-     * Set debug option.
+    /** 
+     * Log object for this class. 
      */
-    public static boolean debug = false;
-
+    private static final Logger LOG = LoggerFactory.getLogger(MailUtilities.class);
+    
     /**
      * Maximum SMTP communication line width (RFC 822 sets it to "72 or 73
      * characters" so we give some extra characters just to ensure not loosing
@@ -71,17 +73,6 @@ public class MailUtilities
      */
     public final static SimpleDateFormat rfc822DateFormatter = new SimpleDateFormat(
             "E, dd MMM yyyy HH:mm:ss Z", Locale.US);
-
-    /**
-     * Outputs messages to System.out if debug var is true.
-     * 
-     * @param msg the message to be output
-     */
-    public static void debug(String msg)
-    {
-        if (debug)
-            System.out.println(msg);
-    }
 
     /**
      * Temporary directory name used when saving temporary data. Value is set to
@@ -466,9 +457,9 @@ public class MailUtilities
         SmtpHeadersInterface headers = new SmtpHeaders();
         SmtpMessagePart mPart = new SmtpMessagePart();
 
-        debug("[DEBUG] --- BODY PART START ---");
+        LOG.debug("[DEBUG] --- BODY PART START ---");
         if (isHeader)
-            debug("[DEBUG] --- Header start ---");
+            LOG.debug("[DEBUG] --- Header start ---");
         while (reader.ready())
         {
             reader.mark(MAX_LINE_LENGTH);
@@ -479,28 +470,28 @@ public class MailUtilities
                 if ("".equals(line))
                 {
                     isHeader = false;
-                    debug("[DEBUG] --- Header end ---");
+                    LOG.debug("[DEBUG] --- Header end ---");
 
                     mPart.setHeaders(headers);
                     if (isMultiPart(headers))
                     {
                         mPart.setBoundary(getPartBoundary(headers));
                         mPart.setParts(handleMultiPart(reader, headers));
-                        debug("[DEBUG] --- BODY PART END ---");
+                        LOG.debug("[DEBUG] --- BODY PART END ---");
                         return mPart;
                     }
                     if (isMessagePart(headers))
                     {
                         handleRFC822MessagePart(reader, mPart,
                                 getPartBoundary(parentHeaders));
-                        debug("[DEBUG] --- BODY PART END ---");
+                        LOG.debug("[DEBUG] --- BODY PART END ---");
                         return mPart;
                     }
                 }
                 else
                     headers.addHeaderLine(line);
 
-                debug(line);
+                LOG.debug(line);
             }
             else if (line == null || line.startsWith("--"))
             {
@@ -514,8 +505,8 @@ public class MailUtilities
             }
         }
 
-        debug(mPart.getBody().toString());
-        debug("[DEBUG] --- BODY PART END ---");
+        LOG.debug(mPart.getBody().toString());
+        LOG.debug("[DEBUG] --- BODY PART END ---");
         return mPart;
     }
 
@@ -546,7 +537,7 @@ public class MailUtilities
             }
         }
 
-        debug(part.getBody().toString());
+        LOG.debug(part.getBody().toString());
     }
 
     /**
@@ -580,7 +571,7 @@ public class MailUtilities
 
         BufferedReader mpReader = new BufferedReader(new StringReader(bodyPart
                 .toString()));
-        debug("[DEBUG] --- MULTI PART START (boundary " + boundary + ") --- ");
+        LOG.debug("[DEBUG] --- MULTI PART START (boundary " + boundary + ") --- ");
 
         int i = 1;
         String line = null;
@@ -591,22 +582,22 @@ public class MailUtilities
                 line = mpReader.readLine();
                 if (line == null || line.indexOf(boundary) >= 0)
                     break;
-                debug(line);
+                LOG.debug(line);
             }
 
             if (line == null || line.equals(end))
                 break;
 
-            debug("[DEBUG] --- MULTI PART " + i + " (boundary " + boundary
+            LOG.debug("[DEBUG] --- MULTI PART " + i + " (boundary " + boundary
                     + ") START ---");
             mParts.add(handleBodyPart(mpReader, parentHeaders, true));
-            debug("[DEBUG] --- MULTI PART " + i + " (boundary " + boundary
+            LOG.debug("[DEBUG] --- MULTI PART " + i + " (boundary " + boundary
                     + ") END ---");
             i++;
         }
         while (mpReader.ready());
 
-        debug("[DEBUG] --- MULTI PART END (boundary " + boundary + ") ---");
+        LOG.debug("[DEBUG] --- MULTI PART END (boundary " + boundary + ") ---");
         return mParts;
     }
 
@@ -619,9 +610,9 @@ public class MailUtilities
      */
     public static SmtpMessagePart parseInternalParts(SmtpMessage msg)
     {
-        debug("[DEBUG] --- MAIL ---");
-        debug(msg.getBody());
-        debug("[DEBUG] --- END MAIL ---\n\n");
+        LOG.debug("[DEBUG] --- MAIL ---");
+        LOG.debug(msg.getBody());
+        LOG.debug("[DEBUG] --- END MAIL ---\n\n");
 
         SmtpMessagePart mPart = null;
 
@@ -629,7 +620,7 @@ public class MailUtilities
         {
             BufferedReader reader = new BufferedReader(new StringReader(msg
                     .getBody()));
-            debug("[DEBUG] --- MAIL BODY PARSING START ---");
+            LOG.debug("[DEBUG] --- MAIL BODY PARSING START ---");
 
             if (isMultiPart(msg.getHeaders()))
             {
@@ -641,7 +632,7 @@ public class MailUtilities
                 mPart = handleBodyPart(reader, msg.getHeaders(), false);
 
             mPart.setHeaders(msg.getHeaders());
-            debug("[DEBUG] --- MAIL BODY PARSING END ---");
+            LOG.debug("[DEBUG] --- MAIL BODY PARSING END ---");
         }
         catch (Exception ex)
         {
@@ -650,19 +641,9 @@ public class MailUtilities
             mPart.setHeaders(msg.getHeaders());
             mPart.setBody(msg.getBody());
         }
-        debug("*************************************************************");
-        debug(mPart.toString());
+        LOG.debug("*************************************************************");
+        LOG.debug(mPart.toString());
         return mPart;
-    }
-
-    /**
-     * Set debug var value.
-     * 
-     * @param debug the value to which debug var will be set.
-     */
-    public static void setDebug(boolean debug)
-    {
-        MailUtilities.debug = debug;
     }
 
     /**
