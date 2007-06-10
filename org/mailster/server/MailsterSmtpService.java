@@ -163,6 +163,7 @@ public class MailsterSmtpService
 		}
         
         server = new SimpleSmtpServer();
+        server.setInternalStoreActivated(false);
         server.addSMTPServerListener(new SMTPServerAdapter() {
             public void emailReceived(SMTPServerEvent event)
             {

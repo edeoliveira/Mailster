@@ -40,6 +40,12 @@ public class SimpleSmtpServer implements Runnable
     private boolean debug = false;
 
     /**
+     * Activates/deactivates internal storage of received mails. Activated 
+     * by default.
+     */
+    private boolean internalStoreActivated = true;
+    
+    /**
      * Stores all of the email received since this instance started up.
      */
     private List<SmtpMessage> receivedMail;
@@ -152,7 +158,6 @@ public class SimpleSmtpServer implements Runnable
      */
     public SimpleSmtpServer(String hostname, int port, boolean debug)
     {
-        receivedMail = new ArrayList<SmtpMessage>();
         this.hostname = hostname;
         this.port = port;
         this.debug = debug;
@@ -238,6 +243,9 @@ public class SimpleSmtpServer implements Runnable
      */
     public void run()
     {
+    	if (receivedMail == null && isInternalStoreActivated())        
+    		receivedMail = new ArrayList<SmtpMessage>();
+
         try
         {
             try
@@ -299,7 +307,8 @@ public class SimpleSmtpServer implements Runnable
                          * the lock.
                          */
                         List<SmtpMessage> msgs = handleTransaction(out, input);
-                        receivedMail.addAll(msgs);
+                        if (isInternalStoreActivated())
+                        	receivedMail.addAll(msgs);
                     }
                     socket.close();
                 }
@@ -457,11 +466,17 @@ public class SimpleSmtpServer implements Runnable
      */
     public synchronized Iterator getReceivedEmail()
     {
+    	if (!isInternalStoreActivated())
+    		throw new IllegalStateException("Internal store not activated !");
+    	
         return receivedMail.iterator();
     }
     
     public synchronized void clearQueue()
     {
+    	if (!isInternalStoreActivated())
+    		throw new IllegalStateException("Internal store not activated !");
+    	
         receivedMail.clear();
     }
 
@@ -472,6 +487,9 @@ public class SimpleSmtpServer implements Runnable
      */
     public synchronized int getReceivedEmailSize()
     {
+    	if (!isInternalStoreActivated())
+    		throw new IllegalStateException("Internal store not activated !");
+    	
         return receivedMail.size();
     }
 
@@ -508,4 +526,14 @@ public class SimpleSmtpServer implements Runnable
     {
         this.debug = debug;
     }
+    
+    public boolean isInternalStoreActivated() 
+    {
+		return internalStoreActivated;
+	}
+    
+    public void setInternalStoreActivated(boolean internalStoreActivated) 
+    {
+		this.internalStoreActivated = internalStoreActivated;
+	}
 }
