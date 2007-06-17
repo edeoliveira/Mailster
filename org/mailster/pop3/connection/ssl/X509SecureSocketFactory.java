@@ -113,8 +113,8 @@ public class X509SecureSocketFactory implements X509TrustManager
         {
             fis = new FileInputStream(StreamWriterUtilities.USER_DIR+"/"+KEYPAIR_STORE_FILE);
             keyPairKS.load(fis, keyStorePass);
-            LOG.debug("Successfull loading of certificate "
-                    + toFingerprint(keyPairKS.getCertificate(PUBLIC_KEY_CERT_ALIAS)));
+            LOG.debug("Successfull loading of certificate {}",
+                    toFingerprint(keyPairKS.getCertificate(PUBLIC_KEY_CERT_ALIAS)));
         }
         catch (FileNotFoundException e)
         {
@@ -143,7 +143,7 @@ public class X509SecureSocketFactory implements X509TrustManager
                     entryPass, new Certificate[] { publicKeyCertificate });
             keyPairKS.store(new FileOutputStream(KEYPAIR_STORE_FILE), keyStorePass);
             
-            LOG.debug("New certificate successfully created " + toFingerprint(publicKeyCertificate));
+            LOG.debug("New certificate successfully created {}", toFingerprint(publicKeyCertificate));
         }
         kmf.init(keyPairKS, entryPass);
 
@@ -203,7 +203,7 @@ public class X509SecureSocketFactory implements X509TrustManager
             throws IOException, KeyStoreException, NoSuchAlgorithmException,
             CertificateException
     {
-        LOG.debug("Received certificate "+cer[0]+"\n"+toFingerprint(cer[0]));
+        LOG.debug("Received certificate {}\n{}",cer[0],toFingerprint(cer[0]));
 
         //TOSEE
         /*System.out.println("Do you want to trust on it? y/n...");
