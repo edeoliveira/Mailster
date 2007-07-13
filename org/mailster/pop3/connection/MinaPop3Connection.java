@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * MinaPop3Connection.java - Provides a MINA implementation of AbstractPop3Connection.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Rev$, $Date$
+ * @version $Revision$, $Date$
  */
 public class MinaPop3Connection implements AbstractPop3Connection
 {
