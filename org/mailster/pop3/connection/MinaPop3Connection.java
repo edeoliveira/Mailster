@@ -1,9 +1,7 @@
 package org.mailster.pop3.connection;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
-import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.SSLFilter;
 import org.mailster.pop3.connection.ssl.X509SecureSocketFactory;
@@ -36,13 +34,12 @@ import org.slf4j.LoggerFactory;
  * MinaPop3Connection.java - Provides a MINA implementation of AbstractPop3Connection.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Rev$, $Date$
  */
 public class MinaPop3Connection implements AbstractPop3Connection
 {
     private final static String lineSeparator = "\r\n";
-    private final static Logger log = LoggerFactory
-            .getLogger(MinaPop3Connection.class);
+    private final static Logger log = LoggerFactory.getLogger(MinaPop3Connection.class);
 
     private static SSLFilter sslFilter;
     
@@ -54,8 +51,6 @@ public class MinaPop3Connection implements AbstractPop3Connection
     	try
         {
         	X509SecureSocketFactory ssf = X509SecureSocketFactory.getInstance();
-            //TOSEE DummySSLServerSocketFactory ssf = new DummySSLServerSocketFactory();
-            //sslFilter = new SSLFilter(BogusSSLContextFactory.getInstance(true));
             sslFilter = new SSLFilter(ssf.getContext());
         }
         catch (Exception e)
@@ -85,25 +80,12 @@ public class MinaPop3Connection implements AbstractPop3Connection
         if (line == null)
             return;
         
-        byte[] buffer = null;
-        try
-        {
-            StringBuilder sb = new StringBuilder(line.length()
-                    + lineSeparator.length());
-            sb.append(line);
-            sb.append(lineSeparator);
-            log.info("S: " + line);
-            buffer = sb.toString().getBytes("UTF-8");
-        }
-        catch (UnsupportedEncodingException e)
-        {
-            log.error("Exception : ", e);
-        }
-        
-        ByteBuffer wb = ByteBuffer.allocate(buffer.length);
-        wb.put(buffer);
-        wb.flip();
-        session.write(wb);
+        StringBuilder sb = new StringBuilder(line.length()
+                + lineSeparator.length());
+        sb.append(line);
+        sb.append(lineSeparator);
+        log.info("S: " + line);
+        session.write(sb.toString());
     }
 
     public void startTLS(String response) throws IOException
