@@ -30,7 +30,7 @@ import org.mailster.smtp.SmtpMessage;
  * SMTPServerEvent.java - Enter your Comment HERE.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class SMTPServerEvent extends EventObject
 {

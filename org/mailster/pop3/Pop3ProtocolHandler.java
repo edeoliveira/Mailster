@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * Pop3ProtocolHandler.java - Handles POP3 protocol communications.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class Pop3ProtocolHandler extends IoHandlerAdapter 
     implements AbstractPop3Handler
@@ -54,11 +54,12 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
     private final static String PEER_CLOSED_SESSION  = Pop3ProtocolHandler.class.getName()+".peerClosedSession"; 
     private final static String USING_APOP_AUTH      = Pop3ProtocolHandler.class.getName()+".usingApopAuth";
     
-    // 10 Minutes Timeout at least by RFC 1939 recommendation;
-    public final static int TIMEOUT_SECONDS = 600;
+    // Default 10 Minutes Timeout by RFC recommendation (see RFC 1939);
+    public final static int DEFAULT_TIMEOUT_SECONDS = 600;
     
-    private static final Logger log = LoggerFactory
-            .getLogger(Pop3ProtocolHandler.class);
+    private static int timeout = DEFAULT_TIMEOUT_SECONDS;
+    
+    private static final Logger log = LoggerFactory.getLogger(Pop3ProtocolHandler.class);
 
     private UserManager userManager;
     
@@ -75,11 +76,12 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
     {
         if (session.getTransportType() == TransportType.SOCKET)
         {
-            ((SocketSessionConfig) session.getConfig())
-                    .setReceiveBufferSize(512);
+            SocketSessionConfig cfg = (SocketSessionConfig) session.getConfig();
+            cfg.setReceiveBufferSize(1024);
+            cfg.setTcpNoDelay(true);
         }
 
-        session.setIdleTime(IdleStatus.READER_IDLE, TIMEOUT_SECONDS);
+        session.setIdleTime(IdleStatus.READER_IDLE, timeout);
 
         // We're going to use SSL negotiation notification.
         session.setAttribute(SSLFilter.USE_NOTIFICATION);
@@ -93,6 +95,14 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
         sendGreetings(conn);
     }
 
+    public void sessionClosed(IoSession session) throws Exception
+    {
+        log.info("Session closed by peer");
+        MinaPop3Connection conn = (MinaPop3Connection) session.getAttribute(CONNECTION);
+        if (conn != null && conn.getState().isAuthenticated())
+            conn.getState().getMailBox().releaseLock();
+    }
+    
     private void sendGreetings(MinaPop3Connection conn)
     {
         if (isUsingAPOPAuthMethod(conn))
@@ -183,5 +193,25 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
     {
         MinaPop3Connection c = (MinaPop3Connection) conn;
         c.getSession().setAttribute(PEER_CLOSED_SESSION, Boolean.TRUE);
+    }
+
+    /**
+     * Get the reader timeout in seconds.
+     * 
+     * @return the timeout value
+     */
+    public static int getTimeout()
+    {
+        return timeout;
+    }
+
+    /**
+     * Set the reader timeout for the new sessions.
+     * 
+     * @param timeout timeout in seconds
+     */
+    public static void setTimeout(int timeout)
+    {
+        Pop3ProtocolHandler.timeout = timeout;
     }
 }

@@ -29,11 +29,16 @@ import java.util.Map;
  * UserManager.java - Manages the POP3 users.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class UserManager
 {
     public final static String DEFAULT_PASSWORD = "pwd";
+    
+	/**
+	 * The default password for all mailboxes. Set to 'pwd' by default;
+	 */
+    private static String defaultPassword = DEFAULT_PASSWORD;
     
     private Map<String, Pop3User> _users = Collections
             .synchronizedMap(new HashMap<String, Pop3User>());
@@ -75,5 +80,15 @@ public class UserManager
     public MailBoxManager getMailBoxManager()
     {
         return mailBoxManager;
+    }
+
+    public static String getDefaultPassword()
+    {
+        return defaultPassword;
+    }
+
+    public static void setDefaultPassword(String defaultPassword)
+    {
+        UserManager.defaultPassword = defaultPassword;
     }
 }

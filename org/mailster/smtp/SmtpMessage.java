@@ -17,11 +17,18 @@
  */
 package org.mailster.smtp;
 
+import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
+
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 
 import org.mailster.util.MailUtilities;
 
@@ -30,6 +37,12 @@ import org.mailster.util.MailUtilities;
  */
 public class SmtpMessage
 {
+	/**
+	 * Variables used for MimeMessage conversion.
+	 */
+    private final static Properties props = System.getProperties();
+    private final static Session session = Session.getDefaultInstance(props, null);
+
     /** 
      * Headers. 
      */
@@ -38,7 +51,7 @@ public class SmtpMessage
     /** 
      * Message body. 
      */
-    private StringBuffer body;
+    private StringBuilder body;
     
     /** 
      * Recipients (read from envelope) 
@@ -46,7 +59,7 @@ public class SmtpMessage
     private List<String> recipients;
 
     private SmtpMessagePart internalParts;
-    private StringBuffer rawMessage = new StringBuffer();
+    private StringBuilder rawMessage;
 
     private String content;
     private String oldPreferredContentType;
@@ -63,7 +76,8 @@ public class SmtpMessage
     public SmtpMessage()
     {
         headers = new SmtpHeaders();
-        body = new StringBuffer();
+        body = new StringBuilder();
+        rawMessage = new StringBuilder();
         recipients = new LinkedList<String>();
     }
 
@@ -130,7 +144,7 @@ public class SmtpMessage
             messageID = getHeaderValue(SmtpHeadersInterface.MESSAGE_ID);
             if (messageID == null)
             {
-                StringBuffer s = new StringBuffer(hashCode());
+                StringBuilder s = new StringBuilder(hashCode());
                 s.append('.').append(id++).append(System.currentTimeMillis())
                         .append(".Mailster@");
                 try
@@ -186,7 +200,23 @@ public class SmtpMessage
     {
         return body.toString();
     }
-
+    
+    /**
+     * Converts from a <code>SmtpMessage</code> to a <code>MimeMessage</code>.
+     * 
+     * @return a <code>MimeMessage</code> object
+     * @throws MessagingException if MimeMessage creation fails
+     */
+    public MimeMessage asMimeMessage() throws MessagingException
+    {
+    	String charset = getBodyCharset();
+        if (charset == null)
+        	charset = SimpleSmtpServer.DEFAULT_CHARSET;
+        
+        return new MimeMessage(session, 
+        		new ByteArrayInputStream(getRawMessage().getBytes(Charset.forName(charset))));
+    }        
+    
     public String getRawMessage()
     {
         return rawMessage.toString();
@@ -199,7 +229,7 @@ public class SmtpMessage
      */
     public String toString()
     {
-        StringBuffer msg = new StringBuffer(headers.toString());
+        StringBuilder msg = new StringBuilder(headers.toString());
         msg.append('\n').append(body).append('\n');
         return msg.toString();
     }
@@ -234,27 +264,30 @@ public class SmtpMessage
         return internalParts;
     }
 
-    public String getContent(String preferredContentType)
+    public String getPreferredContent(String preferredContentType)
     {
         if (content == null
                 || !oldPreferredContentType.equals(preferredContentType))
         {
             oldPreferredContentType = preferredContentType;
-            content = getInternalParts().getContent(preferredContentType);
-            String upperContent = content.toUpperCase();
-            if (upperContent.indexOf("<HTML>") == -1)
+            content = getInternalParts().getPreferredContent(preferredContentType);
+            if (content != null)
             {
-                if (upperContent.indexOf("<BODY>") == -1)
-                    content = "<html><head> <style type=\"text/css\"><!--\n" +
-                        "html,body {margin:2px;font: 10px Verdana;}" +
-                        "--></style></head><body>"
-                        + content + "</body></html>";
-                else
-                    content = "<html>"+content+"</html>";
+                String upperContent = content.toUpperCase();
+                if (upperContent.indexOf("<HTML>") == -1)
+                {
+                    if (upperContent.indexOf("<BODY>") == -1)
+                        content = "<html><head> <style type=\"text/css\"><!--\n" +
+                            "html,body {margin:2px;font: 10px Verdana;}" +
+                            "--></style></head><body>"
+                            + content + "</body></html>";
+                    else
+                        content = "<html>"+content+"</html>";
+                }
             }
         }
 
-        return content;
+        return content == null ? "" : content;
     }
 
     /**

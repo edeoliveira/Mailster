@@ -30,19 +30,18 @@ import javax.mail.internet.InternetHeaders;
  * SmtpInternetHeaders.java - Enter your Comment HERE.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class SmtpInternetHeaders extends InternetHeaders
-        implements
-            SmtpHeadersInterface
+        implements SmtpHeadersInterface
 {
     public String toString()
     {
-        StringBuffer sb = new StringBuffer();
-        Enumeration e = (Enumeration) getAllHeaderLines();
+    	StringBuilder sb = new StringBuilder();
+        Enumeration<?> e = (Enumeration<?>) getAllHeaderLines();
         while (e.hasMoreElements())
         {
-            sb.append((String) e.nextElement());
+            sb.append(e.nextElement());
             if (e.hasMoreElements())
                 sb.append('\n');
         }

@@ -3,6 +3,12 @@ package org.mailster.gui;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.TreeMap;
+
+import org.mailster.gui.prefs.utils.LanguageResource;
+import org.mailster.util.StringUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ---<br>
@@ -29,20 +35,74 @@ import java.util.ResourceBundle;
  * Messages.java - Handles localisation of UI.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class Messages
 {
+    private static final Logger log = LoggerFactory.getLogger(Messages.class);
+    
+    /** 
+     * The default base name of the language resources, a fully qualified class 
+     * name.
+     */
+    private final static String DEFAULT_RESOURCE_BASE = 
+        "org.mailster.gui.resources.messages";
+    
+    /**
+     * Stores the single <code>LanguageResource</code> objects in a sorted
+     * <code>TreeMap</code> data structure
+     */
+    private final static TreeMap<String, LanguageResource> LANGUAGE_RESOURCES;
+    
+    /**
+     * <p>
+     * Static initialization method that tests for each <code>Locale</code>
+     * available to the used vm if there is an existing and valid
+     * <code>ResourceBundle</code> for this specific <code>Locale</code>s
+     * language. If so the <code>ResourceBundle</code> is being loaded and
+     * wrapped in a <code>LanguageResource</code> object.
+     * </p>
+     * 
+     * @since 0.3.0
+     */
+    static 
+    {
+        LANGUAGE_RESOURCES = new TreeMap<String, LanguageResource>();
+
+        for (Locale l : Locale.getAvailableLocales()) 
+        {
+            try 
+            {
+                ResourceBundle bundle = ResourceBundle.getBundle(DEFAULT_RESOURCE_BASE, l);
+                String lang = bundle.getLocale().getLanguage();
+                String country = bundle.getLocale().getCountry();
+                
+                if (!StringUtilities.isEmpty(country))
+                    lang=lang+"_"+country;
+                
+                if (LANGUAGE_RESOURCES.get(lang) == null)
+                    LANGUAGE_RESOURCES.put(lang, new LanguageResource(bundle));
+                
+            } 
+            catch (Exception e) 
+            {               
+                // No language file available for this specific locale 
+                log.debug("No language file available for this specific locale - {}", l);
+            }
+        }
+    }
+    
 	/**
 	 * The current locale. Defaults to Locale.ENGLISH.
 	 */
 	private static Locale locale = Locale.ENGLISH;
 
     /**
-     * The default ENGLISH resource bundle.
+     * The default resource bundle is the one corresponding to local 
+     * <code>Locale</code>.
      */
     private static ResourceBundle defaultBundle = 
-    	ResourceBundle.getBundle("org.mailster.gui.resources.messages", locale);
+    	ResourceBundle.getBundle(DEFAULT_RESOURCE_BASE, locale);
 
     /**
      * The resource bundle.
@@ -58,13 +118,42 @@ public class Messages
 		if (locale != null)
 		{
 			bundle = ResourceBundle
-    			.getBundle("org.mailster.gui.resources.messages", locale); //$NON-NLS-1$
+    			.getBundle(DEFAULT_RESOURCE_BASE, locale);
 		
-			if (bundle == null)
+			if (bundle == null || !bundle.getLocale().equals(locale))
 				bundle = defaultBundle;
     	}
 		else
 			bundle = defaultBundle;
+    }
+    
+    /**
+     * Gets all available <code>LanguageResource</code>s
+     * 
+     * @return an array of <code>LanguageResource</code> objects holding
+     * all available resources
+     */
+    public static LanguageResource[] getAvailableLanguageResources() 
+    {
+        return ((LanguageResource[])
+                LANGUAGE_RESOURCES.values().toArray(new LanguageResource[0]));
+    }
+    
+    /**
+     * Gets the <code>LanguageResource</code> mapped to the specified ISO 639
+     * two letter language code (e.g. "de" for german, "en" for english)
+     * 
+     * @param language the ISO 639 twoe letter language code for which
+     * to get the mapped <code>LanguageResource</code>
+     *
+     * @return the <code>LanguageResource</code> mapped to the specified ISO 639
+     * two letter language code (e.g. "de" for german, "en" for english);
+     * <code>null</code> if no such <code>LanguageResource</code> is available
+     * for the specified language
+     */
+    public static LanguageResource getLanguageResource(String language) 
+    {
+        return ((LanguageResource) LANGUAGE_RESOURCES.get(language));
     }
     
     /**
@@ -89,7 +178,7 @@ public class Messages
         	{
         		try
         		{
-        			defaultBundle.getString(key);
+        			return defaultBundle.getString(key);
         		}
         		catch (MissingResourceException mex) {}
         	}
@@ -108,7 +197,7 @@ public class Messages
 	 */
 	public static void setLocale(Locale l) 
 	{
-		Messages.locale = l;
+		locale = l;
 		setupResourceBundle();
 	}
 }

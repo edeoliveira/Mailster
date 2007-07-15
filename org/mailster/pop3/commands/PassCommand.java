@@ -31,7 +31,7 @@ import org.mailster.util.StringUtilities;
  * PassCommand.java - The POP3 PASS command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class PassCommand implements Pop3Command
 {

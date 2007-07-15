@@ -150,8 +150,7 @@ public class SmtpRequest {
    * the previous SMTP request (determines if CR is needed in message).
    * 
    * Modified : corrected unit test bug concerning incorrect body restitution
-   * 
-   * @author De Oliveira Edouard
+   * (author : De Oliveira Edouard)
    * 
    * @param s line of input
    * @param state current state

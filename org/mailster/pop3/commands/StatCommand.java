@@ -33,7 +33,7 @@ import org.mailster.pop3.mailbox.StoredSmtpMessage;
  * StatCommand.java - The POP3 STAT command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class StatCommand implements Pop3Command
 {

@@ -1,4 +1,46 @@
 #####
+Version 0.8.1 (2007-07-15) - Codename Green Lantern
+
+IMPORTANT NOTE : Migrated to SWT/JFACE 3.3 codebase.
+
+GUI :
+- Added a preference dialog which allows to setup many aspects 
+  of Mailster. Quick options were removed from the UI.
+- Nicer about dialog box.
+- Updated images in the mail table and in the filter tree. 
+  Also updated about box dialog banner. 
+
+CORE :
+- Reduced memory footprint.
+- Speeded up some string algorithms using StringBuilder instead of
+  StringBuffer.
+- Improved logging efficiency.
+- POP3 protocol will now also be set to debug mode when SMTP server is 
+  started in debug mode.
+- Tweaked possible bottlenecks in POP3 protocol handling.
+- Reverted back to fast MD5 algorithm use in APOP command.
+- Fixed a mailbox lock problem when a POP3 client wasn't cleanly closing
+  the connection.
+- To improve server efficiency, JVM should be started with the -server 
+  argument. The starting scripts were modified accordingly. 
+- Fixed handling of badly forged emails.
+- Fixed SSL certificate validity range.
+- Fixed and improved preferred content type computation.
+ 
+TRANSLATIONS :
+- Chinese translation added (thanks to Titan Tang).
+- Portuguese (Portugal/Brazil) translations added (thanks to 
+  Joana M. F. Trindade).
+- German translation added (thanks to Julian Rabe).
+- Spanish translation added (thanks to Julian Cadena).
+- Russian translation added (thanks to Alexey Misharev). 
+- Dutsch translation added (thanks to Sebastiaan Mindreau).
+- Turkish translation added (thanks to Muhammet Kara).
+
+JAVADOC :
+- Fixed some warnings in the javadoc generation.
+
+#####
 Version 0.8.0 (2007-06-08) - Codename Unicorn
 
 POP3 :

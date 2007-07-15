@@ -1,13 +1,12 @@
 package org.mailster.gui.glazedlists;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.eclipse.swt.widgets.TableItem;
-import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.smtp.SmtpMessage;
+import org.mailster.util.DateUtilities;
 
 import ca.odell.glazedlists.gui.WritableTableFormat;
 
@@ -36,13 +35,11 @@ import ca.odell.glazedlists.gui.WritableTableFormat;
  * SmtpMessageTableFormat.java - Defines columns order and values.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class SmtpMessageTableFormat
     implements ExtendedTableFormat<StoredSmtpMessage>, WritableTableFormat<StoredSmtpMessage>
 {
-    public final static SimpleDateFormat hourDateFormat = new SimpleDateFormat(
-            "HH:mm:ss"); //$NON-NLS-1$
     private String toHeader, subjectHeader, dateHeader;
     
     public final static int ATTACHMENT_COLUMN   = 0;
@@ -106,9 +103,9 @@ public class SmtpMessageTableFormat
             if ((int) (d.getTime() / 8.64E7) == (int) (((new Date())
                     .getTime()) / 8.64E7))
                 // same day
-            	return hourDateFormat.format(d);
+            	return DateUtilities.hourDateFormat.format(d);
             	
-            return MailsterSWT.df.format(d);
+            return DateUtilities.df.format(d);
         }
 
         throw new IllegalStateException();

@@ -3,21 +3,29 @@ package org.mailster.gui;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.eclipse.jface.resource.CompositeImageDescriptor;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.mailster.MailsterSWT;
 import org.mailster.util.MailUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ---<br>
@@ -47,16 +55,19 @@ import org.mailster.util.MailUtilities;
  * register a JVM shutdown hook to ensure it won't be forgotten.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class SWTHelper
 {
+    private static final Logger log = LoggerFactory.getLogger(SWTHelper.class);
+        
     static
     {
         // Automatic disposal of OS resources
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run()
             {
+                log.debug("Disposing system resources ...");
                 disposeAll();
             }
         }));
@@ -65,7 +76,8 @@ public class SWTHelper
     /**
      * The directory in which images and icons are stored.
      */
-    public final static String IMAGES_DIRECTORY = "/org/mailster/gui/resources/images/"; //$NON-NLS-1$
+    public final static String DESC_IMAGES_DIRECTORY = "org/mailster/gui/resources/images/"; //$NON-NLS-1$
+    public final static String IMAGES_DIRECTORY = "/"+DESC_IMAGES_DIRECTORY; //$NON-NLS-1$    
     
     /**
      * The suffix added to the key name of the gray version of a image.
@@ -78,7 +90,13 @@ public class SWTHelper
     private final static String tempDir = MailUtilities.tempDirectory.replace(
             File.separatorChar, '/')
             + "/";
-
+    
+    /**
+     * The resource tracker.
+     */
+    private static Map<String, Resource> resourceTracker = new HashMap<String, Resource>(
+            20);
+    
     /** 
      * The system font. 
      * 
@@ -90,33 +108,82 @@ public class SWTHelper
     /**
      * The system font in bold style.
      */ 
-    public final static Font SYSTEM_FONT_BOLD = makeFontBold(SYSTEM_FONT);
-    
-    /**
-     * The resource tracker.
-     */
-    private static Map<String, Resource> resourceTracker = new HashMap<String, Resource>(
-            20);
+    public final static Font SYSTEM_FONT_BOLD = makeBoldFont(SYSTEM_FONT);
 
     /**
-     * Makes the specified <code>Font</code> bold.
+     * Images decorator map.
+     */
+    private static Map<Image, HashMap<Image, Image>> imageToDecoratorMap = 
+    	new HashMap<Image, HashMap<Image, Image>>();
+    
+    /**
+     * Turns the specified <code>Font</code> bold.
      * 
      * @param sourceFont the source <code>Font</code> object
      * @return Font the <code>Font</code> in Bold
      */
-    public static Font makeFontBold(Font sourceFont) 
+    public static Font makeBoldFont(Font sourceFont) 
     {
         FontData[] fontData = sourceFont.getFontData();
 
         for (int i = 0; i < fontData.length; i++)
             fontData[i].setStyle(SWT.BOLD);
         
-        return new Font(Display.getDefault(), fontData);
+        Font f = new Font(Display.getDefault(), fontData);
+        resourceTracker.put(f.toString(), f);
+        
+        return createFont(fontData);
     }
     
-    private SWTHelper()
+    /**
+     * Creates a font that is registered in the resource tracker.
+     * 
+     * @param data the <code>FontData</code> to create the font
+     * @return Font the new font
+     */
+    public static Font createFont(FontData data) 
     {
-        super();
+        Font f = new Font(Display.getDefault(), data);
+        resourceTracker.put(f.toString(), f);
+        
+        return f;
+    }
+    
+    /**
+     * Creates a font that is registered in the resource tracker.
+     * 
+     * @param data the <code>FontData</code> to create the font
+     * @return Font the new font
+     */
+    public static Font createFont(FontData[] data) 
+    {
+        Font f = new Font(Display.getDefault(), data);
+        resourceTracker.put(f.toString(), f);
+        
+        return f;
+    }    
+    
+    /**
+     * Returns an <code>ImageDescriptor</code> from the application's 
+     * image directory but DOES NOT register it with the resource 
+     * tracker.
+     * 
+     * @param fileName the image file name
+     * @return the image object
+     */
+    public static ImageDescriptor getImageDescriptor(String fileName)
+    {
+        try 
+        {
+            URL url = new File(DESC_IMAGES_DIRECTORY + fileName).toURI().toURL();
+            return (ImageDescriptor.createFromURL(url));
+        } 
+        catch (MalformedURLException e) 
+        {
+            /* Should never happen */
+            log.info("ImageDescriptor [{}] did not load successfully", fileName);
+            return ImageDescriptor.getMissingImageDescriptor();
+        }
     }
     
     /**
@@ -128,6 +195,21 @@ public class SWTHelper
      * @return the image object
      */
     public static Image loadImage(String fileName)
+    {
+        return loadImage(fileName, true);
+    }
+    
+    /**
+     * Loads an image from the application's image directory and register it
+     * with a resource tracker for later disposal by the
+     * <code>disposeAll()</code> function if the <code>register</code> parameter
+     * is set to <code>true</code>.
+     * 
+     * @param fileName the image file name
+     * @param register if true image is registered in the resource tracker
+     * @return the image object
+     */
+    protected static Image loadImage(String fileName, boolean register)
     {
         Object o = resourceTracker.get(fileName);
         
@@ -141,7 +223,10 @@ public class SWTHelper
         }
 
         if (o == null || !(o instanceof Image))
+        {
+            log.info("Image {} did not load", fileName);
             return null;
+        }
         else
             return (Image) o;
     }
@@ -182,6 +267,17 @@ public class SWTHelper
      */
     public static void disposeAll()
     {
+    	if (imageToDecoratorMap != null)
+    	{
+	        Iterator<HashMap<Image, Image>> baseImages = imageToDecoratorMap.values().iterator();
+	        while (baseImages.hasNext())
+	        {
+	            Iterator<Image> decorators = baseImages.next().values().iterator();
+	            while (decorators.hasNext())
+	                decorators.next().dispose();
+	        }
+    	}
+    	
         Iterator<Resource> it = resourceTracker.values().iterator();
         while (it.hasNext())
             it.next().dispose();
@@ -333,4 +429,74 @@ public class SWTHelper
         
         return display;     
      }
+    
+    /**
+     * Returns an image composed of a base image decorated by another image.
+     * 
+     * @param baseImage The filename of the base image that should be decorated
+     * @param decorator The filename of the image used to decorate the base image
+     * @param corner The corner to place decorator image
+     * @return Image The resulting decorated image
+     */
+    public static Image decorateImage(String baseImage, String decorator, final int corner)
+    {
+        return decorateImage(loadImage(baseImage, true), 
+                loadImage(decorator, false), corner);
+    }
+    
+    /**
+     * Returns an image composed of a base image decorated by another image.
+     * 
+     * @param baseImage Image The base image that should be decorated
+     * @param decorator Image The image used to decorate the base image
+     * @param corner The corner to place decorator image
+     * @return Image The resulting decorated image
+     */
+    public static Image decorateImage(final Image baseImage,
+            final Image decorator, final int corner)
+    {
+        HashMap<Image, Image> decoratedMap = imageToDecoratorMap.get(baseImage);
+
+        if (decoratedMap == null)
+        {
+            decoratedMap = new HashMap<Image, Image>();
+            imageToDecoratorMap.put(baseImage, decoratedMap);
+        }
+
+        Image result = (Image) decoratedMap.get(decorator);
+
+        if (result == null)
+        {
+            final Rectangle bid = baseImage.getBounds();
+            final Rectangle did = decorator.getBounds();
+            final Point baseImageSize = new Point(bid.width, bid.height);
+
+            CompositeImageDescriptor compositImageDesc = new CompositeImageDescriptor() 
+            {
+                protected void drawCompositeImage(int width, int height)
+                {
+                    drawImage(baseImage.getImageData(), 0, 0);
+                    if (corner == (SWT.TOP | SWT.LEFT))
+                        drawImage(decorator.getImageData(), 0, 0);
+                    else if (corner == (SWT.TOP | SWT.RIGHT))
+                        drawImage(decorator.getImageData(), bid.width - did.width - 1, 0);
+                    else if (corner == (SWT.BOTTOM | SWT.LEFT))
+                        drawImage(decorator.getImageData(), 0, bid.height - did.height - 1);
+                    else if (corner == (SWT.BOTTOM | SWT.RIGHT))
+                        drawImage(decorator.getImageData(), bid.width - did.width - 1, 
+                                bid.height - did.height - 1);
+                }
+
+                protected Point getSize()
+                {
+                    return baseImageSize;
+                }
+            };
+
+            result = compositImageDesc.createImage();
+            decoratedMap.put(decorator, result);
+        }
+
+        return result;
+    }     
 }

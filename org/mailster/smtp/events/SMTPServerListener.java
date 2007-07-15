@@ -27,7 +27,7 @@ import java.util.EventListener;
  * SMTPServerListener.java - Enter your Comment HERE.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public interface SMTPServerListener extends EventListener
 {

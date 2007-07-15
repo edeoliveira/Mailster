@@ -29,7 +29,7 @@ import org.mailster.pop3.connection.Pop3State;
  * RsetCommand.java - The POP3 RSET command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class RsetCommand implements Pop3Command
 {

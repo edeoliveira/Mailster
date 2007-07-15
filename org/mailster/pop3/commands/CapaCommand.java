@@ -29,7 +29,7 @@ import org.mailster.pop3.connection.Pop3State;
  * CapaCommand.java - The POP3 CAPA command (see RFC 2449).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class CapaCommand implements Pop3Command
 {

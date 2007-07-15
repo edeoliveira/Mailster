@@ -36,7 +36,7 @@ import org.mailster.util.StringUtilities;
  * UidlCommand.java - The POP3 UIDL command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class UidlCommand implements Pop3Command
 {

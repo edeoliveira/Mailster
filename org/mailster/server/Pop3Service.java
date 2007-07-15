@@ -26,9 +26,11 @@ package org.mailster.server;
  * Mailster code.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public interface Pop3Service
 {
-    public String getDefaultOutputDirectory();
+    public static final String CHARSET_NAME = "UTF-8";
+    
+    public String getOutputDirectory();
 }

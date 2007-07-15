@@ -35,7 +35,7 @@ import org.mailster.util.StringUtilities;
  * TopCommand.java - The POP3 TOP command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class TopCommand implements Pop3Command
 {

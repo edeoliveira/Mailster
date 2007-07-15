@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
  * X509v3 certificates.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class X509SecureSocketFactory implements X509TrustManager
 {
@@ -70,7 +70,7 @@ public class X509SecureSocketFactory implements X509TrustManager
 	 */
     private static final Logger LOG = LoggerFactory.getLogger(X509SecureSocketFactory.class);
     
-    private final static String PUBLIC_KEY_CERT_ALIAS = "publicKeyCertificateAlias";
+    private final static transient String PUBLIC_KEY_CERT_ALIAS = "publicKeyCertificateAlias";
 
     private final static transient char[] keyStorePass = 
     	new char[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
@@ -82,7 +82,7 @@ public class X509SecureSocketFactory implements X509TrustManager
     private MessageDigest digester;
 
     // file name for key pairs store
-    private final static String KEYPAIR_STORE_FILE = "keyPairKS.jks";
+    private final static String KEYPAIR_STORE_FILE = "Mailster.jks";
     // file name for remote certificats
     private final static String TRUSTED_STORE_FILE = "trustedKS.jks";
 
@@ -107,18 +107,17 @@ public class X509SecureSocketFactory implements X509TrustManager
             Security.addProvider(new BouncyCastleProvider());
         
         digester = MessageDigest.getInstance("MD5", "BC");
-        InputStream fis = null;
         
         try
         {
-            fis = new FileInputStream(StreamWriterUtilities.USER_DIR+"/"+KEYPAIR_STORE_FILE);
+            InputStream fis = new FileInputStream(StreamWriterUtilities.USER_DIR+"/"+KEYPAIR_STORE_FILE);
             keyPairKS.load(fis, keyStorePass);
-            LOG.debug("Successfull loading of certificate {}",
+            LOG.debug("Successfully loaded certificate {}",
                     toFingerprint(keyPairKS.getCertificate(PUBLIC_KEY_CERT_ALIAS)));
         }
         catch (FileNotFoundException e)
         {
-            keyPairKS.load(fis, keyStorePass);
+            keyPairKS.load(null, null);
             KeyPairGenerator KPGen = KeyPairGenerator.getInstance("RSA");
             KPGen.initialize(1024);
             KeyPair KPair = KPGen.generateKeyPair();
@@ -130,7 +129,8 @@ public class X509SecureSocketFactory implements X509TrustManager
             X509Principal issuerPrincipal = new X509Principal(DN);
             v3CertGen.setIssuerDN(issuerPrincipal);
 
-            long delta = 1000 * 60 * 60 * 24 * 30 * 365;
+            // Five years validity
+            long delta = 1000L * 60L * 60L * 24L * 365L * 5L;
             long time = System.currentTimeMillis();
             v3CertGen.setNotBefore(new Date(time - delta));
             v3CertGen.setNotAfter(new Date(time + delta));
@@ -147,9 +147,9 @@ public class X509SecureSocketFactory implements X509TrustManager
         }
         kmf.init(keyPairKS, entryPass);
 
+        FileInputStream fis = null;
         try
         {
-            fis = null;
             fis = new FileInputStream(StreamWriterUtilities.USER_DIR+"/"+TRUSTED_STORE_FILE);
         }
         catch (FileNotFoundException e) {}
@@ -158,7 +158,7 @@ public class X509SecureSocketFactory implements X509TrustManager
         updateTrustedManager();
         context.init(kmf.getKeyManagers(), new TrustManager[] { this }, null);
     }
-
+    
     public static synchronized X509SecureSocketFactory getInstance() 
     	throws Exception
     {
@@ -205,7 +205,7 @@ public class X509SecureSocketFactory implements X509TrustManager
     {
         LOG.debug("Received certificate {}\n{}",cer[0],toFingerprint(cer[0]));
 
-        //TOSEE
+        //TOSEE Trust management
         /*System.out.println("Do you want to trust on it? y/n...");
         if (System.in.read() == 'n')
             System.exit(0);*/

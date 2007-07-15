@@ -65,7 +65,7 @@ public class CertUtilities
     }
     
     /**
-     * @see CertUtilities.getDN(X509Certificate cert)
+     * @see CertUtilities#getDN(X509Certificate cert)
      */
     public static String getDN(java.security.cert.X509Certificate cert)
     {
@@ -73,7 +73,7 @@ public class CertUtilities
     }
     
     /**
-     * @see CertUtilities.getCN(String dn)
+     * @see CertUtilities#getCN(String dn)
      */    
     public static String getCN(X509Certificate cert)
     {
@@ -200,8 +200,7 @@ public class CertUtilities
 
         if (match) 
         {
-            if (LOG.isDebugEnabled()) 
-                LOG.debug("Target hostname valid: " + cn);
+            LOG.debug("Target hostname valid : {}", cn);
         } 
         else 
         {

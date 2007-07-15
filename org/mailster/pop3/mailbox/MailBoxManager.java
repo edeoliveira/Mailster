@@ -29,7 +29,7 @@ import org.mailster.smtp.SmtpMessage;
  * MailBoxManager.java - Manages the mailboxes.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class MailBoxManager
 {
@@ -42,7 +42,8 @@ public class MailBoxManager
 
     private Hashtable<String, MailBox> mailBoxes = new Hashtable<String, MailBox>();
     private MailBox pop3SpecialAccountMailbox;
-
+    private String pop3SpecialAccountLogin = POP3_SPECIAL_ACCOUNT_LOGIN; 
+    
     protected MailBoxManager()
     {
         pop3SpecialAccountMailbox = new MailBox(new Pop3User(POP3_SPECIAL_ACCOUNT_LOGIN));
@@ -66,6 +67,9 @@ public class MailBoxManager
 
         synchronized (this)
         {
+        	if (pop3SpecialAccountLogin.equals(user.getEmail()))
+        		return pop3SpecialAccountMailbox;
+        		
             if (!mailBoxes.containsKey(user.getEmail()))
             {
                 MailBox m = new MailBox(user);
@@ -81,4 +85,9 @@ public class MailBoxManager
     {
         mailBoxes.clear();
     }
+
+	public void setPop3SpecialAccountLogin(String pop3SpecialAccountLogin) 
+	{
+		this.pop3SpecialAccountLogin = pop3SpecialAccountLogin;
+	}
 }

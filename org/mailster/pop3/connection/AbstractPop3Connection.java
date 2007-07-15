@@ -25,7 +25,7 @@ package org.mailster.pop3.connection;
  * AbstractPop3Connection.java - Abstracts the POP3 connection functions.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public interface AbstractPop3Connection
 {

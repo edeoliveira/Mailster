@@ -34,7 +34,7 @@ import org.mailster.util.MailUtilities;
  * SmtpHeaders.java - Enter your Comment HERE.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class SmtpHeaders implements SmtpHeadersInterface
 {
@@ -78,7 +78,7 @@ public class SmtpHeaders implements SmtpHeadersInterface
 
         public String toString()
         {
-            StringBuffer sb = new StringBuffer(getName());
+        	StringBuilder sb = new StringBuilder(getName());
             sb.append(": ");
             Iterator<String> it = values.iterator();
             while (it.hasNext())
@@ -195,11 +195,10 @@ public class SmtpHeaders implements SmtpHeadersInterface
 
     public String toString()
     {
-        StringBuffer sb = new StringBuffer();
-        for (Iterator i = headers.keySet().iterator(); i.hasNext();)
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<String> i = headers.keySet().iterator(); i.hasNext();)
         {
-            String name = (String) i.next();
-            SmtpHeader hdr = headers.get(name);
+            SmtpHeader hdr = headers.get(i.next());
             sb.append(hdr);
             if (i.hasNext())
                 sb.append('\n');

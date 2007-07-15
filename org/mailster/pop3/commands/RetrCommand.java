@@ -35,7 +35,7 @@ import org.mailster.util.StringUtilities;
  * RetrCommand.java - The POP3 RETR command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class RetrCommand implements Pop3Command
 {

@@ -30,7 +30,7 @@ import org.mailster.pop3.mailbox.MailBox;
  * QuitCommand.java - The POP3 QUIT command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class QuitCommand implements Pop3Command
 {

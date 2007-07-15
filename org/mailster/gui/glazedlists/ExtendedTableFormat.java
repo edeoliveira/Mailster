@@ -31,7 +31,7 @@ import ca.odell.glazedlists.gui.TableFormat;
  * enables to modify the lazily created TableItem.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public interface ExtendedTableFormat<E> extends TableFormat<E>
 {

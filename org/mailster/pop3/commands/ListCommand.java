@@ -1,6 +1,5 @@
 package org.mailster.pop3.commands;
 
-import java.util.Iterator;
 import java.util.List;
 
 import javax.mail.Flags;
@@ -37,7 +36,7 @@ import org.mailster.util.StringUtilities;
  * ListCommand.java - The POP3 LIST command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class ListCommand implements Pop3Command
 {
@@ -74,14 +73,10 @@ public class ListCommand implements Pop3Command
             }
             else
             {
-                List messages = inbox.getNonDeletedMessages();
+                List<StoredSmtpMessage> messages = inbox.getNonDeletedMessages();
                 conn.println("+OK scan listing follows");
-                for (Iterator i = messages.iterator(); i.hasNext();)
-                {
-                    StoredSmtpMessage msg = (StoredSmtpMessage) i.next();
-                    conn.println(msg.getId() + " "
-                                    + msg.getMessage().getSize());
-                }
+                for (StoredSmtpMessage msg : messages)
+                    conn.println(msg.getId() + " " + msg.getMessage().getSize());
 
                 conn.println(".");
             }

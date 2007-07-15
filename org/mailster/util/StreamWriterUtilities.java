@@ -5,9 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
@@ -38,31 +35,13 @@ import org.mailster.smtp.SmtpHeadersInterface;
  * StreamWriterUtilities.java - Various methods to help writing to streams.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class StreamWriterUtilities
 {
     public final static String USER_DIR = System.getProperty("user.dir").replace(File.separatorChar, '/'); //$NON-NLS-1$
 
     private final static String From_ = "From ";
-
-    // ANSI C's asctime() format
-    private final static SimpleDateFormat ascTimeFormatter = new SimpleDateFormat(
-            "EEE MMM d HH:mm:ss yyyy", Locale.US);
-
-    private static String formatAsFixedWidthAsctime(Date d)
-    {
-        String s = ascTimeFormatter.format(d);
-
-        // If day of Month value is 0..9 then output string will only be 23
-        // chars wide so we pad it manually with a white space as specified by
-        // RFC because SimpleDateFormat will pad it with zeroes and we have no
-        // way to customize it ...
-        if (s.length() == 23)
-            return s.substring(0, 8) + " " + s.substring(8);
-
-        return s;
-    }
 
     public static void write(String s, AbstractPop3Connection conn)
     {
@@ -129,7 +108,7 @@ public class StreamWriterUtilities
                     : envSender.replaceAll("[ \t\r\n]", "-").trim();
 
             out.println(From_ + envSender + " "
-                    + formatAsFixedWidthAsctime(msg.getInternalDate()));
+                    + DateUtilities.formatAsFixedWidthAsctime(msg.getInternalDate()));
 
             String line;
             String last = null;

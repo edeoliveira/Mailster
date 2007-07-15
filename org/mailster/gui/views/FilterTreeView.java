@@ -53,7 +53,7 @@ import ca.odell.glazedlists.matchers.Matcher;
  * FilterTreeView.java - A tree that filters mails by destination host.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class FilterTreeView
 {
@@ -147,11 +147,11 @@ public class FilterTreeView
         tree.setLinesVisible(false);
         
         root = new TreeItem(tree, SWT.NONE);
-        root.setImage(SWTHelper.loadImage("package_obj.gif")); //$NON-NLS-1$
+        root.setImage(SWTHelper.loadImage("forum16.png")); //$NON-NLS-1$
         root.setText(Messages.getString("MailsterSWT.treeView.root.label")); //$NON-NLS-1$
         
         deletedMailsTreeItem = new TreeItem(root, SWT.NONE);
-        deletedMailsTreeItem.setImage(SWTHelper.loadImage("package_del.gif")); //$NON-NLS-1$
+        deletedMailsTreeItem.setImage(SWTHelper.loadImage("clearArchive16.png")); //$NON-NLS-1$
         deletedMailsTreeItem.setText(deletedTreeItemLabel);
         deletedMailsTreeItem.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
         deletedMailsTreeItem.setData(deletedTreeItemLabel);
@@ -168,7 +168,7 @@ public class FilterTreeView
     		return end < 0 ? email.substring(pos) : email.substring(pos, end);
     	}
     	else 
-    		return null;
+    		return Messages.getString("MailsterSWT.treeView.localNetwork.label");
     }
 	
     public void updateMessagesCounts(AbstractEventList<StoredSmtpMessage> eventList)
@@ -181,7 +181,7 @@ public class FilterTreeView
         for (TreeItem child : root.getItems())
         {
         	String filterHost = (String)child.getData();
-        	List l = messageMap.get(filterHost);
+        	List<StoredSmtpMessage> l = messageMap.get(filterHost);
         	long count = l == null ? 0 : l.size();
         	
         	String countLabel = count == 0 ? "" : " ("+count+")";
@@ -231,7 +231,7 @@ public class FilterTreeView
                         try
                         {
                             TreeItem item = new TreeItem(root, 0, SWT.NONE);
-                            item.setImage(SWTHelper.loadImage("package_obj.gif")); //$NON-NLS-1$
+                            item.setImage(SWTHelper.loadImage("folder.gif")); //$NON-NLS-1$
                             item.setText(host);
                             item.setData(host);
                         }
@@ -264,6 +264,6 @@ public class FilterTreeView
     public boolean isTrashFolderSelected()
     {
         TreeItem[] sel = tree.getSelection();
-        return sel != null && sel[0] != null && sel[0] == deletedMailsTreeItem;
+        return sel != null && sel.length>0 && sel[0] == deletedMailsTreeItem;
     }
 }

@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -23,7 +24,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.mailster.gui.glazedlists.tableviewerfix.FixedTableViewer;
 
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
@@ -37,8 +37,6 @@ import ca.odell.glazedlists.swt.GlazedListsSWT;
 /**
  * A TableViewerManager is a decorator that binds a JFace TableViewer to an
  * EventList
- *
- * @see org.mailster.gui.glazedlists.TableViewer
  *
  * This class is not thread-safe.  It must be used exclusively with the SWT
  * event handler thread.
@@ -54,7 +52,7 @@ import ca.odell.glazedlists.swt.GlazedListsSWT;
 @SuppressWarnings("unchecked")
 public class TableViewerManager {
         /** the heavyweight TableViewer **/
-        private FixedTableViewer tableViewer;
+        private TableViewer tableViewer;
        
         /** the list being displayed in the TableViewer **/
         private EventList sourceList;
@@ -85,9 +83,9 @@ public class TableViewerManager {
          * TableViewer.  Use the provided EventTableContentProvider and
          * EventTableLabelProvider
          */
-        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,                        
+        public TableViewerManager(TableViewer aTableViewer, EventList aSourceList,                        
                         EventTableLabelProvider aLabelProvider,
-                        EventTableContentProvider aContentProvider) {
+                        IStructuredContentProvider aContentProvider) {
                 tableViewer = aTableViewer;
                 sourceList = aSourceList;
                 tableFormat = aLabelProvider.getTableFormat();
@@ -106,11 +104,11 @@ public class TableViewerManager {
          * Creates a new TableViewerManager that binds an EventList to a JFace
          * TableViewer.  The table is formatted according to the provided TableFormat.
          *
-         * @param aTableViewer the TableViewer to display
+         * @param aTableViewer the FixedTableViewer to display
          * @param aSourceList the EventList to display
-         * @param aTableFormat the TableFormat to use
+         * @param aLabelProvider the EventTableLabelProvider to use
          */
-        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,
+        public TableViewerManager(TableViewer aTableViewer, EventList aSourceList,
         			EventTableLabelProvider aLabelProvider) {                
                 this(aTableViewer, aSourceList, aLabelProvider, new EventTableContentProvider());
         }
@@ -123,7 +121,7 @@ public class TableViewerManager {
          * @param aSourceList the EventList to display
          * @param aTableFormat the TableFormat to use
          */
-        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,
+        public TableViewerManager(TableViewer aTableViewer, EventList aSourceList,
                         TableFormat aTableFormat) {
                 this(aTableViewer, aSourceList, new EventTableLabelProvider(aTableFormat), 
                         new EventTableContentProvider());
@@ -139,7 +137,7 @@ public class TableViewerManager {
          * @param aPropertyNames the names of the JavaBean properties
          * @param aColumnLabels the column names displayed to the user
          */
-        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,
+        public TableViewerManager(TableViewer aTableViewer, EventList aSourceList,
                         String[] aPropertyNames, String[] aColumnLabels) {
                 this(aTableViewer, aSourceList,
                         GlazedLists.tableFormat(aPropertyNames, aColumnLabels));
@@ -152,8 +150,8 @@ public class TableViewerManager {
          * appropriate CellEditors in the TableViewer by calling
          * TableViewrManager.getTableViewer().setCellEditors(CellEditor[] editors)
          *
-         * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=87733
-         * @see https://bugs.eclipse.org/bugs/show_bug.cgi?id=151295
+         * @link https://bugs.eclipse.org/bugs/show_bug.cgi?id=87733
+         * @link https://bugs.eclipse.org/bugs/show_bug.cgi?id=151295
          *
          * @param aTableViewer the TableViewer to display
          * @param aSourceList the EventList to display
@@ -161,7 +159,7 @@ public class TableViewerManager {
          * @param aColumnLabels the column names displayed to the user
          * @param aEditable indicates whether the column is editable
          */
-        public TableViewerManager(FixedTableViewer aTableViewer, EventList aSourceList,
+        public TableViewerManager(TableViewer aTableViewer, EventList aSourceList,
                         String[] aPropertyNames, String[] aColumnLabels, boolean[] aEditable) {
                 this(aTableViewer, aSourceList,
                         GlazedLists.tableFormat(aPropertyNames, aColumnLabels, aEditable));
@@ -169,11 +167,10 @@ public class TableViewerManager {
        
         /**
          * Obtain the TableViewer that is being managed.
-         * @see org.mailster.gui.glazedlists.TableViewer
          *
-         * @return TableViewer
+         * @return FixedTableViewer the table viewer object
          */
-        public FixedTableViewer getTableViewer() {
+        public TableViewer getTableViewer() {
                 return tableViewer;
         }
        
@@ -206,7 +203,7 @@ public class TableViewerManager {
                 IStructuredContentProvider, ListEventListener {
        
                 private EventList swtSource = null;
-                private FixedTableViewer tableViewer = null;
+                private TableViewer tableViewer = null;
                
                 // Return an array of beans (rows) stored in the EventList
                 public Object[] getElements(Object aInputElements) {
@@ -226,13 +223,13 @@ public class TableViewerManager {
                  * EventList (if any), and starts listening for
                  * changes to the new one (if any).
                  *
-                 * @param Viewer TableViewer that had setInput called on it
+                 * @param aViewer TableViewer that had setInput called on it
                  * @param aOldInput the old EventList
                  * @param aNewInput the new EventList
                  */
 				public void inputChanged(Viewer aViewer, Object aOldInput, Object aNewInput) {
                         // update viewer
-                        tableViewer = (FixedTableViewer)aViewer;
+                        tableViewer = (TableViewer)aViewer;
                        
                         // if not same input
                         if (aOldInput != aNewInput) {
@@ -281,6 +278,7 @@ public class TableViewerManager {
                                 	catch (IndexOutOfBoundsException ex) 
                                 	{
                                 		//TOSEE silent fails from glazed lists
+                                        System.out.println("ioboundsexception");
                                 	}
                                     break;
                                 case ListEvent.UPDATE :

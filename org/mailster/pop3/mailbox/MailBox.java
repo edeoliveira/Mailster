@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * MailBox.java - In-memory store of a user mails .
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class MailBox
 {
@@ -232,7 +232,7 @@ public class MailBox
         try
         {
             PrintWriter out = new PrintWriter(new FileWriter(
-                    pop3Service.getDefaultOutputDirectory()
+                    pop3Service.getOutputDirectory()
                     + File.separator + mailBoxID
                     + ".mbox", false));
             for (StoredSmtpMessage msg : mails.values())

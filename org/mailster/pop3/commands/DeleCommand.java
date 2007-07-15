@@ -34,7 +34,7 @@ import org.mailster.util.StringUtilities;
  * DeleCommand.java - The POP3 DELE command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class DeleCommand implements Pop3Command
 {

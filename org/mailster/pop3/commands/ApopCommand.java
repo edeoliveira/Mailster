@@ -3,16 +3,13 @@ package org.mailster.pop3.commands;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.MessageDigest;
-import java.security.Security;
-import java.util.Arrays;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.encoders.Hex;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.Pop3State;
+import org.mailster.server.Pop3Service;
 import org.mailster.util.StringUtilities;
+import org.mailster.util.md5.MD5;
 
 /**
  * ---<br>
@@ -39,10 +36,18 @@ import org.mailster.util.StringUtilities;
  * ApopCommand.java - The POP3 APOP command (see RFC 1939).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class ApopCommand implements Pop3Command
 {
+    private MD5 md5 = new MD5();
+    
+    static
+    {
+        //Disable native library loading
+        MD5.initNativeLibrary(true);
+    }
+    
     public boolean isValidForState(Pop3State state)
     {
         return !state.isAuthenticated();
@@ -105,15 +110,12 @@ public class ApopCommand implements Pop3Command
                 state.setUser(state.getUser(username));
 
                 byte[] uniqueKey = (state.getGeneratedAPOPBanner() + state
-                        .getUser().getPassword()).getBytes();
+                        .getUser().getPassword()).getBytes(Pop3Service.CHARSET_NAME);
 
-                if (Security.getProvider("BC") == null)
-                    Security.addProvider(new BouncyCastleProvider());
-                
-                MessageDigest md = MessageDigest.getInstance("MD5", "BC");
-                byte[] digest = Hex.encode(md.digest(uniqueKey));
+                md5.Init();
+                md5.Update(uniqueKey);
 
-                if (Arrays.equals(digest, cmdLine[2].getBytes()))
+                if (md5.asHex().equals(cmdLine[2]))
                 {
                     state.setAuthenticated();
                     boolean locked = state.getMailBox().tryAcquireLock(3, 100);

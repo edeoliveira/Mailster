@@ -1,34 +1,29 @@
 package org.mailster;
 
-import java.text.SimpleDateFormat;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTError;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.CoolItem;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ExpandBar;
@@ -39,7 +34,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -49,12 +43,22 @@ import org.eclipse.swt.widgets.TrayItem;
 import org.mailster.gui.AboutDialog;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
+import org.mailster.gui.prefs.ConfigurationDialog;
+import org.mailster.gui.prefs.ConfigurationManager;
+import org.mailster.gui.prefs.store.MailsterPrefStore;
+import org.mailster.gui.utils.DialogUtils;
+import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.gui.views.FilterTreeView;
 import org.mailster.gui.views.MailView;
+import org.mailster.pop3.Pop3ProtocolHandler;
+import org.mailster.pop3.mailbox.MailBoxManager;
+import org.mailster.pop3.mailbox.UserManager;
 import org.mailster.server.MailsterPop3Service;
 import org.mailster.server.MailsterSmtpService;
+import org.mailster.smtp.SimpleSmtpServer;
 import org.mailster.smtp.events.SMTPServerAdapter;
 import org.mailster.smtp.events.SMTPServerEvent;
+import org.mailster.util.DateUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +87,7 @@ import org.slf4j.LoggerFactory;
  * MailsterSWT.java - The main Mailster class.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class MailsterSWT
 {
@@ -92,24 +96,19 @@ public class MailsterSWT
      */
     private static final Logger LOG = LoggerFactory.getLogger(MailsterSWT.class);
     
-    public final static String MAILSTER_VERSION_NB	= "v0.8.0"; //$NON-NLS-1$
-    public final static String MAILSTER_VERSION     = "Mailster "+MAILSTER_VERSION_NB; //$NON-NLS-1$
-    public final static String MAILSTER_HOMEPAGE    = "http://mailster.sourceforge.net/"; //$NON-NLS-1$
-    public final static String MAILSTER_COPYRIGHT   = "Copyright (C) De Oliveira Edouard 2007"; //$NON-NLS-1$
-    
-    public final static SimpleDateFormat df = new SimpleDateFormat(
-            "dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$
-
     private final Image trayImage = SWTHelper.loadImage("mail_earth.gif"); //$NON-NLS-1$
     private final Image stopImage = SWTHelper.loadImage("stop.gif"); //$NON-NLS-1$
     private final Image startImage = SWTHelper.loadImage("start.gif"); //$NON-NLS-1$
-    private final Image debugImage = SWTHelper.loadImage("startDebug.gif"); //$NON-NLS-1$
+    private final Image debugImage = SWTHelper.loadImage("startdebug.gif"); //$NON-NLS-1$
 
     // Visual components
     private Shell sShell;
     private TrayItem trayItem;
     private Text log;
     private MailView mailView;
+    
+    private SashForm logDivider;
+    private SashForm filterViewDivider;
 
     private MenuItem serverStartMenuItem;
     private MenuItem serverDebugMenuItem;
@@ -151,275 +150,54 @@ public class MailsterSWT
 
     private GridLayout createLayout(boolean multipleControls)
     {
-        GridLayout layout = new GridLayout((multipleControls ? 3 : 1), false);
-        layout.marginLeft = 4;
-        layout.marginTop = 4;
-        layout.marginRight = 4;
-        layout.marginBottom = 4;
-        layout.verticalSpacing = multipleControls ? 2 : 0;
-        layout.horizontalSpacing = multipleControls ? 2 : 0;
-        layout.marginWidth = 0;
-        layout.marginHeight = 0;
-        
-        return layout;
+    	int spacing = multipleControls ? 2 : 0;
+    	return LayoutUtils.createGridLayout(
+    			(multipleControls ? 3 : 1), false, 0, 0, 4, 4, 4, 4, spacing, spacing);
     }
 
     private void createExpandBarAndMailView(Composite parent)
     {
-        GridData gridData = new GridData();
-        gridData.horizontalAlignment = GridData.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        gridData.grabExcessVerticalSpace = true;
-        gridData.verticalAlignment = GridData.FILL;
+        filterViewDivider = new SashForm(parent, SWT.NONE);
+        filterViewDivider.setOrientation(SWT.HORIZONTAL);
+        filterViewDivider.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
 
-        SashForm sash = new SashForm(parent, SWT.NONE);
-        sash.setOrientation(SWT.HORIZONTAL);
-        sash.setLayoutData(gridData);
-
-        ExpandBar bar = new ExpandBar(sash, SWT.V_SCROLL);
-        bar.setSpacing(8);
+        ExpandBar bar = new ExpandBar(filterViewDivider, SWT.V_SCROLL);
+        bar.setSpacing(6);
 
         // Tree item
         Composite composite = new Composite(bar, SWT.NONE);
         composite.setLayout(createLayout(false));
         
         FilterTreeView treeView = new FilterTreeView(composite);
-        GridData gd = new GridData();
-        gd.horizontalAlignment = GridData.FILL;
-        gd.verticalAlignment = GridData.FILL;
-        gd.grabExcessHorizontalSpace = true;
-        gd.grabExcessVerticalSpace = true;
-        gd.heightHint=194;
-        gd.horizontalIndent=0;
-        treeView.setLayoutData(gd);
+        treeView.setLayoutData(LayoutUtils.createGridData(
+                GridData.FILL, GridData.FILL, true, true, 1, 1, 264, SWT.DEFAULT));
         
         createExpandItem(bar, composite, Messages
                 .getString("MailsterSWT.expandbar.treeView"), "filter.gif", true); //$NON-NLS-1$ //$NON-NLS-2$
         
-        // Options item
-        composite = new Composite(bar, SWT.NONE);
-        composite.setLayout(createLayout(true));
-
-        GridData gdata = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-        gdata.horizontalSpan = 1;
-        Label label = new Label(composite, SWT.WRAP);
-        label.setText(Messages.getString("MailsterSWT.preferred.pop3auth.label")); //$NON-NLS-1$
-        label.setLayoutData(gdata);
-
-        gdata = new GridData();
-        gdata.grabExcessHorizontalSpace = true;
-        gdata.horizontalSpan = 2;
-        gdata.horizontalAlignment = GridData.FILL;
-        final Combo authCombo = new Combo(composite, SWT.READ_ONLY);
-        authCombo.setItems(new String[] { "APOP", "USER/PASS" }); //$NON-NLS-1$ //$NON-NLS-2$
-        authCombo.setText("APOP"); //$NON-NLS-1$
-        authCombo.setLayoutData(gdata);
-        authCombo.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent event)
-            {
-                smtpService.setUsingAPOPAuthMethod(authCombo.getText().equals("APOP"));
-            }
-        });
-        
-        gdata = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-        gdata.horizontalSpan = 1;
-        label = new Label(composite, SWT.WRAP);
-        label.setText(Messages.getString("MailsterSWT.preferred.pop3port.label")); //$NON-NLS-1$
-        label.setLayoutData(gdata);
-
-        gdata = new GridData();
-        gdata.grabExcessHorizontalSpace = true;
-        gdata.horizontalSpan = 2;
-        gdata.horizontalAlignment = GridData.FILL;
-        final Text pop3PortText = new Text(composite, SWT.BORDER);
-        pop3PortText.setText(MailsterPop3Service.POP3_PORT+""); //$NON-NLS-1$
-        pop3PortText.setLayoutData(gdata);
-        pop3PortText.addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent event)
-            {
-                try
-                {
-                    smtpService.getPop3Service().setPort(
-                            new Integer(pop3PortText.getText()).intValue());
-                }
-                catch (Exception ex) {}
-            }
-        });
-        
-        gdata = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-        gdata.horizontalSpan = 1;
-        label = new Label(composite, SWT.WRAP);
-        label.setText(Messages.getString("MailsterSWT.preferred.ctype.label")); //$NON-NLS-1$
-        label.setLayoutData(gdata);
-
-        gdata = new GridData();
-        gdata.grabExcessHorizontalSpace = true;
-        gdata.horizontalSpan = 2;
-        gdata.horizontalAlignment = GridData.FILL;
-        final Combo combo = new Combo(composite, SWT.READ_ONLY);
-        combo.setItems(new String[] { "text/html", "text/plain" }); //$NON-NLS-1$ //$NON-NLS-2$
-        combo.setText(MailView.DEFAULT_PREFERRED_CONTENT);
-        combo.setLayoutData(gdata);
-        combo.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent event)
-            {
-                getMailView().setPreferredContentType(combo.getText());
-            }
-        });
-        
-        // If OS is a Windows system and Xul is available, then give a chance to
-        // use it.
-        boolean xulAvailable = false;
-        Shell testShell = new Shell();
-        try
-        {
-            new Browser(testShell, SWT.BORDER | SWT.MOZILLA);            
-            xulAvailable = true;
-        }
-        catch(SWTError e)
-        {
-        }
-        finally
-        {
-            testShell.dispose();
-        }
-
-        if (xulAvailable
-                && System.getProperty("os.name").toLowerCase()
-                        .startsWith("win"))
-        {
-            gdata = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-            gdata.horizontalSpan = 1;
-            label = new Label(composite, SWT.WRAP);
-            label.setText(Messages
-                    .getString("MailsterSWT.preferred.browser.label")); //$NON-NLS-1$
-            label.setLayoutData(gdata);
-
-            gdata = new GridData();
-            gdata.grabExcessHorizontalSpace = true;
-            gdata.horizontalSpan = 2;
-            gdata.horizontalAlignment = GridData.FILL;
-            final Combo comboBrowser = new Combo(composite, SWT.READ_ONLY);
-            comboBrowser
-                    .setItems(new String[] {
-                            Messages.getString("MailsterSWT.default.browser"), "Mozilla/XulRunner" }); //$NON-NLS-1$ //$NON-NLS-2$
-            comboBrowser.setText(Messages
-                    .getString("MailsterSWT.default.browser")); //$NON-NLS-1$
-            comboBrowser.setLayoutData(gdata);
-            comboBrowser.addSelectionListener(new SelectionAdapter() {
-                public void widgetSelected(SelectionEvent event)
-                {
-                    getMailView().setForcedMozillaBrowserUse(
-                            comboBrowser.getSelectionIndex() != 0);
-                }
-            });
-        }
-
-        gdata = new GridData();
-        gdata.horizontalSpan = 2;
-        gdata.horizontalAlignment = GridData.FILL;
-        label = new Label(composite, SWT.NONE);
-        label.setText(Messages.getString("MailsterSWT.refresh.timeout") //$NON-NLS-1$
-                        + smtpService.getTimeout() 
-                        + Messages.getString("MailsterSWT.refresh.seconds")); //$NON-NLS-1$
-        label.setLayoutData(gdata);
-
-        gdata = new GridData();
-        gdata.grabExcessHorizontalSpace = true;
-        gdata.horizontalSpan = 1;
-        gdata.horizontalAlignment = GridData.FILL;
-        gdata.widthHint = 60;
-        Spinner spinner = new Spinner(composite, SWT.BORDER);
-        spinner.setMinimum(0);
-        spinner.setMaximum(990);
-        spinner.setSelection((int) smtpService.getTimeout());
-        spinner.setIncrement(10);
-        spinner.setPageIncrement(100);
-        spinner.setLayoutData(gdata);
-
-        final Label lbl = label;
-        spinner.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent event)
-            {
-                smtpService.setTimeout(((Spinner) event.widget).getSelection());
-                lbl.setText(Messages
-                    .getString("MailsterSWT.refresh.timeout") + smtpService.getTimeout() //$NON-NLS-1$
-                    + Messages.getString("MailsterSWT.refresh.seconds")); //$NON-NLS-1$
-            }
-        });
-
-        gdata = new GridData();
-        gdata.grabExcessHorizontalSpace = true;
-        gdata.horizontalSpan = 3;
-        gdata.horizontalAlignment = GridData.FILL;
-        label = new Label(composite, SWT.WRAP);
-        label.setText(Messages
-                .getString("MailsterSWT.default.output.directory.label")); //$NON-NLS-1$
-        label.setLayoutData(gdata);
-
-        gdata = new GridData();
-        gdata.grabExcessHorizontalSpace = true;
-        gdata.horizontalSpan = 2;
-        gdata.horizontalAlignment = GridData.FILL;
-        final Text path = new Text(composite, SWT.BORDER | SWT.SINGLE);
-        path.setText(smtpService.getDefaultOutputDirectory());
-        path.setEditable(false);
-        path.setLayoutData(gdata);
-
-        gdata = new GridData();
-        gdata.grabExcessHorizontalSpace = false;
-        gdata.horizontalSpan = 1;
-        Button dir = new Button(composite, SWT.FLAT | SWT.PUSH);
-        dir.setText("..."); //$NON-NLS-1$
-        dir.setLayoutData(new GridData());
-
-        dir.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent arg0)
-            {
-                DirectoryDialog dialog = new DirectoryDialog(sShell);
-                dialog.setFilterPath(path.getText());
-                dialog.setMessage(Messages
-                        .getString("MailsterSWT.default.ouput.dialog.title")); //$NON-NLS-1$
-                String p = dialog.open();
-                if (p != null)
-                {
-                    path.setText(p);
-                    smtpService.setDefaultOutputDirectory(p);
-                }
-            }
-        });
-
-        createExpandItem(bar, composite, Messages
-                .getString("MailsterSWT.expandbar.options"), null, false); //$NON-NLS-1$
-
         // About item
         composite = new Composite(bar, SWT.NONE);
         composite.setLayout(createLayout(false));
 
         Link l = new Link(composite, SWT.NONE);
-        l.setText(MAILSTER_VERSION 
-                    + Messages.getString("MailsterSWT.description.lineAll") //$NON-NLS-1$
-                    + MAILSTER_COPYRIGHT);
-        l.setToolTipText(MAILSTER_HOMEPAGE);
+        l.setText(ConfigurationManager.MAILSTER_VERSION + "\n\n"
+                    + ConfigurationManager.MAILSTER_COPYRIGHT);
+        l.setToolTipText(ConfigurationManager.MAILSTER_HOMEPAGE);
         l.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event)
             {
                 getMailView().showURL(event.text, true);
             }
         });
-        gridData = new GridData();
-        gridData.horizontalAlignment = GridData.FILL;
-        gridData.verticalAlignment = GridData.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        gridData.grabExcessVerticalSpace = true;
-        gridData.horizontalSpan = 3;
-        l.setLayoutData(gridData);
+
+        l.setLayoutData(LayoutUtils.createGridData(
+                GridData.FILL, GridData.FILL, true, true, 3, 1, SWT.DEFAULT, SWT.DEFAULT));
 
         createExpandItem(bar, composite, Messages
-                .getString("MailsterSWT.expandbar.about"), null, false); //$NON-NLS-1$
+                .getString("MailsterSWT.expandbar.about"), null, true); //$NON-NLS-1$
 
-        mailView = new MailView(sash, treeView, this);
-        sash.setWeights(new int[] { 29, 71 });
+        mailView = new MailView(filterViewDivider, treeView, this);
+        filterViewDivider.setWeights(new int[] { 29, 71 });
         bar.layout(true);
     }
 
@@ -488,10 +266,19 @@ public class MailsterSWT
         serverStopToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.stop.label")); //$NON-NLS-1$        
 
+        new ToolItem(toolBar, SWT.SEPARATOR);
+        
         final ToolItem refreshToolItem = new ToolItem(toolBar, SWT.PUSH);
         refreshToolItem.setImage(SWTHelper.loadImage("refresh.gif")); //$NON-NLS-1$
         refreshToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.refreshQueue.tooltip")); //$NON-NLS-1$        
+
+        final ToolItem configToolItem = new ToolItem(toolBar, SWT.PUSH);
+        configToolItem.setImage(SWTHelper.loadImage("config.gif")); //$NON-NLS-1$
+        configToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.config.tooltip")); //$NON-NLS-1$  
+        
+        new ToolItem(toolBar, SWT.SEPARATOR);
         
         final ToolItem aboutToolItem = new ToolItem(toolBar, SWT.PUSH);
         aboutToolItem.setImage(SWTHelper.loadImage("about.gif")); //$NON-NLS-1$
@@ -509,6 +296,8 @@ public class MailsterSWT
                     smtpService.shutdownServer(false);
                 else if (e.widget == refreshToolItem)
                     smtpService.refreshEmailQueue(false);
+                else if (e.widget == configToolItem)
+                    ConfigurationDialog.run(sShell);
                 else if (e.widget == aboutToolItem)
                 	(new AboutDialog(sShell, mailView)).open();                	
             }
@@ -518,6 +307,7 @@ public class MailsterSWT
         serverDebugToolItem.addSelectionListener(selectionAdapter);
         serverStopToolItem.addSelectionListener(selectionAdapter);
         refreshToolItem.addSelectionListener(selectionAdapter);
+        configToolItem.addSelectionListener(selectionAdapter);
         aboutToolItem.addSelectionListener(selectionAdapter);
 
         // Add a coolItem to the coolBar
@@ -531,16 +321,8 @@ public class MailsterSWT
         final CoolItem textItem = new CoolItem(coolBar, SWT.NONE);
         final Composite searchPanel = new Composite(coolBar, SWT.NONE);
 
-        GridLayout layout = new GridLayout(3, false);
-        layout.marginBottom = 0;
-        layout.marginTop = 0;
-        layout.marginRight = 0;
-        layout.marginLeft = 0;
-        layout.horizontalSpacing = 2;
-        layout.verticalSpacing = 0;
-        layout.marginHeight = 0;
-        layout.marginWidth = 0;
-        searchPanel.setLayout(layout);
+        searchPanel.setLayout(
+                LayoutUtils.createGridLayout(3, false, 0, 0, 0, 0, 0, 0, 0, 2));
 
         CLabel lbl = new CLabel(searchPanel, SWT.NONE);
         lbl.setText(Messages.getString("MailsterSWT.filter.label")); //$NON-NLS-1$
@@ -626,23 +408,15 @@ public class MailsterSWT
     private void createLogView(Composite parent)
     {
         final Composite logComposite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout(2, false);
-        layout.marginBottom = 0;
-        layout.marginTop = 0;
-        layout.marginRight = 0;
-        layout.marginLeft = 0;
-        layout.horizontalSpacing = 0;
-        layout.verticalSpacing = 0;
-        layout.marginHeight = 0;
-        layout.marginWidth = 0;        
-        logComposite.setLayout(layout);
+        logComposite.setLayout(
+                LayoutUtils.createGridLayout(2, false, 0, 0, 0, 0, 0, 0, 0, 0));
         
         GridData gridData = new GridData(GridData.FILL_BOTH);
         gridData.grabExcessHorizontalSpace = true;
         gridData.grabExcessVerticalSpace = true;
         
-        log = new Text(logComposite, SWT.MULTI | SWT.H_SCROLL | SWT.BORDER
-                | SWT.V_SCROLL);
+        log = new Text(logComposite, SWT.MULTI | SWT.BORDER
+                | SWT.V_SCROLL | SWT.WRAP );
         
         log.setLayoutData(gridData);
         
@@ -655,7 +429,7 @@ public class MailsterSWT
 
     public static void usage()
     {
-        System.out.println(MAILSTER_VERSION + "\n");
+        System.out.println(ConfigurationManager.MAILSTER_VERSION + "\n");
         System.out.println(Messages.getString("MailsterSWT.usage.line1")); //$NON-NLS-1$
         System.out.println(Messages.getString("MailsterSWT.usage.line2")); //$NON-NLS-1$
         System.out.println(Messages.getString("MailsterSWT.usage.line3")); //$NON-NLS-1$
@@ -670,7 +444,7 @@ public class MailsterSWT
                 .getResourceAsStream("/org/mailster/gui/resources/splash.png")); //$NON-NLS-1$
         GC gc = new GC(image);
         gc.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
-        gc.drawText(MAILSTER_COPYRIGHT, 5, 280, true);
+        gc.drawText(ConfigurationManager.MAILSTER_COPYRIGHT, 5, 280, true);
         gc.dispose();
         final Shell splash = new Shell(SWT.ON_TOP);
         Label label = new Label(splash, SWT.NONE);
@@ -678,11 +452,7 @@ public class MailsterSWT
         label.setBounds(image.getBounds());
         splash.setBounds(label.getBounds());
 
-        Rectangle splashRect = splash.getBounds();
-        Rectangle displayRect = display.getBounds();
-        int x = (displayRect.width - splashRect.width) / 2;
-        int y = (displayRect.height - splashRect.height) / 2;
-        splash.setLocation(x, y);
+        DialogUtils.centerShellOnScreen(splash);
         splash.open();
         final MailsterSWT main = new MailsterSWT();
         display.asyncExec(new Runnable() {
@@ -706,16 +476,145 @@ public class MailsterSWT
         return main;
     }
 
+    private void applyPreferences()
+    {
+    	MailsterPrefStore store = ConfigurationManager.CONFIG_STORE;
+        
+        if (store.getBoolean(ConfigurationManager.APPLY_MAIN_WINDOW_PARAMS_KEY))
+        {
+            Point pt = new Point(store.getInt(ConfigurationManager.WINDOW_X_KEY),
+                    store.getInt(ConfigurationManager.WINDOW_Y_KEY));
+            
+            sShell.setLocation(pt);
+            
+            pt = new Point(store.getInt(ConfigurationManager.WINDOW_WIDTH_KEY),
+                    store.getInt(ConfigurationManager.WINDOW_HEIGHT_KEY));
+            
+            if (pt.x > 0 && pt.y > 0)
+                sShell.setSize(pt);
+            
+            int ratio = store.getInt(ConfigurationManager.LOG_DIVIDER_RATIO_KEY);
+            if (ratio > 0 && ratio < 100)
+                logDivider.setWeights(new int[] {ratio, 100 - ratio});
+            
+            ratio = store.getInt(ConfigurationManager.FILTER_VIEW_RATIO_KEY);
+            if (ratio > 0 && ratio < 100)
+                filterViewDivider.setWeights(new int[] {ratio, 100 - ratio});
+            
+            ratio = store.getInt(ConfigurationManager.TABLE_VIEW_RATIO_KEY);
+            if (ratio > 0 && ratio < 100)
+                mailView.getDivider().setWeights(new int[] {ratio, 100 - ratio});            
+        }
+        
+        smtpService.setQueueRefreshTimeout(store.
+        		getLong(ConfigurationManager.MAIL_QUEUE_REFRESH_INTERVAL_KEY) / 1000);
+        
+        mailView.setForcedMozillaBrowserUse(
+        		store.getString(ConfigurationManager.PREFERRED_BROWSER_KEY).
+        		toLowerCase().startsWith("mozilla"));
+        
+        mailView.setPreferredContentType(store.
+        		getString(ConfigurationManager.PREFERRED_CONTENT_TYPE_KEY));
+        
+        smtpService.getPop3Service().setPort(
+        		store.getInt(ConfigurationManager.POP3_PORT_KEY));
+
+        smtpService.getPop3Service().getUserManager().getMailBoxManager().
+        	setPop3SpecialAccountLogin(store.
+            		getString(ConfigurationManager.POP3_SPECIAL_ACCOUNT_KEY));
+        
+        smtpService.setUsingAPOPAuthMethod(store.
+    			getString(ConfigurationManager.POP3_AUTH_METHOD_KEY).equals("APOP"));
+        
+        smtpService.getPop3Service().setHost(store.
+                getString(ConfigurationManager.POP3_SERVER_KEY));
+        
+        smtpService.setHostName(store.getString(ConfigurationManager.SMTP_SERVER_KEY));
+        
+        smtpService.setPort(store.getInt(ConfigurationManager.SMTP_PORT_KEY));
+        
+        smtpService.setConnectionTimeout(store.
+                getInt(ConfigurationManager.SMTP_CONNECTION_TIMEOUT_KEY));
+        
+        UserManager.setDefaultPassword(
+        		store.getString(ConfigurationManager.POP3_PASSWORD_KEY));
+        
+        Pop3ProtocolHandler.setTimeout(store.
+			getInt(ConfigurationManager.POP3_CONNECTION_TIMEOUT_KEY));
+    }
+    
     private static void startApplication(MailsterSWT main, String[] args)
     {
-        final MailsterSWT _main = main;
+    	MailsterPrefStore store = ConfigurationManager.CONFIG_STORE;
+    	
+    	try
+        {
+            store.load();
+        }
+        catch (IOException e)
+        {
+        	LOG.debug("Unable to read preferences file. Loading defaults ...");
+        	
+        	// Set default preferences
+        	store.setValue(ConfigurationManager.MAIL_QUEUE_REFRESH_INTERVAL_KEY, 
+        			"300000"); //$NON-NLS-1$
+        	store.setValue(ConfigurationManager.ASK_ON_REMOVE_MAIL_KEY, true);
+        	store.setValue(ConfigurationManager.APPLY_MAIN_WINDOW_PARAMS_KEY, true);
+        	store.setValue(ConfigurationManager.PREFERRED_BROWSER_KEY, 
+                    Messages.getString("MailsterSWT.default.browser")); //$NON-NLS-1$
+        	store.setValue(ConfigurationManager.PREFERRED_CONTENT_TYPE_KEY, "text/html"); //$NON-NLS-1$
+        	
+        	store.setValue(ConfigurationManager.NOTIFY_ON_NEW_MESSAGES_RECEIVED_KEY, true);
+        	store.setValue(ConfigurationManager.AUTO_HIDE_NOTIFICATIONS_KEY, true);
+        	
+        	store.setValue(ConfigurationManager.LANGUAGE_KEY, "en");
+        	
+        	store.setValue(ConfigurationManager.EXECUTE_ENCLOSURE_ON_CLICK_KEY, true);
+        	store.setValue(ConfigurationManager.DEFAULT_ENCLOSURES_DIRECTORY_KEY, 
+        			System.getProperty("user.home")); //$NON-NLS-1$
+
+        	store.setValue(ConfigurationManager.START_POP3_ON_SMTP_START_KEY, true);
+        	
+        	store.setValue(ConfigurationManager.POP3_SERVER_KEY, "");
+        	store.setValue(ConfigurationManager.POP3_PORT_KEY, 
+        			MailsterPop3Service.POP3_PORT);        	
+        	store.setValue(ConfigurationManager.POP3_SPECIAL_ACCOUNT_KEY, 
+        			MailBoxManager.POP3_SPECIAL_ACCOUNT_LOGIN);
+        	store.setValue(ConfigurationManager.POP3_AUTH_METHOD_KEY, "APOP"); //$NON-NLS-1$
+        	store.setValue(ConfigurationManager.POP3_PASSWORD_KEY, 
+        			UserManager.DEFAULT_PASSWORD);
+        	store.setValue(ConfigurationManager.POP3_CONNECTION_TIMEOUT_KEY, 
+        			Pop3ProtocolHandler.DEFAULT_TIMEOUT_SECONDS);
+        	
+        	store.setValue(ConfigurationManager.SMTP_SERVER_KEY, "");
+        	store.setValue(ConfigurationManager.SMTP_PORT_KEY, 
+        			SimpleSmtpServer.DEFAULT_SMTP_PORT);
+        	store.setValue(ConfigurationManager.SMTP_CONNECTION_TIMEOUT_KEY, 
+        			SimpleSmtpServer.DEFAULT_TIMEOUT / 1000);        	
+        }
+        
+        store.setMailsterMainWindow(main);
+        
+        String localeInfo = store.getString(ConfigurationManager.LANGUAGE_KEY);
+        
+        if (localeInfo.indexOf('_') != -1)
+        	Messages.setLocale(new Locale(localeInfo.substring(0, 2), localeInfo.substring(3)));
+        else
+        	Messages.setLocale(new Locale(localeInfo));
+    	
+    	main.smtpService.setQueueRefreshTimeout(
+    			store.getLong(ConfigurationManager.SMTP_CONNECTION_TIMEOUT_KEY)	/ 1000);
+        
+    	main.smtpService.setAutoStart(
+    			store.getBoolean(ConfigurationManager.START_SMTP_ON_STARTUP_KEY));
+    	
         if (args.length > 3)
             usage();
         {
             for (int i = 0, max = args.length; i < max; i++)
             {
                 if ("-autostart".equals(args[i]))
-                    _main.smtpService.setAutoStart(true);
+                	main.smtpService.setAutoStart(true);
                 else
             	if (args[i].startsWith("-lang="))
             	{
@@ -725,7 +624,7 @@ public class MailsterSWT
                 {
                     try
                     {
-                        _main.smtpService.setTimeout(Long.parseLong(args[i]));
+                    	main.smtpService.setQueueRefreshTimeout(Long.parseLong(args[i]));
                     }
                     catch (NumberFormatException e)
                     {
@@ -733,8 +632,9 @@ public class MailsterSWT
                     }
                 }
             }
-        }
-        
+        }    	
+    	
+        final MailsterSWT _main = main;
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(final Thread t,
                     final Throwable ex)
@@ -753,8 +653,8 @@ public class MailsterSWT
                 _main.smtpService.shutdownServer(false);
             }
         });
-
-        _main.createSShell();
+        main.createSShell();
+        main.applyPreferences();      
     }
 
     public static void main(String[] args)
@@ -769,7 +669,6 @@ public class MailsterSWT
                 display.sleep();
         }
 
-        SWTHelper.disposeAll();
         display.dispose();
         System.exit(0);
     }
@@ -782,7 +681,7 @@ public class MailsterSWT
         GridLayout gridLayout = new GridLayout();
         gridLayout.numColumns = 1;
         sShell = new Shell();
-        sShell.setText(MAILSTER_VERSION);
+        sShell.setText(ConfigurationManager.MAILSTER_VERSION);
         sShell.setLayout(gridLayout);
         sShell.setImage(trayImage);
         createSystemTray();
@@ -794,20 +693,16 @@ public class MailsterSWT
         gridData.grabExcessVerticalSpace = true;
         gridData.verticalAlignment = GridData.FILL;
 
-        SashForm sash = new SashForm(sShell, SWT.NONE);
-        sash.setOrientation(SWT.VERTICAL);
-        sash.setLayoutData(gridData);
+        logDivider = new SashForm(sShell, SWT.NONE);
+        logDivider.setOrientation(SWT.VERTICAL);
+        logDivider.setLayoutData(gridData);
 
-        createExpandBarAndMailView(sash);
-        createLogView(sash);
-        sash.setWeights(new int[] { 80, 20 });
+        createExpandBarAndMailView(logDivider);
+        createLogView(logDivider);
+        logDivider.setWeights(new int[] { 80, 20 });
 
         sShell.setSize(new Point(800, 600));
-        Rectangle splashRect = sShell.getBounds();
-        Rectangle displayRect = sShell.getDisplay().getBounds();
-        int x = (displayRect.width - splashRect.width) / 2;
-        int y = (displayRect.height - splashRect.height) / 2;
-        sShell.setLocation(x, y);
+        DialogUtils.centerShellOnScreen(sShell);
 
         smtpService.addSMTPServerListener(new SMTPServerAdapter() {
             public void updateUI(boolean stopped)
@@ -839,25 +734,115 @@ public class MailsterSWT
                     public void run()
                     {
                         updateUI(false);
-                        sShell.setMinimized(true);
+                        if(ConfigurationManager.CONFIG_STORE.
+                                getBoolean(ConfigurationManager.SEND_TO_TRAY_ON_SERVER_START_KEY))
+                            sShell.setMinimized(true);
                     }
                 });
             }
         });
 
-        sShell.getDisplay().addFilter(SWT.KeyDown, new Listener() {
-            public void handleEvent(Event e)
-            {
-                if (e.keyCode == SWT.F4 && e.stateMask == SWT.MOD1 + SWT.MOD2)
-                    mailView.closeAllTabs();
-            }
-        });
-
         if (smtpService.isAutoStart())
-            smtpService
-                    .startServer(System.getProperty("com.dumbster.smtp.debug") != null);
+            smtpService.startServer(
+                    System.getProperty("com.dumbster.smtp.debug") != null);
+        
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run()
+            {
+                try
+                {                    
+                    smtpService.shutdownServer(true);
+                    if (trayItem != null)
+                        trayItem.dispose();
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+            }
+        }));
+        
+        sShell.addDisposeListener(new DisposeListener() {        
+            public void widgetDisposed(DisposeEvent event)
+            {
+                try
+                {
+                    storeWindowOptions();
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+            }        
+        });
+        
+        sShell.addShellListener(new ShellAdapter() {
+                /**
+                 * Sent when a <code>Shell</code> is closed.
+                 * Handles the application's tray behaviour if the enclosing
+                 * <code>Shell</code> is about to be closed.
+                 *
+                 * @param e an event containing information about the close
+                 * 
+                 * @see org.mailster.gui.prefs.ConfigurationManager#SEND_TO_TRAY_ON_CLOSE_KEY
+                 */
+                public void shellClosed(ShellEvent e) 
+                {
+                    if (ConfigurationManager.CONFIG_STORE.getBoolean(
+                            ConfigurationManager.SEND_TO_TRAY_ON_CLOSE_KEY)) 
+                    {
+                        Shell shell = (Shell) e.widget;
+                        shell.setVisible(false);
+                    }
+                }
+
+                /**
+                 * Sent when a <code>Shell</code> is minimized.
+                 * Handles the application's tray behaviour if the enclosing
+                 * <code>Shell</code> is iconified.
+                 * 
+                 * @param e an event containing information about the minimization
+                 * 
+                 * @see org.mailster.gui.prefs.ConfigurationManager#SEND_TO_TRAY_ON_MINIMIZE_KEY
+                 */
+                public void shellIconified(ShellEvent e) 
+                {
+                    if (ConfigurationManager.CONFIG_STORE.getBoolean(
+                            ConfigurationManager.SEND_TO_TRAY_ON_MINIMIZE_KEY)) 
+                    {
+                        Shell shell = (Shell) e.widget;
+                        shell.setVisible(false);
+                    }
+                }
+        });
     }
 
+    private void storeRatio(SashForm divider, String key, IPreferenceStore store)
+    {
+        int[] weights = divider.getWeights();
+        int ratio = (weights[0] * 100) / (weights[0]+ weights[1]);
+        store.setValue(key, ratio);
+    }
+    
+    protected void storeWindowOptions()
+        throws IOException
+    {
+        MailsterPrefStore store = ConfigurationManager.CONFIG_STORE;
+        Point pt = sShell.getLocation();
+        store.setValue(ConfigurationManager.WINDOW_X_KEY, pt.x);
+        store.setValue(ConfigurationManager.WINDOW_Y_KEY, pt.y);
+        
+        pt = sShell.getSize();
+        store.setValue(ConfigurationManager.WINDOW_WIDTH_KEY, pt.x);
+        store.setValue(ConfigurationManager.WINDOW_HEIGHT_KEY, pt.y);
+
+        storeRatio(logDivider, ConfigurationManager.LOG_DIVIDER_RATIO_KEY, store);
+        storeRatio(filterViewDivider, ConfigurationManager.FILTER_VIEW_RATIO_KEY, store);
+        storeRatio(mailView.getDivider(), ConfigurationManager.TABLE_VIEW_RATIO_KEY, store);
+        
+        ConfigurationManager.CONFIG_STORE.save();
+    }
+    
     public void showTrayItemTooltipMessage(String title, String message)
     {
     	final ToolTip tip = new ToolTip(sShell, SWT.BALLOON | SWT.ICON_INFORMATION);
@@ -875,6 +860,8 @@ public class MailsterSWT
     		tip.setLocation(sShell.getLocation());
     	}
     	tip.setVisible(true);
+        tip.setAutoHide(ConfigurationManager.CONFIG_STORE.
+        		getBoolean(ConfigurationManager.AUTO_HIDE_NOTIFICATIONS_KEY));
     }
     	
     private void createSystemTray()
@@ -883,7 +870,7 @@ public class MailsterSWT
         if (tray != null)
         {
             trayItem = new TrayItem(tray, SWT.NONE);
-            trayItem.setToolTipText(MAILSTER_VERSION);
+            trayItem.setToolTipText(ConfigurationManager.MAILSTER_VERSION);
             final Menu menu = createTrayMenu();
 
             Listener trayListener = new Listener() {
@@ -891,6 +878,7 @@ public class MailsterSWT
                 {
                     if (e.type == SWT.Selection)
                     {
+                        sShell.setVisible(true);                                                
                         boolean min = sShell.getMinimized();
                         if (min)
                             sShell.setActive();
@@ -903,14 +891,7 @@ public class MailsterSWT
 
             trayItem.addListener(SWT.Selection, trayListener);
             trayItem.addListener(SWT.MenuDetect, trayListener);
-            trayItem.setImage(trayImage);
-            sShell.addDisposeListener(new DisposeListener() {
-                public void widgetDisposed(DisposeEvent e)
-                {
-                    smtpService.shutdownServer(true);
-                    trayItem.dispose();
-                }
-            });
+            trayItem.setImage(trayImage);                        
         }
     }
 
@@ -959,16 +940,23 @@ public class MailsterSWT
 
     public void log(String msg)
     {
-        String logMessage = "[" + df.format(new Date()) + "] " + msg + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        if (log != null)
+        if (log != null && !log.isDisposed())
         {
+            String date = DateUtilities.df.format(new Date());
+            StringBuilder sb = new StringBuilder(3+date.length()+msg.length());
+            sb.append('['); //$NON-NLS-1$
+            sb.append(date);
+            sb.append(']'); //$NON-NLS-1$
+            sb.append(msg);
+            sb.append('\n'); //$NON-NLS-1$
+            
             int idx = log.getTopIndex();
-            log.append(logMessage);
+            log.append(sb.toString());
             if (logViewIsScrollLocked)
                 log.setTopIndex(idx);
         }
         else
-            LOG.info(logMessage);
+            LOG.info(msg);
     }
 
     public MailsterSmtpService getSMTPService()

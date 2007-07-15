@@ -30,7 +30,7 @@ import org.mailster.util.StringUtilities;
  * StartTLSCommand.java - The POP3 STARTTLS command (see RFC 2595).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class StartTLSCommand implements Pop3Command
 {

@@ -38,7 +38,7 @@ import ca.odell.glazedlists.gui.TableFormat;
  * SmtpMessageTableLabelProvider.java - Decorates the table rows.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class SmtpMessageTableLabelProvider extends EventTableLabelProvider
 	implements IFontProvider, IColorProvider 
@@ -49,9 +49,9 @@ public class SmtpMessageTableLabelProvider extends EventTableLabelProvider
 	/** 
      * the list being displayed in the TableViewer
      */
-    private EventList sourceList;
+    private EventList<?> sourceList;
     
-    public SmtpMessageTableLabelProvider(EventList sourceList, TableFormat aTableFormat) 
+    public SmtpMessageTableLabelProvider(EventList<?> sourceList, TableFormat<?> aTableFormat) 
     {
     	super(aTableFormat);
     	this.sourceList = sourceList;
@@ -59,8 +59,8 @@ public class SmtpMessageTableLabelProvider extends EventTableLabelProvider
         if (attachedFilesImage == null)
         {
         	attachedFilesImage = SWTHelper.loadImage("attach.gif"); //$NON-NLS-1$
-        	flaggedImage = SWTHelper.loadImage("public_co.gif"); //$NON-NLS-1$
-        	unflaggedImage = SWTHelper.loadGrayImage("public_co.gif"); //$NON-NLS-1$
+        	flaggedImage = SWTHelper.loadImage("flag16.png"); //$NON-NLS-1$
+        	unflaggedImage = SWTHelper.loadImage("no_flag.gif"); //$NON-NLS-1$
             
         	tableRowColor = SWTHelper.createColor(243, 245, 248); 
         }

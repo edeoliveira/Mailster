@@ -29,7 +29,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
@@ -39,6 +41,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
+import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.server.MailsterSmtpService;
 import org.mailster.smtp.SmtpMessage;
@@ -72,7 +75,7 @@ import ca.odell.glazedlists.AbstractEventList;
  * MailView.java - Handles mail tabs.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class MailView
 {
@@ -109,7 +112,9 @@ public class MailView
             String fileName = part.getFileName();
             menuItem.setText(fileName);
 
-            if (fileName.lastIndexOf('.') != -1)
+            if (fileName.lastIndexOf('.') != -1 &&
+            		ConfigurationManager.CONFIG_STORE.
+            		getBoolean(ConfigurationManager.EXECUTE_ENCLOSURE_ON_CLICK_KEY))
             {
                 Program p = Program.findProgram(fileName.substring(fileName
                         .lastIndexOf('.')));
@@ -120,7 +125,8 @@ public class MailView
                         menuItem.setImage(new Image(menu.getDisplay(), data));
                 }
             }
-            else if (part.getContentType().startsWith("message")) //$NON-NLS-1$
+            else 
+            if (part.getContentType().startsWith("message")) //$NON-NLS-1$
                 menuItem.setImage(SWTHelper.loadImage("mail.gif")); //$NON-NLS-1$
 
             menuItem.setData(part);
@@ -133,11 +139,11 @@ public class MailView
                             .lastIndexOf('.')));
                     if (p != null)
                     {
-                        fileName = main.getSMTPService().getDefaultOutputDirectory()
+                        fileName = main.getSMTPService().getOutputDirectory()
                                 + File.separator + fileName;
                         saveAllAttachments(
                                 new MenuItem[] { (MenuItem) event.widget },
-                                main.getSMTPService().getDefaultOutputDirectory());
+                                main.getSMTPService().getOutputDirectory());
                         main
                                 .log(Messages
                                         .getString("MailView.execute.file") + fileName + " ..."); //$NON-NLS-1$
@@ -178,7 +184,7 @@ public class MailView
             {
                 // Button has been pushed so take appropriate action
                 saveAllAttachments(menu.getItems(), main
-                        .getSMTPService().getDefaultOutputDirectory());
+                        .getSMTPService().getOutputDirectory());
             }
         }
     }
@@ -265,6 +271,8 @@ public class MailView
     private CTabFolder folder;    
     private Composite parent;
     private MailsterSWT main;
+    
+    private SashForm divider;
 
     private MCTabFolder2Listener folderLayoutListener;
     private DropdownSelectionListener dropdownListener;
@@ -289,9 +297,23 @@ public class MailView
                 new Color(SWTHelper.getDisplay(), 0, 84, 227),
                 new Color(SWTHelper.getDisplay(), 61, 149, 255));
 
+
+        SWTHelper.getDisplay().addFilter(SWT.KeyDown, new Listener() {
+            public void handleEvent(Event e)
+            {
+                if (e.keyCode == SWT.F4 && e.stateMask == SWT.MOD1 + SWT.MOD2)
+                    closeAllTabs();
+            }
+        });
+        
         createView(treeView, main.getFilterTextField());        
     }
 
+    public SashForm getDivider()
+    {
+        return divider;
+    }
+    
     private void createView(FilterTreeView treeView, Text filterTextField)
     {
         GridData gridData = new GridData();
@@ -300,12 +322,12 @@ public class MailView
         gridData.grabExcessHorizontalSpace = true;
         gridData.grabExcessVerticalSpace = true;
 
-        SashForm sashForm = new SashForm(parent, SWT.NONE);
-        sashForm.setOrientation(SWT.VERTICAL);
-        sashForm.setLayoutData(gridData);
-        tableView = new TableView(sashForm, this, treeView, filterTextField);        
-        createTabFolder(sashForm);
-        sashForm.setWeights(new int[] { 30, 70 });
+        divider = new SashForm(parent, SWT.NONE);
+        divider.setOrientation(SWT.VERTICAL);
+        divider.setLayoutData(gridData);
+        tableView = new TableView(divider, this, treeView, filterTextField);        
+        createTabFolder(divider);
+        divider.setWeights(new int[] { 30, 70 });
     }
 
     private Text createRawMailView(Composite parent)
@@ -385,7 +407,7 @@ public class MailView
                 return;
             }
 
-            _browser.setText(msg.getContent(preferredContentType));
+            _browser.setText(msg.getPreferredContent(preferredContentType));
         	_browser.addProgressListener(new ProgressAdapter() {
                 public void completed(ProgressEvent event)
                 {
@@ -479,8 +501,9 @@ public class MailView
                     p.write(f);
                     f.flush();
                     f.close();
-                    main.log(Messages.getString("MailView.saving.attached.file.log1") 
-                                + p.getFileName() + Messages.getString("MailView.saving.attached.file.log2") //$NON-NLS-1$ //$NON-NLS-2$
+                    main.log(Messages.getString("MailView.saving.attached.file.log1") //$NON-NLS-1$
+                                + p.getFileName() 
+                                + Messages.getString("MailView.saving.attached.file.log2") //$NON-NLS-1$
                                 + dir);
                 }
                 catch (Exception e)
@@ -498,7 +521,7 @@ public class MailView
                 Messages.getString("MailView.attached.files.ext"), //$NON-NLS-1$
                 Messages.getString("MailView.all.files.ext") }); //$NON-NLS-1$
         dialog.setFilterExtensions(new String[] { "*.eml", "*.*" }); //$NON-NLS-1$ //$NON-NLS-2$
-        dialog.setFilterPath(main.getSMTPService().getDefaultOutputDirectory());
+        dialog.setFilterPath(main.getSMTPService().getOutputDirectory());
         dialog.setFileName(part.getFileName());
         dialog.setText(Messages.getString("MailView.dialog.title")); //$NON-NLS-1$
         String fileName = dialog.open();
@@ -510,9 +533,8 @@ public class MailView
                 part.write(f);
                 f.flush();
                 f.close();
-                main
-                        .log(Messages
-                                .getString("MailView.saving.attached.file.log") + fileName); //$NON-NLS-1$
+                main.log(Messages
+                        .getString("MailView.saving.attached.file.log") + fileName); //$NON-NLS-1$
             }
             catch (Exception e)
             {
@@ -584,6 +606,7 @@ public class MailView
 
         ToolBar rightToolbar = new ToolBar(folder, SWT.FILL | SWT.FLAT);
         rightToolbar.setLayoutData(new FillLayout());
+        
         ToolItem home = SWTHelper.createToolItem(
                         rightToolbar,
                         SWT.PUSH,
@@ -596,7 +619,7 @@ public class MailView
         home.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e)
             {
-                showURL(MailsterSWT.MAILSTER_HOMEPAGE, false);
+                showURL(ConfigurationManager.MAILSTER_HOMEPAGE, false);
             }
         });
 
@@ -703,7 +726,7 @@ public class MailView
         tableView.clearDataList();
     }
 
-    public void closeAllTabs()
+    private void closeAllTabs()
     {
         for (int i = folder.getItemCount() - 1; i >= 0; i--)
         {

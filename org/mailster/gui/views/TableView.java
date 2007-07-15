@@ -10,6 +10,8 @@ import javax.mail.Flags;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CheckboxCellEditor;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.events.ControlAdapter;
@@ -20,7 +22,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Region;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -36,11 +37,12 @@ import org.mailster.gui.glazedlists.SmtpMessageTableFormat;
 import org.mailster.gui.glazedlists.SmtpMessageTableLabelProvider;
 import org.mailster.gui.glazedlists.swt.TableComparatorChooser;
 import org.mailster.gui.glazedlists.swt.TableViewerManager;
-import org.mailster.gui.glazedlists.tableviewerfix.FixedTableViewer;
+import org.mailster.gui.prefs.ConfigurationManager;
+import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.smtp.SmtpHeadersInterface;
 import org.mailster.smtp.SmtpMessage;
-import org.mailster.util.MailUtilities;
+import org.mailster.util.DateUtilities;
 
 import ca.odell.glazedlists.AbstractEventList;
 import ca.odell.glazedlists.BasicEventList;
@@ -77,11 +79,12 @@ import ca.odell.glazedlists.swt.TextWidgetMatcherEditor;
  * TableView.java - Handles the mail table and backing data list.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class TableView
 {
     private TableViewerManager msgTableViewer;
+    private TableViewer viewer;
     private Table table;
     
     private TableColumn to;
@@ -127,7 +130,7 @@ public class TableView
         {
             try
             {
-                return MailUtilities.rfc822DateFormatter.parse(msg.getDate());
+                return DateUtilities.rfc822DateFormatter.parse(msg.getDate());
             }
             catch (ParseException e)
             {
@@ -140,7 +143,7 @@ public class TableView
                     msg.getInternalParts().getAttachedFiles().length > 0);
     }
 
-    @SuppressWarnings("unchecked")//$NON-NLS-1$
+    @SuppressWarnings("unchecked")
     private int compareTo(SmtpMessage row0, SmtpMessage row1,
             TableColumn selected)
     {
@@ -159,16 +162,8 @@ public class TableView
             final FilterTreeView treeView, Text filterTextField)
     {
         final Composite tableComposite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout(1, false);
-        layout.marginBottom = 0;
-        layout.marginTop = 0;
-        layout.marginRight = 0;
-        layout.marginLeft = 0;
-        layout.horizontalSpacing = 2;
-        layout.verticalSpacing = 0;
-        layout.marginHeight = 0;
-        layout.marginWidth = 0;
-        tableComposite.setLayout(layout);
+        tableComposite.setLayout(
+                LayoutUtils.createGridLayout(1, false, 0, 0, 0, 0, 0, 0, 0, 2));
 
         eventList = new BasicEventList<StoredSmtpMessage>();        
         table = new Table(tableComposite, SWT.VIRTUAL | SWT.BORDER
@@ -205,11 +200,12 @@ public class TableView
         treeView.addMessageCounter(dataList, eventList);
         
         SmtpMessageTableFormat tf = new SmtpMessageTableFormat();
-        FixedTableViewer tv = new FixedTableViewer(table);
-        tv.setCellEditors(
+        
+        viewer = new TableViewer(table);        
+        viewer.setCellEditors(
                 new CellEditor[] {null, null, null, new CheckboxCellEditor(), null});
 
-        msgTableViewer = new TableViewerManager(tv, dataList, 
+        msgTableViewer = new TableViewerManager(viewer, dataList, 
                 new SmtpMessageTableLabelProvider(dataList, tf));
         
         TableComparatorChooser.install(msgTableViewer, dataList, false);
@@ -287,13 +283,13 @@ public class TableView
                     gc.setForeground(display.getSystemColor(SWT.COLOR_BLUE));
                     gc.setBackground(display
                             .getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-                    gc.fillGradientRectangle(0, rect.y, 500, rect.height, false);
+                    gc.fillGradientRectangle(0, rect.y, area.width+100, rect.height, false);
                 }
                 else
                 {
                     gc.setForeground(((TableItem) event.item).getForeground());
                     gc.setBackground(((TableItem) event.item).getBackground());
-                    gc.fillRectangle(0, rect.y, 500, rect.height);
+                    gc.fillRectangle(0, rect.y, area.width+100, rect.height);
                 }
                 gc.setForeground(foreground);
                 gc.setBackground(background);
@@ -369,7 +365,7 @@ public class TableView
             {
             	if (((e.stateMask & SWT.CTRL) != 0) && e.keyCode == 'a')
             	{
-                    selectAll();
+                    viewer.setSelection(new StructuredSelection(getDataList()));
                     return;
             	}
             	
@@ -391,9 +387,11 @@ public class TableView
                 {
                     if (treeView.isTrashFolderSelected() || (e.stateMask & SWT.SHIFT) != 0)
                     {
-                        if (MessageDialog.openConfirm(table.getShell(), 
-                                Messages.getString("MailView.dialog.confirm.deleteMails"), 
-                                Messages.getString("MailView.dialog.confirm.question")))
+                        if (!ConfigurationManager.CONFIG_STORE.
+                                getBoolean(ConfigurationManager.ASK_ON_REMOVE_MAIL_KEY) 
+                            || MessageDialog.openConfirm(table.getShell(), 
+                                    Messages.getString("MailView.dialog.confirm.deleteMails"), 
+                                    Messages.getString("MailView.dialog.confirm.question")))
                         {
                         	try
                         	{
@@ -404,7 +402,8 @@ public class TableView
     	                    		l.add(stored);
     	                    		mailView.getSMTPService().getPop3Service().removeMessage(stored);
     	                    	}
-    	                    	dataList.removeAll(l);
+                                table.deselectAll();
+    	                    	dataList.removeAll(l);                                
                         	}
                         	catch (Exception ex)
                         	{
@@ -484,16 +483,4 @@ public class TableView
                 table.getColumn(i).setWidth(
                     i < max - 1 ? (int) (w * 1.2) : (int) (w * 0.6));
     }
-    
-    protected void selectAll()
-    {
-        // TOSEE strange way to select all ...
-        int[] indices = new int[dataList.size()];
-        for (int i=0;i<indices.length;i++)
-                indices[i] = i;
-        
-        table.setSelection(indices);
-        table.showSelection();
-    }
-    
 }

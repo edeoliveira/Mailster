@@ -35,7 +35,7 @@ import org.mailster.pop3.mailbox.UserManager;
  * Pop3State.java - Stores the state of a POP3 connection.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class Pop3State
 {

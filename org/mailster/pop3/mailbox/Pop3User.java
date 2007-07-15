@@ -28,7 +28,7 @@ import java.net.UnknownHostException;
  * Pop3User.java - A POP3 user.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class Pop3User
 {
@@ -37,7 +37,7 @@ public class Pop3User
 
     protected Pop3User(String email)
     {
-        this(email, UserManager.DEFAULT_PASSWORD);
+        this(email, UserManager.getDefaultPassword());
     }
 
     protected Pop3User(String email, String password)

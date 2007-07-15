@@ -33,5 +33,6 @@ IMPORTANT : <...> notation is used to replace a user custom value
 You must run Mailster with an appropriate user because binding to SMTP port 
 needs privileges.
 
-Currently, i've successfuly ran Mailster in the following environnement :
+Currently, i've successfully ran Mailster in the following environments :
 - Mandriva 2007 distribution with xulrunner 1.8.0.4 and jdk 1.5.0_11
+- Ubuntu 7.0.4 distribution and jdk 1.6.0_01 (in a VMWARE virtual machine) 

@@ -28,12 +28,90 @@ import java.util.List;
 
 import org.mailster.smtp.events.SMTPServerEvent;
 import org.mailster.smtp.events.SMTPServerListener;
+import org.mailster.util.StringUtilities;
 
 /**
  * Dummy SMTP server for testing purposes.
  */
 public class SimpleSmtpServer implements Runnable
 {
+	/**
+	 * A watchdog thread that makes sure that connections don't go stale. It
+	 * prevents someone from opening up MAX_CONNECTIONS to the server and
+	 * holding onto them for more than 1 minute.
+	 */
+	private class Watchdog extends Thread
+	{
+		private SimpleSmtpServer server;
+		private boolean run = true;
+
+		public Watchdog(SimpleSmtpServer server)
+		{
+			super(Watchdog.class.getName());
+			this.server = server;
+			setPriority(Thread.MAX_PRIORITY / 3);
+		}
+
+		public void quit()
+		{
+			this.run = false;
+		}
+
+		public void run()
+		{
+			while (this.run)
+			{
+				try
+				{
+					synchronized(this)
+					{
+						if ((server.getLastActiveTime() + server.getConnectionTimeout()) 
+							< System.currentTimeMillis())
+							server.timeout();
+					}
+				
+					// go to sleep for 10 seconds.
+					sleep(1000 * 10);
+				}
+				catch (Exception e)
+				{
+					// ignore
+				}
+			}
+		}
+	}
+	
+	/**
+	 * A thread watchdog.
+	 */
+	private Watchdog watchdog;
+	
+	/**
+	 * Last active time.
+	 */
+	private long lastActiveTime;
+
+	/**
+	 * The default timeout.
+	 */
+	public static final int DEFAULT_TIMEOUT = 300000;
+	
+	/**
+	 * The timeout before closing connection. Set to 5 minutes.
+	 */
+	private long connectionTimeout = DEFAULT_TIMEOUT;
+	
+	/**
+	 * Tells if session timed out.
+	 */
+	private boolean timedOut = false;
+	
+	/**
+	 * Current socket output <code>PrintWriter</code>.
+	 * *
+	 */
+	private PrintWriter out;
+	
     /**
      * Output client/server commands for debugging. Off by default.
      */
@@ -82,12 +160,12 @@ public class SimpleSmtpServer implements Runnable
     /**
      * Hostname the server listens on
      */
-    private String hostname = DEFAULT_SMTP_HOST;
+    private String hostName = DEFAULT_SMTP_HOST;
 
     /**
-     * Timeout listening on server socket.
+     * Blocks listening on server socket for 500 ms.
      */
-    private static final int TIMEOUT = 500;
+    private static final int SOCKET_SO_TIMEOUT = 500;
 
     /**
      * Charset used when reading input on sockets.
@@ -102,9 +180,6 @@ public class SimpleSmtpServer implements Runnable
     /**
      * Creates an instance of SimpleSmtpServer. Server will listen on the
      * default host:port. Debug mode is off by default.
-     * 
-     * @param debug if true debug mode is enabled
-     * @return a reference to the SMTP server
      */
     public SimpleSmtpServer()
     {
@@ -116,7 +191,6 @@ public class SimpleSmtpServer implements Runnable
      * default host:port.
      * 
      * @param debug if true debug mode is enabled
-     * @return a reference to the SMTP server
      */
     public SimpleSmtpServer(boolean debug)
     {
@@ -128,7 +202,6 @@ public class SimpleSmtpServer implements Runnable
      * default host. Debug mode is off by default.
      * 
      * @param port port number the server should listen to
-     * @return a reference to the SMTP server
      */
     public SimpleSmtpServer(int port)
     {
@@ -141,7 +214,6 @@ public class SimpleSmtpServer implements Runnable
      * 
      * @param port port number the server should listen to
      * @param debug if true debug mode is enabled
-     * @return a reference to the SMTP server
      */
     public SimpleSmtpServer(int port, boolean debug)
     {
@@ -154,11 +226,10 @@ public class SimpleSmtpServer implements Runnable
      * @param hostname hostname the server should listen on
      * @param port port number the server should listen to
      * @param debug if true debug mode is enabled
-     * @return a reference to the SMTP server
      */
     public SimpleSmtpServer(String hostname, int port, boolean debug)
     {
-        this.hostname = hostname;
+        this.hostName = hostname;
         this.port = port;
         this.debug = debug;
     }
@@ -251,11 +322,11 @@ public class SimpleSmtpServer implements Runnable
             try
             {
                 serverSocket = new ServerSocket();
-                if (hostname != null)
-                    serverSocket.bind(new InetSocketAddress(hostname, port));
+                if (hostName != null)
+                    serverSocket.bind(new InetSocketAddress(hostName, port));
                 else
                     serverSocket.bind(new InetSocketAddress(port));
-                serverSocket.setSoTimeout(TIMEOUT); // Block for maximum of 0.5 seconds
+                serverSocket.setSoTimeout(SOCKET_SO_TIMEOUT); // Block for maximum of 0.5 seconds
                 stopped = false;
             }
             finally
@@ -267,7 +338,10 @@ public class SimpleSmtpServer implements Runnable
                 }
             }
             fireServerStateUpdated();
-
+            
+            watchdog = new Watchdog(this);
+            watchdog.start();
+            
             // Server: loop until stopped
             while (!isStopped())
             {
@@ -306,9 +380,9 @@ public class SimpleSmtpServer implements Runnable
                          * list inside the method to limit the duration that we hold
                          * the lock.
                          */
-                        List<SmtpMessage> msgs = handleTransaction(out, input);
+                    	List<SmtpMessage> msgs = handleTransaction(out, input);
                         if (isInternalStoreActivated())
-                        	receivedMail.addAll(msgs);
+                        	receivedMail.addAll(msgs);                        
                     }
                     socket.close();
                 }
@@ -327,6 +401,8 @@ public class SimpleSmtpServer implements Runnable
         finally
         {
             stop();
+            if (watchdog != null)
+            	watchdog.quit();
         }
     }
 
@@ -368,6 +444,22 @@ public class SimpleSmtpServer implements Runnable
         fireServerStateUpdated();
     }
 
+    protected void resetTimeout()
+    {
+    	synchronized(watchdog)
+    	{
+    		lastActiveTime = System.currentTimeMillis();
+    		timedOut = false;
+    	}
+    }
+    
+    protected void timeout()
+    {
+    	timedOut = true;
+    	if (out != null)
+    		sendResponse(out, new SmtpResponse(421, "Timeout waiting for data from client",SmtpState.QUIT));
+    }
+    
     /**
      * Handle an SMTP transaction, i.e. all activity between initial connect and
      * QUIT command.
@@ -393,14 +485,21 @@ public class SimpleSmtpServer implements Runnable
         // Send initial response
         sendResponse(out, smtpResponse);
         smtpState = smtpResponse.getNextState();
-
+        this.out = out;
+        resetTimeout();
+        
         List<SmtpMessage> msgList = new ArrayList<SmtpMessage>();
         SmtpMessage msg = new SmtpMessage();
 
         while (smtpState != SmtpState.CONNECT)
         {
-            String line = input.readLine();
-
+            String line = input.readLine();            
+            
+            if (timedOut)
+            	break;
+            else
+            	resetTimeout();
+            
             if (line == null)
                 break;
 
@@ -464,7 +563,7 @@ public class SimpleSmtpServer implements Runnable
      * 
      * @return List of String
      */
-    public synchronized Iterator getReceivedEmail()
+    public synchronized Iterator<SmtpMessage> getReceivedEmail()
     {
     	if (!isInternalStoreActivated())
     		throw new IllegalStateException("Internal store not activated !");
@@ -535,5 +634,35 @@ public class SimpleSmtpServer implements Runnable
     public void setInternalStoreActivated(boolean internalStoreActivated) 
     {
 		this.internalStoreActivated = internalStoreActivated;
+	}
+
+    public void setHostName(String hostName)
+    {
+        this.hostName = StringUtilities.isEmpty(hostName) ? null : hostName;
+    }
+
+    public int getPort()
+    {
+        return port;
+    }
+    
+    public void setPort(int port)
+    {
+        this.port = port;
+    }
+
+	public long getConnectionTimeout() 
+	{
+		return connectionTimeout;
+	}
+
+	public void setConnectionTimeout(int connectionTimeout) 
+	{
+		this.connectionTimeout = connectionTimeout * 1000;
+	}
+
+	protected long getLastActiveTime() 
+	{
+		return lastActiveTime;
 	}
 }

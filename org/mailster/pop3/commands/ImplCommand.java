@@ -29,7 +29,7 @@ import org.mailster.pop3.connection.Pop3State;
  * ImplCommand.java - The POP3 IMPL command (see RFC 2449).
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class ImplCommand implements Pop3Command
 {

@@ -2,6 +2,7 @@
 
 #Debug options
 #export JAVA_OPTIONS=-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=999,server=y,suspend=n
+export JAVA_OPTIONS=-server
 
 export JAVA_HOME=/usr/java/jre1.5.0_11/
 export PATH=$PATH:$JAVA_HOME/bin

@@ -37,7 +37,7 @@ import org.eclipse.swt.widgets.Display;
  * \<b\>...\<\/b\> : set bold font<br>
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class StyledLabel extends StyledText
 {
@@ -52,7 +52,7 @@ public class StyledLabel extends StyledText
     {
         if (s.indexOf("<") != -1)
         {
-            StringBuffer buffer = new StringBuffer(s);
+            StringBuilder buffer = new StringBuilder(s);
             ArrayList<StyleRange> ranges = new ArrayList<StyleRange>();
 
             while (buffer.length() > 0)

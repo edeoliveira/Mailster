@@ -36,14 +36,14 @@ import org.mailster.util.MailUtilities;
  * SmtpMessagePart.java - Enter your Comment HERE.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class SmtpMessagePart
 {
     private SmtpHeadersInterface headers = new SmtpHeaders();
     private List<SmtpMessagePart> parts = new ArrayList<SmtpMessagePart>(1);
     private Map<String, String> cids;
-    private StringBuffer body = new StringBuffer();
+    private StringBuilder body = new StringBuilder();
     private SmtpMessagePart[] attachedFiles;
     private SmtpMessagePart parentPart;
 
@@ -52,14 +52,14 @@ public class SmtpMessagePart
     public SmtpMessagePart() {
     }
 
-    public StringBuffer getBody()
+    public StringBuilder getBody()
     {
         return body;
     }
 
     public void setBody(String body)
     {
-        this.body = new StringBuffer(body);
+        this.body = new StringBuilder(body);
     }
 
     public String getBoundary()
@@ -143,7 +143,7 @@ public class SmtpMessagePart
 
     public String toString(boolean includeHeaders)
     {
-        StringBuffer partOutput = new StringBuffer();
+        StringBuilder partOutput = new StringBuilder();
         if (includeHeaders)
             partOutput.append(headers).append("\n\n");
 
@@ -185,7 +185,26 @@ public class SmtpMessagePart
         MailUtilities.write(os, getBody().toString(), getCharset(), getEncoding());
     }
 
-    protected String getContent(String preferredContentType)
+    private String getMultiPartRelatedContent(SmtpMessagePart parent, String preferredContentType)
+    {
+    	Iterator<SmtpMessagePart> it = parts.iterator();
+    	SmtpMessagePart part = null;
+
+        while (it.hasNext()
+                && (part == null || !part.getContentType().startsWith(
+                		preferredContentType)))
+            part = it.next();
+
+        String content = part.getDecodedBody();
+
+        cids = MailUtilities.saveCIDFilesToTemporaryDirectory(this);
+        for (String cid : cids.keySet())
+        	content = content.replaceAll(cid, cids.get(cid));
+
+        return content;
+    }
+    
+    protected String getPreferredContent(String preferredContentType)
     {
         String content = null;
         if (isMultiPart())
@@ -193,25 +212,7 @@ public class SmtpMessagePart
             Iterator<SmtpMessagePart> it = parts.iterator();
 
             if (getContentType().startsWith("multipart/related"))
-            {
-                SmtpMessagePart part = null;
-
-                while (it.hasNext()
-                        && (part == null || !part.getContentType().startsWith(
-                                "text/html")))
-                    part = it.next();
-
-                String body = part.getContent(preferredContentType);
-
-                cids = MailUtilities.saveCIDFilesToTemporaryDirectory(this);
-                for (Iterator<String> i = cids.keySet().iterator(); i.hasNext();)
-                {
-                    String cid = i.next();
-                    body = body.replaceAll(cid, cids.get(cid));
-                }
-
-                return body;
-            }
+                return getMultiPartRelatedContent(this, preferredContentType);
             else
             {
                 while (it.hasNext())
@@ -219,32 +220,27 @@ public class SmtpMessagePart
                     SmtpMessagePart part = it.next();
                     String cType = part.getContentType();
 
-                    if (cType.startsWith("multipart/related")
-                            && preferredContentType.startsWith("text/html"))
-                        return part.getContent(preferredContentType);
-                    else if (cType.startsWith("text/plain")
+                    if (cType.startsWith("text/plain")
                             || cType.startsWith("text/html"))
                     {
                         // get content
-                        String body = part.getContent(preferredContentType);
+                        String body = part.getDecodedBody();
 
                         if (cType.startsWith(preferredContentType))
                             return body;
-
+                        else
                         if (content == null)
                             content = body;
                     }
+                    else if (cType.startsWith("multipart") && content == null)
+                    	content = part.getPreferredContent(preferredContentType);
                 }
 
                 return content;
             }
         }
 
-        String body = getDecodedBody();
-        //if (body.toUpperCase().indexOf("<HTML>") == -1)
-        //    body = "<html>" + body + "</html>";
-
-        return body;
+        return getDecodedBody();
     }
 
     public String getFileName()

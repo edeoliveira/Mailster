@@ -14,12 +14,15 @@ import java.util.concurrent.ScheduledFuture;
 import org.eclipse.swt.widgets.Display;
 import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
-import org.mailster.gui.glazedlists.SmtpMessageTableFormat;
+import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.smtp.SimpleSmtpServer;
 import org.mailster.smtp.events.SMTPServerAdapter;
 import org.mailster.smtp.events.SMTPServerEvent;
 import org.mailster.smtp.events.SMTPServerListener;
+import org.mailster.util.DateUtilities;
+
+import ca.odell.glazedlists.util.concurrent.Lock;
 
 /**
  * ---<br>
@@ -46,19 +49,18 @@ import org.mailster.smtp.events.SMTPServerListener;
  * MailsterSmtpService.java - The SMTP service controller.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class MailsterSmtpService
 {
-    public final static long DEFAULT_REFRESH_TIMEOUT = 120;
+    public final static long DEFAULT_QUEUE_REFRESH_TIMEOUT = 120;
 
     private List<StoredSmtpMessage> receivedMessages = new ArrayList<StoredSmtpMessage>();
     private MailQueueControl updater = new MailQueueControl();
     private SimpleSmtpServer server;
 
     // Options
-    private String defaultOutputDirectory = System.getProperty("user.home");
-    private long timeout = DEFAULT_REFRESH_TIMEOUT;
+    private long queueRefreshtimeout = DEFAULT_QUEUE_REFRESH_TIMEOUT;
     private boolean autoStart = false;
 
     private MailsterPop3Service pop3Service;
@@ -86,7 +88,7 @@ public class MailsterSmtpService
             }
         }
 
-        private ScheduledFuture handle = null;
+        private ScheduledFuture<?> handle = null;
 
         public void updateDelay()
         {
@@ -95,15 +97,15 @@ public class MailsterSmtpService
             
             stop();
             long initialDelay = (System.currentTimeMillis() - lastExecutionTime) / 1000;
-            if (initialDelay >= timeout)
+            if (initialDelay >= queueRefreshtimeout)
                 initialDelay = 0;
-            handle = scheduler.scheduleWithFixedDelay(this, initialDelay, timeout,
+            handle = scheduler.scheduleWithFixedDelay(this, initialDelay, queueRefreshtimeout,
                     SECONDS);            
         }
         
         public void start()
         {
-            handle = scheduler.scheduleWithFixedDelay(this, timeout, timeout,
+            handle = scheduler.scheduleWithFixedDelay(this, queueRefreshtimeout, queueRefreshtimeout,
                     SECONDS);
         }
 
@@ -130,7 +132,11 @@ public class MailsterSmtpService
                 
                 synchronized(receivedMessages)
                 {
+                    Lock writeLock = main.getMailView().getDataList().getReadWriteLock().writeLock();
+                    writeLock.lock();
                     main.getMailView().getDataList().addAll(receivedMessages);
+                    writeLock.unlock(); 
+                    
 	                nb = receivedMessages.size();
 	                receivedMessages.clear();
                 }
@@ -140,9 +146,10 @@ public class MailsterSmtpService
                         new Object[] { new Integer(nb) }));
                 
                 main.getMailView().refreshTable();                
-                if (nb>0)
+                if (nb>0 && ConfigurationManager.CONFIG_STORE.
+                		getBoolean(ConfigurationManager.NOTIFY_ON_NEW_MESSAGES_RECEIVED_KEY))
                 	main.showTrayItemTooltipMessage(Messages.getString("MailView.trayTooltip.title") //$NON-NLS-1$
-                			+SmtpMessageTableFormat.hourDateFormat.format(new Date())+")",  //$NON-NLS-1$
+                			+DateUtilities.hourDateFormat.format(new Date())+")",  //$NON-NLS-1$
                 			nb+Messages.getString("MailView.trayTooltip.newMessages")); //$NON-NLS-1$                
             }
         }
@@ -155,7 +162,6 @@ public class MailsterSmtpService
         try 
         {        	
         	pop3Service = new MailsterPop3Service();
-            pop3Service.setSMTPService(this);
 		} 
         catch (Exception e) 
         {
@@ -202,30 +208,29 @@ public class MailsterSmtpService
         {            
             receivedMessages.clear();
             main.getMailView().clearDataList();
-            server.clearQueue();
             server.setDebug(debug);
             server.start();
             
             if (!server.isStopped())
             {
-                main.log(MailsterSWT.MAILSTER_VERSION
+                main.log(ConfigurationManager.MAILSTER_VERSION
                         + MessageFormat.format(Messages.getString(debug
                                 ? "MailsterSWT.log.server.started.debugmode"  //$NON-NLS-1$
                                 : "MailsterSWT.log.server.started"), //$NON-NLS-1$
-                                new Object[] { new Long(timeout) }));
+                                new Object[] { Messages.getString((queueRefreshtimeout*1000)+"") }));
                 
                 Integer pop3Port = new Integer(pop3Service.getPort());
                 try 
                 {
-        			pop3Service.startService(usingAPOPAuthMethod);
-        	        main.log(MailsterSWT.MAILSTER_VERSION
+        			pop3Service.startService(usingAPOPAuthMethod, debug);
+        	        main.log(ConfigurationManager.MAILSTER_VERSION
         	                + MessageFormat.format(Messages.getString("MailsterSWT.log.pop3.started"), //$NON-NLS-1$
                                     new Object[] { pop3Port })); 
         		} 
                 catch (IOException e) 
         		{
         			e.printStackTrace();
-                    main.log(MailsterSWT.MAILSTER_VERSION
+                    main.log(ConfigurationManager.MAILSTER_VERSION
                             + MessageFormat.format(Messages.getString("MailsterSWT.log.pop3.failed"), //$NON-NLS-1$
                                     new Object[] { pop3Port }));
         		}             
@@ -233,7 +238,7 @@ public class MailsterSmtpService
     	        updater.start();
             }
             else
-            	main.log(MailsterSWT.MAILSTER_VERSION
+            	main.log(ConfigurationManager.MAILSTER_VERSION
                         + Messages.getString("MailsterSWT.log.server.notStarted")); //$NON-NLS-1$
         }
         catch (Exception ex)
@@ -246,25 +251,26 @@ public class MailsterSmtpService
     {
         try
         {
-            Integer pop3Port = pop3Service.getListeningPort();
-
-            if (!force)
-            {
-            	refreshEmailQueue(true);
-            	pop3Service.stopService();
-            }
-            else
-        		pop3Service.shutdownService();
-        	
-            main.log(MailsterSWT.MAILSTER_VERSION
-                    + MessageFormat.format(Messages.getString("MailsterSWT.log.pop3.stopped"), //$NON-NLS-1$
-                            new Object[] { pop3Port }));
-            
-            updater.stop();
             if (!server.isStopped())
             {
+                Integer pop3Port = pop3Service.getListeningPort();
+
+                if (!force)
+                {
+                	refreshEmailQueue(true);
+                	pop3Service.stopService();
+                }
+                else
+            		pop3Service.shutdownService();
+            	
+                main.log(ConfigurationManager.MAILSTER_VERSION
+                        + MessageFormat.format(Messages.getString("MailsterSWT.log.pop3.stopped"), //$NON-NLS-1$
+                                new Object[] { pop3Port }));
+                
+                updater.stop();
+                
                 server.stop();
-                main.log(MailsterSWT.MAILSTER_VERSION
+                main.log(ConfigurationManager.MAILSTER_VERSION
                         + Messages.getString("MailsterSWT.log.server.stopped")); //$NON-NLS-1$
             }
         }
@@ -279,25 +285,26 @@ public class MailsterSmtpService
         return server == null || server.isStopped();
     }
 
-    public void setTimeout(long timeout)
+    /**
+     * Set the timeout between queue refreshs in seconds.
+     * 
+     * @param timeout the new timeout in seconds
+     */
+    public void setQueueRefreshTimeout(long timeout)
     {
-        this.timeout = timeout <= 0 ? 1 : timeout;
+        this.queueRefreshtimeout = timeout <= 0 ? 1 : timeout;
         updater.updateDelay();
     }
 
-    public long getTimeout()
+    public long getQueueRefreshTimeout()
     {
-        return timeout;
+        return queueRefreshtimeout;
     }
 
-    public String getDefaultOutputDirectory()
+    public String getOutputDirectory()
     {
-        return defaultOutputDirectory;
-    }
-
-    public void setDefaultOutputDirectory(String defaultOutputDirectory)
-    {
-        this.defaultOutputDirectory = defaultOutputDirectory;
+        return ConfigurationManager.CONFIG_STORE.
+            getString(ConfigurationManager.DEFAULT_ENCLOSURES_DIRECTORY_KEY);
     }
 
     public void setAutoStart(boolean autoStart)
@@ -324,5 +331,25 @@ public class MailsterSmtpService
     public MailsterPop3Service getPop3Service()
     {
         return pop3Service;
+    }
+    
+    public void setHostName(String hostName)
+    {
+        server.setHostName(hostName);
+    }
+
+    public int getPort()
+    {
+        return server.getPort();
+    }
+    
+    public void setPort(int port)
+    {
+        server.setPort(port);
+    }
+    
+    public void setConnectionTimeout(int timeout)
+    {
+    	server.setConnectionTimeout(timeout);
     }
 }

@@ -1,6 +1,7 @@
 package org.mailster.server;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
@@ -17,12 +18,14 @@ import org.apache.mina.filter.codec.textline.TextLineCodecFactory;
 import org.apache.mina.filter.executor.ExecutorFilter;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
+import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.pop3.Pop3ProtocolHandler;
 import org.mailster.pop3.mailbox.MailBox;
 import org.mailster.pop3.mailbox.Pop3User;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.pop3.mailbox.UserManager;
 import org.mailster.smtp.SmtpMessage;
+import org.mailster.util.StringUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,16 +54,16 @@ import org.slf4j.LoggerFactory;
  * MailsterPop3Service.java - The POP3 service controller.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
-public class MailsterPop3Service 
+public class MailsterPop3Service
     implements Pop3Service
 {
     /**
      * This is the official POP3 port number.
      */
     public static final int POP3_PORT = 110;
-
+    
     private static final Logger log = LoggerFactory.getLogger(MailsterPop3Service.class);
     
     private SocketAcceptor acceptor;
@@ -68,19 +71,17 @@ public class MailsterPop3Service
     private InetSocketAddress iSocketAddr;
     private IoAcceptorConfig config;
     private Pop3ProtocolHandler handler;
-    private int port = POP3_PORT;
     
     private UserManager userManager = new UserManager();    
-    private MailsterSmtpService smtpService;
+
+    private String host;
+    private int port = POP3_PORT;
+    
+    private boolean debugEnabled;
     
     public MailsterPop3Service() throws Exception
     {        
         initService();
-    }
-
-    protected void setSMTPService(MailsterSmtpService service)
-    {
-        this.smtpService = service;
     }
     
     private void initService() throws Exception
@@ -98,25 +99,31 @@ public class MailsterPop3Service
         executor = Executors.newCachedThreadPool();
         chain.addLast("threadPool", new ExecutorFilter(executor));
 
-        if (log.isDebugEnabled())
-            chain.addLast("logger", new LoggingFilter());
-
         chain.addLast("codec", new ProtocolCodecFilter(
-                new TextLineCodecFactory(Charset.forName("UTF-8"))));
+                new TextLineCodecFactory(Charset.forName(CHARSET_NAME))));
 
         handler = new Pop3ProtocolHandler(userManager);
     }
 
-    public void startService(boolean usingAPOPAuthMethod) throws IOException
+    public void startService(boolean usingAPOPAuthMethod, boolean debug) throws IOException
     {
-        iSocketAddr = new InetSocketAddress(port);
+    	this.debugEnabled = debug;
+        if (debugEnabled)
+        	config.getFilterChain().addBefore("codec", "logger", new LoggingFilter());
+
+        if (host == null)
+            iSocketAddr = new InetSocketAddress(port);
+        else
+            iSocketAddr = new InetSocketAddress(InetAddress.getByName(host), port);
+        
         setUsingAPOPAuthMethod(usingAPOPAuthMethod);
         acceptor.bind(iSocketAddr, handler, config);        
     }
     
-    public String getDefaultOutputDirectory()
+    public String getOutputDirectory()
     {
-        return smtpService.getDefaultOutputDirectory();
+        return ConfigurationManager.CONFIG_STORE.
+            getString(ConfigurationManager.DEFAULT_ENCLOSURES_DIRECTORY_KEY);
     }
     
     protected void setUsingAPOPAuthMethod(boolean usingAPOPAuthMethod)
@@ -126,6 +133,9 @@ public class MailsterPop3Service
 
     public void stopService() throws IOException
     {
+    	if (debugEnabled)
+    		config.getFilterChain().remove("logger");
+    	
         acceptor.unbindAll();
     }
 
@@ -158,7 +168,7 @@ public class MailsterPop3Service
         {
             recipient = recipient.substring(recipient.indexOf('<') + 1,
                     recipient.indexOf('>'));
-            log.debug("Storing new message in mailbox of recipient <" + recipient + ">");
+            log.debug("Storing new message in mailbox of recipient <{}>", recipient);
             Pop3User user = userManager.getUserByEmail(recipient);
             MailBox mbox = userManager.getMailBoxManager().getMailBoxByUser(user);            
             mbox.storeMessage(msg);
@@ -191,5 +201,15 @@ public class MailsterPop3Service
     public Integer getListeningPort()
     {
         return acceptor.isManaged(iSocketAddr) ? new Integer(iSocketAddr.getPort()) : null;
+    }
+
+    public String getHost()
+    {
+        return host;
+    }
+
+    public void setHost(String host)
+    {
+        this.host = StringUtilities.isEmpty(host) ? null : host;
     }
 }

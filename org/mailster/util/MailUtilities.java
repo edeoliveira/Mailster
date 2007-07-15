@@ -9,12 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeUtility;
@@ -52,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * formatting, writting etc...
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class MailUtilities
 {
@@ -69,16 +67,10 @@ public class MailUtilities
     public final static int MAX_LINE_LENGTH = 80;
 
     /**
-     * RFC 822 compliant date formatter
-     */
-    public final static SimpleDateFormat rfc822DateFormatter = new SimpleDateFormat(
-            "E, dd MMM yyyy HH:mm:ss Z", Locale.US);
-
-    /**
      * Temporary directory name used when saving temporary data. Value is set to
      * the value of the 'java.io.tmpdir' system property.
      * 
-     * @see System.getProperty(String)
+     * @see java.lang.System#getProperty(String)
      */
     public final static String tempDirectory = System
             .getProperty("java.io.tmpdir");
@@ -109,7 +101,7 @@ public class MailUtilities
         if (s == null)
         {
             if (SmtpHeadersInterface.DATE.equals(headerName))
-                return rfc822DateFormatter.format(new Date());
+                return DateUtilities.rfc822DateFormatter.format(new Date());
             else if (SmtpHeadersInterface.SUBJECT.equals(headerName))
                 return "{No subject}";
 
@@ -126,8 +118,8 @@ public class MailUtilities
      * "base64", "quoted-printable", "7bit", "8bit", and "binary". In addition,
      * "uuencode" is also supported.
      * 
-     * @see MimeUtility.decodeText(String)
-     * @param encodedString the string to decode
+     * @see javax.mail.internet.MimeUtility#decodeText(String)
+     * @param encodedHeaderValue the header value to decode
      * @return the decoded string
      */
     public static String decodeHeaderValue(String encodedHeaderValue)
@@ -162,7 +154,7 @@ public class MailUtilities
      * "base64", "quoted-printable", "7bit", "8bit", and "binary". In addition,
      * "uuencode" is also supported.
      * 
-     * @see MimeUtilities.decode(InputStream, String)
+     * @see javax.mail.internet.MimeUtility#decode(java.io.InputStream, java.lang.String)
      * @param encodedString the string to decode
      * @param charsetName the name of the charset
      * @param encoding the encoding used for the string
@@ -181,7 +173,7 @@ public class MailUtilities
             InputStream is = MimeUtility.decode(new ByteArrayInputStream(b),
                     encoding);
 
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             byte[] buffer = new byte[4096];
             int nb = 0;
 
@@ -320,8 +312,8 @@ public class MailUtilities
      */
     public static String formatFlowed(String body)
     {
-        StringBuffer sb = new StringBuffer(body.replace("\n", "<br>"));
-        StringBuffer result = new StringBuffer(
+    	StringBuilder sb = new StringBuilder(body.replace("\n", "<br>"));
+    	StringBuilder result = new StringBuilder(
                 "<div style='font: 8pt sans-serif'>");
         int level = 0;
         int pos = 0;
@@ -505,7 +497,9 @@ public class MailUtilities
             }
         }
 
-        LOG.debug(mPart.getBody().toString());
+        if (LOG.isDebugEnabled())
+        	LOG.debug(mPart.getBody().toString());
+        
         LOG.debug("[DEBUG] --- BODY PART END ---");
         return mPart;
     }
@@ -537,7 +531,8 @@ public class MailUtilities
             }
         }
 
-        LOG.debug(part.getBody().toString());
+        if (LOG.isDebugEnabled())
+        	LOG.debug(part.getBody().toString());
     }
 
     /**
@@ -554,11 +549,17 @@ public class MailUtilities
         List<SmtpMessagePart> mParts = new ArrayList<SmtpMessagePart>();
         String boundary = getPartBoundary(parentHeaders);
         String end = "--" + boundary + "--";
-        StringBuffer bodyPart = new StringBuffer();
+        StringBuilder bodyPart = new StringBuilder();
 
         while (reader.ready())
         {
             String line = reader.readLine();
+            if (boundary == null && line.startsWith("--"))
+            {
+                boundary = line;
+                end = boundary + "--";
+            }
+            
             if ((boundary != null && line.equals(end))
                     || (boundary == null && line == null))
             {
@@ -571,7 +572,7 @@ public class MailUtilities
 
         BufferedReader mpReader = new BufferedReader(new StringReader(bodyPart
                 .toString()));
-        LOG.debug("[DEBUG] --- MULTI PART START (boundary " + boundary + ") --- ");
+        LOG.debug("[DEBUG] --- MULTI PART START (boundary {}) --- ", boundary);
 
         int i = 1;
         String line = null;
@@ -588,16 +589,14 @@ public class MailUtilities
             if (line == null || line.equals(end))
                 break;
 
-            LOG.debug("[DEBUG] --- MULTI PART " + i + " (boundary " + boundary
-                    + ") START ---");
+            LOG.debug("[DEBUG] --- MULTI PART {} (boundary={}) START ---", i, boundary);
             mParts.add(handleBodyPart(mpReader, parentHeaders, true));
-            LOG.debug("[DEBUG] --- MULTI PART " + i + " (boundary " + boundary
-                    + ") END ---");
+            LOG.debug("[DEBUG] --- MULTI PART {} (boundary={}) END ---", i, boundary);
             i++;
         }
         while (mpReader.ready());
 
-        LOG.debug("[DEBUG] --- MULTI PART END (boundary " + boundary + ") ---");
+        LOG.debug("[DEBUG] --- MULTI PART END (boundary {}) ---", boundary);
         return mParts;
     }
 
@@ -611,7 +610,8 @@ public class MailUtilities
     public static SmtpMessagePart parseInternalParts(SmtpMessage msg)
     {
         LOG.debug("[DEBUG] --- MAIL ---");
-        LOG.debug(msg.getBody());
+        if (LOG.isDebugEnabled())
+        	LOG.debug(msg.getBody());
         LOG.debug("[DEBUG] --- END MAIL ---\n\n");
 
         SmtpMessagePart mPart = null;
@@ -642,7 +642,8 @@ public class MailUtilities
             mPart.setBody(msg.getBody());
         }
         LOG.debug("*************************************************************");
-        LOG.debug(mPart.toString());
+        if (LOG.isDebugEnabled())
+        	LOG.debug(mPart.toString());
         return mPart;
     }
 
@@ -654,7 +655,7 @@ public class MailUtilities
      */
     public static String escapeHTMLString(String string)
     {
-        StringBuffer sb = new StringBuffer(string.length());
+    	StringBuilder sb = new StringBuilder(string.length());
         boolean lastWasBlankChar = false; // true if last char was blank
 
         for (int i = 0, len = string.length(); i < len; i++)
@@ -708,7 +709,7 @@ public class MailUtilities
      * 
      * @param directory the directory to write to
      * @param fileName the image file name
-     * @param in the inputstream to read from
+     * @param bin the inputstream to read from
      * @return true if write succeeded
      */
     public static boolean outputStreamToFile(String directory, String fileName,

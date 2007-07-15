@@ -31,7 +31,7 @@ import java.util.Map;
  * the command class that actually handles the command.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class Pop3CommandRegistry
 {
@@ -53,7 +53,7 @@ public class Pop3CommandRegistry
         {
             String name = COMMANDS[i][0].toString();
 
-            Class type = (Class) COMMANDS[i][1];
+            Class<?> type = (Class<?>) COMMANDS[i][1];
             Pop3Command command = (Pop3Command) type.newInstance();
             commands.put(name, command);
         }

@@ -16,18 +16,18 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.StyledLabel;
+import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.smtp.SmtpHeadersInterface;
 import org.mailster.smtp.SmtpMessage;
+import org.mailster.util.DateUtilities;
 import org.mailster.util.MailUtilities;
 
 /**
@@ -55,7 +55,7 @@ import org.mailster.util.MailUtilities;
  * HeadersView.java - A view that creates a mail header.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version %I%, %G%
+ * @version $Revision$, $Date$
  */
 public class HeadersView
 {
@@ -87,7 +87,7 @@ public class HeadersView
     
     private static String formatEmailList(List<String> list)
     {
-        StringBuffer sb = new StringBuffer();        
+    	StringBuilder sb = new StringBuilder();        
 
         for (String s : list)
         {
@@ -108,7 +108,10 @@ public class HeadersView
         {
             if (s != null)
             {
-                s = s.substring(s.indexOf('<'),s.indexOf('>')+1);
+            	if (s.indexOf('<') != -1)
+            		s = s.substring(s.indexOf('<'),s.indexOf('>')+1);
+            	else
+            		s = s.trim();
                 recipients.remove(s);
             }
         }
@@ -133,14 +136,14 @@ public class HeadersView
     
     private void computeTextStrings(SmtpMessage msg)
     {
-        StringBuffer sb = new StringBuffer();
+    	StringBuilder sb = new StringBuilder();
         SmtpHeadersInterface headers = msg.getHeaders();
         
-        String date = MailsterSWT.df.format(new Date());
+        String date = DateUtilities.df.format(new Date());
         
         try
         {
-            date = MailsterSWT.df.format(MailUtilities.rfc822DateFormatter
+            date = DateUtilities.df.format(DateUtilities.rfc822DateFormatter
                     .parse(MailUtilities.getNonNullHeaderValue(headers, SmtpHeadersInterface.DATE)));
         }
         catch (ParseException pex) {}
@@ -181,12 +184,8 @@ public class HeadersView
         final Color endColor = SWTHelper.createColor(179, 192, 206);
         composite = new Composite(parent, SWT.BORDER);
         composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
-        GridLayout g = new GridLayout(2, false);
-        g.marginHeight = 0;
-        g.marginWidth = 4;
-        g.horizontalSpacing = 2;
-        g.verticalSpacing = 0;
-        composite.setLayout(g);
+        composite.setLayout(
+                LayoutUtils.createGridLayout(2, false, 0, 4, 0, 0, 0, 0, 0, 2));
         composite.addListener (SWT.Resize, new Listener () {
             public void handleEvent (Event event) {
                 Image oldImage = composite.getBackgroundImage();
