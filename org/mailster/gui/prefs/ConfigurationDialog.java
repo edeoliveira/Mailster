@@ -94,7 +94,6 @@ import org.mailster.gui.utils.DialogUtils;
  */
 public class ConfigurationDialog extends PreferenceDialog
 {
-
     /**
      * The customized <code>DialogMessageArea</code>
      */
@@ -117,6 +116,12 @@ public class ConfigurationDialog extends PreferenceDialog
     {
         super(parentShell, manager);
     }
+    
+    public void create()
+    {
+        super.create();        
+        getShell().setSize(getShell().computeSize(540, SWT.DEFAULT, true));
+    }    
 
     /**
      * <p>
@@ -726,7 +731,7 @@ public class ConfigurationDialog extends PreferenceDialog
         dlg.getShell().setSize(minSize);
         dlg.setMinimumPageSize(minSize);
         dlg.getShell().setMinimumSize(minSize);
-        DialogUtils.centerShellOnScreen(dlg.getShell());
+        DialogUtils.centerShellOnParentShell(dlg.getShell());
         dlg.getTreeViewer().expandAll();
         dlg.open();
     }

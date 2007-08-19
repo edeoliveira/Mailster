@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -65,6 +64,7 @@ public class SmtpMessage
     private String oldPreferredContentType;
     private String messageID;
 
+    private String internalDate;
     /**
      * Likewise, a global id for Message-ID generation.
      */
@@ -206,15 +206,16 @@ public class SmtpMessage
      * 
      * @return a <code>MimeMessage</code> object
      * @throws MessagingException if MimeMessage creation fails
+     * @throws UnsupportedEncodingException if charset is unknown
      */
-    public MimeMessage asMimeMessage() throws MessagingException
+    public MimeMessage asMimeMessage() throws MessagingException, UnsupportedEncodingException
     {
     	String charset = getBodyCharset();
         if (charset == null)
         	charset = SimpleSmtpServer.DEFAULT_CHARSET;
         
         return new MimeMessage(session, 
-        		new ByteArrayInputStream(getRawMessage().getBytes(Charset.forName(charset))));
+        		new ByteArrayInputStream(getRawMessage().getBytes(charset)));
     }        
     
     public String getRawMessage()
@@ -239,10 +240,25 @@ public class SmtpMessage
         return headers;
     }
 
+    /**
+     * Note : this method generates and stores a date header if the mail doesn't have one.
+     */
     public String getDate()
     {
-        return MailUtilities.getNonNullHeaderValue(getHeaders(),
-                SmtpHeadersInterface.DATE);
+        String date = getHeaders().getHeaderValue(SmtpHeadersInterface.DATE);
+        
+        if (date == null)
+        {
+        	if (internalDate == null)
+        	{
+        		date = MailUtilities.getNonNullHeaderValue(getHeaders(), SmtpHeadersInterface.DATE);
+        		internalDate = date;
+        	}
+        	else
+        		date = internalDate;
+        }
+        
+        return date;
     }
 
     public String getTo()

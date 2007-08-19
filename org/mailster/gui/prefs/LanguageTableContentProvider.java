@@ -67,9 +67,13 @@ public class LanguageTableContentProvider extends ArrayContentProvider
             }
             case 2 :
             {
-                return resource.getTranslator();
+                return resource.getVersion();
             }
             case 3 :
+            {
+                return resource.getTranslator();
+            }
+            case 4 :
             {
                 return resource.getTranslationDate();
             }

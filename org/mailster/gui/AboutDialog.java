@@ -63,6 +63,12 @@ public class AboutDialog extends Dialog
         this.mailView = mailView;
     }
     
+    public void create()
+    {
+        super.create();        
+        getShell().setSize(getShell().computeSize(540, SWT.DEFAULT, true));
+        DialogUtils.centerShellOnParentShell(getShell());
+    }
     
     /**
      * Configures the <code>Shell</code> representing this
@@ -75,10 +81,8 @@ public class AboutDialog extends Dialog
         super.configureShell(shell);
         shell.setText(Messages.getString("MailsterSWT.dialog.about.title"));
         shell.setImage(SWTHelper.loadImage("about.gif"));
-        shell.setSize(540, 400);
         DialogUtils.centerShellOnScreen(shell);
     }
-    
     
     /**
      * Creates the contents of this <code>AboutDialog</code>.
@@ -146,7 +150,7 @@ public class AboutDialog extends Dialog
                 new Object[] { ConfigurationManager.MAILSTER_VERSION_NB }));
         infoLabel.setLayoutData(LayoutUtils.createGridData(
                 GridData.BEGINNING, GridData.CENTER, 
-                true, false, 2, 1, SWT.DEFAULT, SWT.DEFAULT));
+                true, false, 2, 1));
                 
         Link infoLink = new Link(dialogArea, SWT.NONE);       
         infoLink.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
@@ -159,20 +163,17 @@ public class AboutDialog extends Dialog
 			}
 		});
         infoLink.setLayoutData(LayoutUtils.createGridData(
-                GridData.BEGINNING, GridData.CENTER, 
-                true, false, 2, 1, SWT.DEFAULT, SWT.DEFAULT));
+                GridData.BEGINNING, GridData.CENTER, true, false, 2, 1));
         
         Label minaLogo = new Label(dialogArea, SWT.NONE);
         minaLogo.setImage(SWTHelper.loadImage("mina.png"));
         minaLogo.setLayoutData(LayoutUtils.createGridData(
-                        GridData.END, GridData.CENTER, 
-                        true, false, 1, 1, SWT.DEFAULT, SWT.DEFAULT));
+                        GridData.END, GridData.CENTER, true, false, 1, 1));
         
         Label gnuLogo = new Label(dialogArea, SWT.NONE);
         gnuLogo.setImage(SWTHelper.loadImage("gnu.png"));
         gnuLogo.setLayoutData(LayoutUtils.createGridData(
-                GridData.END, GridData.CENTER, 
-                false, false, 1, 1, SWT.DEFAULT, SWT.DEFAULT));
+                GridData.END, GridData.CENTER, false, false, 1, 1));
         
         // Create a container for the separator
         Composite separatorContainer = new Composite(parent, SWT.NONE);

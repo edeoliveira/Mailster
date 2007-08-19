@@ -52,12 +52,16 @@ public interface SmtpHeadersInterface
     public static final String CONTENT_DISPOSITION = "Content-Disposition";
     public static final String CONTENT_ID = "Content-ID";
 
-    // Optionnal parameters
+    // Optional parameters
     public static final String FILENAME_PARAMETER = "filename";
     public static final String FORMAT_PARAMETER = "format";
     public static final String CHARSET_PARAMETER = "charset";
     public final static String BOUNDARY_PARAMETER = "boundary";
 
+    // Content types
+    public static final String TEXT_HTML_CONTENT_TYPE 	= "text/html";
+    public static final String TEXT_PLAIN_CONTENT_TYPE 	= "text/plain";
+    
     /**
      * Get the string representation of the headers
      * 

@@ -1,5 +1,6 @@
 package org.mailster.gui.glazedlists;
 
+import java.text.ParseException;
 import java.util.Date;
 
 import org.eclipse.swt.widgets.TableItem;
@@ -40,7 +41,9 @@ import ca.odell.glazedlists.gui.WritableTableFormat;
 public class SmtpMessageTableFormat
     implements ExtendedTableFormat<StoredSmtpMessage>, WritableTableFormat<StoredSmtpMessage>
 {
-    private String toHeader, subjectHeader, dateHeader;
+    private String toHeader;
+    private String subjectHeader;
+    private String dateHeader;
     
     public final static int ATTACHMENT_COLUMN   = 0;
     public final static int TO_COLUMN           = 1;
@@ -98,14 +101,21 @@ public class SmtpMessageTableFormat
             return stored.isChecked();
         else if (column == DATE_COLUMN)
         {
-            Date d = stored.getInternalDate();
-
-            if ((int) (d.getTime() / 8.64E7) == (int) (((new Date())
-                    .getTime()) / 8.64E7))
-                // same day
-            	return DateUtilities.hourDateFormat.format(d);
-            	
-            return DateUtilities.df.format(d);
+			try 
+			{
+				Date d = DateUtilities.rfc822DateFormatter.parse(stored.getMessage().getDate());
+				
+	            if ((int) (d.getTime() / 8.64E7) == (int) (((new Date())
+	                    .getTime()) / 8.64E7))
+	                // same day
+	            	return DateUtilities.hourDateFormat.format(d);
+	            	
+	            return DateUtilities.df.format(d);
+			} 
+			catch (ParseException e) 
+			{
+				return "-";
+			}
         }
 
         throw new IllegalStateException();

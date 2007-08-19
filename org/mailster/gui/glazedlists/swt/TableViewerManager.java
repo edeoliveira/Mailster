@@ -271,14 +271,14 @@ public class TableViewerManager {
                                 	{
 	                                    Object deleted = swtSource.get(index); 
 	                                    //tableViewer.getElementAt(index);
-	                                    // WARNING Why the hell do i have to test this ?!
+	                                    // TOSEE Why the hell do i have to test this ?!
 	                                    if (deleted != null)
 	                                        tableViewer.remove(deleted);
                                 	}
                                 	catch (IndexOutOfBoundsException ex) 
                                 	{
                                 		//TOSEE silent fails from glazed lists
-                                        System.out.println("ioboundsexception");
+                                        //System.out.println("ioboundsexception");
                                 	}
                                     break;
                                 case ListEvent.UPDATE :

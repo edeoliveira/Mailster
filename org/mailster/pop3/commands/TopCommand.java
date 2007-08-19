@@ -37,14 +37,16 @@ import org.mailster.util.StringUtilities;
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class TopCommand implements Pop3Command
+public class TopCommand extends Pop3Command
 {
     public boolean isValidForState(Pop3State state)
     {
         return state.isAuthenticated();
     }
 
-    public void execute(AbstractPop3Handler handler, AbstractPop3Connection conn, String cmd)
+    public void execute(AbstractPop3Handler handler, 
+                        AbstractPop3Connection conn, 
+                        String cmd)
     {
         try
         {

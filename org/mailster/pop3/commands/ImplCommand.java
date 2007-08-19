@@ -1,5 +1,6 @@
 package org.mailster.pop3.commands;
 
+import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.Pop3State;
@@ -31,15 +32,26 @@ import org.mailster.pop3.connection.Pop3State;
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class ImplCommand implements Pop3Command
+public class ImplCommand extends Pop3Command
+	implements CapabilitiesInterface
 {
+	public final static String IMPLEMENTATION_STRING = 
+		"mailster-"+ConfigurationManager.MAILSTER_VERSION_NB;
+	
     public boolean isValidForState(Pop3State state)
     {
         return true;
     }
 
-    public void execute(AbstractPop3Handler handler, AbstractPop3Connection conn, String cmd)
+    public void execute(AbstractPop3Handler handler, 
+                        AbstractPop3Connection conn, 
+                        String cmd)
     {
-        conn.println("+OK Mailster-POP3-Server");
+        conn.println("+OK "+IMPLEMENTATION_STRING);
+    }
+    
+    public String getCapability()
+    {
+    	return "IMPLEMENTATION "+IMPLEMENTATION_STRING;
     }
 }

@@ -38,15 +38,9 @@ import org.mailster.util.md5.MD5;
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class ApopCommand implements Pop3Command
+public class ApopCommand extends Pop3Command
 {
     private MD5 md5 = new MD5();
-    
-    static
-    {
-        //Disable native library loading
-        MD5.initNativeLibrary(true);
-    }
     
     public boolean isValidForState(Pop3State state)
     {
@@ -88,14 +82,14 @@ public class ApopCommand implements Pop3Command
                 + System.currentTimeMillis() + "@" + hostName + ">";
     }
 
-    public void execute(AbstractPop3Handler handler, AbstractPop3Connection conn,
-            String cmd)
+    public void execute(AbstractPop3Handler handler, 
+                        AbstractPop3Connection conn, 
+                        String cmd) 
     {
         try
         {
-            // Should support only one connection method as recommended by RFC
             if (!handler.isUsingAPOPAuthMethod(conn))
-                conn.println("-ERR APOP not supported use USER/PASS method");
+                conn.println("-ERR APOP not authorized");
             else
             {
                 String[] cmdLine = StringUtilities.split(cmd);
@@ -112,10 +106,16 @@ public class ApopCommand implements Pop3Command
                 byte[] uniqueKey = (state.getGeneratedAPOPBanner() + state
                         .getUser().getPassword()).getBytes(Pop3Service.CHARSET_NAME);
 
-                md5.Init();
-                md5.Update(uniqueKey);
-
-                if (md5.asHex().equals(cmdLine[2]))
+                String hash = null;
+                
+                synchronized(md5)
+                {
+                    md5.Init();
+                    md5.Update(uniqueKey);
+                    hash = md5.asHex();
+                }
+                
+                if (hash.equals(cmdLine[2]))
                 {
                     state.setAuthenticated();
                     boolean locked = state.getMailBox().tryAcquireLock(3, 100);

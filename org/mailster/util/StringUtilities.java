@@ -1,6 +1,13 @@
 package org.mailster.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.StringTokenizer;
+
+import javax.security.sasl.SaslException;
+
+import org.mailster.pop3.commands.auth.AuthException;
 
 /**
  * ---<br>
@@ -72,7 +79,7 @@ public class StringUtilities
     public static String[] split(String s, String token)
     {
         if (s == null)
-            return null;
+            return new String[0];
         
         StringTokenizer tokens = new StringTokenizer(s, token);
         String[] values = new String[tokens.countTokens()];
@@ -81,5 +88,326 @@ public class StringUtilities
             values[i] = tokens.nextToken();
         
         return values;
+    }
+    
+    /**
+     * Takes <code>value</code> and return its HEX value prefixed with zeros .
+     *  
+     * @param value the value to be converted
+     * @param length the length to pad to.
+     * @return a non-null String fixed width representing the HEX of value
+     */
+    public static String intToFixedLengthHex(int value, int length) 
+    {
+		String str = Integer.toHexString(value);
+		StringBuilder paddedStr = new StringBuilder();
+	
+		if (str.length() < length) 
+		{
+		    for (int i = 0; i < length-str.length(); i ++)
+		    	paddedStr.append('0');
+		}
+		paddedStr.append(str);
+		
+		return paddedStr.toString();
+    }
+    
+    /**
+     * Used to convert username-value, passwd or realm to 8859_1 encoding
+     * if all chars in string are within the 8859_1 (Latin 1) encoding range.
+     * 
+     * @param str a non-null String
+     * @param useUTF8 a boolean value set to <code>true</code> if UT8 is in use. 
+     * @return a non-null String containing the correct character encoding
+     * for username, paswd or realm.
+     * @throws AuthException 
+     */
+    public static String stringTo_8859_1(String str, boolean useUTF8) 
+    	throws AuthException
+    {
+		char[] buffer = str.toCharArray();
+	
+		try 
+		{
+		    if (useUTF8) 
+		    {
+		    	for( int i = 0; i< buffer.length; i++ ) 
+		    	{
+		    		if( buffer[i] > '\u00FF' )
+		    			return str;
+			    } 
+		    }
+	    
+			return new String(str.getBytes("UTF8"), "8859_1");
+		} 
+	    catch (UnsupportedEncodingException e) 
+	    {
+	    	throw new AuthException("Cannot encode string in UTF8 or 8859-1 (Latin-1)");		
+	    }
+    }
+    
+    /**
+     * Returns the occurence count of char <code>c</code> in a substring of the String  
+     * <code>s</code> starting at position <code>start</code> and containing  
+     * <code>length</code> chars. 
+     * 
+     * @param s the string to parse
+     * @param c the character to search for
+     * @return the occurence count
+     */
+    public static int occ(String s, char c, int start, int length)
+    {    	
+    	if (s==null)
+    		return 0;
+    	
+    	int max = start+length;
+    	if (start<0 || length<0 || max > s.length())
+    		throw new IllegalArgumentException("Invalid bounds");
+    
+    	int count = 0;
+    	for (int i=start;i<max;i++)
+    		if (s.charAt(i) == c)
+    			count++;
+    			
+    	return count;
+    }
+    
+    /**
+     * Parses the directives exchanged between the client and the server during a 
+     * DIGEST-MD5 authentication process.
+     * 
+     * @param message the decoded directives
+     * @return a Map containing the directives and their decoded values
+     * @throws SaslException 
+     */
+	public static HashMap<String, String> parseDigestMD5Directives(String message) 
+		throws SaslException 
+	{
+		HashMap<String, String> map = new HashMap<String, String>();		
+		String[] directives=StringUtilities.split(message,",");
+		for (String d : directives)
+		{
+			int pos = d.indexOf('=');
+			String directive = d.substring(0, pos).trim();
+			
+			if (map.containsKey(directive))
+				throw new SaslException("Duplicate directive in client digest-response");
+			else
+			{
+				String value = d.substring(pos+1);
+				
+                // See TEXT rule at paragraph 7.2 of RFC 2831
+                if ("username".equals(directive) || "cnonce".equals(directive) ||
+                		"authzid".equals(directive))
+                    value.replaceAll("\r\n", " ");
+                
+				if (value.charAt(0) =='\"' && value.charAt(value.length()-1) == '\"')
+                    value = value.substring(1, value.length()-1);
+				
+				map.put(directive, value);
+			}
+		}
+		
+		return map;
+	}
+	
+    /**
+     * Parses digest-challenge string, extracting each token
+     * and value(s)
+     *
+     * @param buf A non-null digest-challenge string.
+     * @throws UnsupportedEncodingException 
+     * @throws SaslException if the String cannot be parsed according to RFC 2831
+     */
+    public static HashMap<String, String> parseDirectives(byte[] buf) 
+    	throws SaslException 
+    {
+		HashMap<String, String> map = new HashMap<String, String>();
+		boolean gettingKey = true;
+		boolean gettingQuotedValue = false;
+		boolean expectSeparator = false;
+		byte bch;
+
+		ByteArrayOutputStream key = new ByteArrayOutputStream(10);
+		ByteArrayOutputStream value = new ByteArrayOutputStream(10);
+
+		int i = skipLws(buf, 0);
+		while (i < buf.length) 
+		{
+			bch = buf[i];
+
+			if (gettingKey) 
+			{
+				if (bch == ',') 
+				{
+					if (key.size() != 0)
+						throw new SaslException("Directive key contains a ',':" + key);
+					
+					// Empty element, skip separator and lws
+					i = skipLws(buf, i + 1);
+				} 
+				else 
+				if (bch == '=') 
+				{
+					if (key.size() == 0)
+						throw new SaslException("Empty directive key");
+
+					gettingKey = false; // Termination of key
+					i = skipLws(buf, i + 1); // Skip to next non whitespace
+
+					// Check whether value is quoted
+					if (i < buf.length) 
+					{
+						if (buf[i] == '"') 
+						{
+							gettingQuotedValue = true;
+							++i; // Skip quote
+						}
+					} 
+					else 
+						throw new SaslException("Valueless directive found: " + key.toString());
+				} 
+				else 
+				if (isLws(bch)) 
+				{
+					// LWS that occurs after key
+					i = skipLws(buf, i + 1);
+
+					// Expecting '='
+					if (i < buf.length) 
+					{
+						if (buf[i] != '=')
+							throw new SaslException("'=' expected after key: " + key.toString());
+					} 
+					else
+						throw new SaslException("'=' expected after key: " + key.toString());
+				} 
+				else 
+				{
+					key.write(bch); // Append to key
+					++i; // Advance
+				}
+			} 
+			else 
+			if (gettingQuotedValue) 
+			{
+				// Getting a quoted value
+				if (bch == '\\') 
+				{
+					// quoted-pair = "\" CHAR ==> CHAR
+					++i; // Skip escape
+					if (i < buf.length) 
+					{
+						value.write(buf[i]);
+						++i; // Advance
+					} 
+					else
+						// Trailing escape in a quoted value
+						throw new SaslException("Unmatched quote found for directive: "
+																+ key.toString() + " with value: " + value.toString());
+				} 
+				else 
+				if (bch == '"') 
+				{
+					// closing quote
+					++i; // Skip closing quote
+					gettingQuotedValue = false;
+					expectSeparator = true;
+				} 
+				else 
+				{
+					value.write(bch);
+					++i; // Advance
+				}
+			} 
+			else 
+			if (isLws(bch) || bch == ',') 
+			{
+				// Value terminated
+				extractDirective(map, key.toString(), value.toString());
+				key.reset();
+				value.reset();
+				gettingKey = true;
+				gettingQuotedValue = expectSeparator = false;
+				i = skipLws(buf, i + 1); // Skip separator and LWS
+			} 
+			else 
+			if (expectSeparator) 
+			{
+				throw new SaslException("Expecting comma or linear whitespace after quoted string: \""
+														+ value.toString() + "\"");
+			} 
+			else 
+			{
+				value.write(bch); // Unquoted value
+				++i; // Advance
+			}
+		}
+
+		if (gettingQuotedValue)
+			throw new SaslException("Unmatched quote found for directive: "
+													+ key.toString() + " with value: " + value.toString());
+
+		// Get last pair
+		if (key.size() > 0)
+			extractDirective(map, key.toString(), value.toString());
+
+		return map;
+	}
+    
+    /**
+     * Processes directive/value pairs from the digest-challenge and
+     * fill out the provided map.
+     * 
+     * @param key A non-null String challenge token name.
+     * @param value A non-null String token value.
+     * @throws SaslException if either the key or the value is null or
+     * if the key already has a value. 
+     */
+    private static void extractDirective(HashMap<String, String> map, String key, String value)
+    	throws SaslException 
+	{
+    	if (map.get(key) != null)
+    		throw new SaslException("Peer sent more than one " + key + " directive");
+		else
+			map.put(key, value);
+	}
+
+    /**
+     * Is character a linear white space ?
+     * LWS            = [CRLF] 1*( SP | HT )
+     * Note that we're checking individual bytes instead of CRLF
+     * 
+     * @param b the byte to check
+     * @return <code>true</code> if it's a linear white space
+     */ 
+    public static boolean isLws(byte b) 
+    {
+		switch (b) 
+		{
+			case 13:   // US-ASCII CR, carriage return
+			case 10:   // US-ASCII LF, line feed
+			case 32:   // US-ASCII SP, space
+			case 9:     // US-ASCII HT, horizontal-tab
+			    return true;
+		}
+		
+		return false;
+    }
+    
+    /**
+     * Skip all linear white spaces
+     */
+    private static int skipLws(byte[] buf, int start) 
+    {
+    	int i;
+    	
+    	for (i = start; i < buf.length; i++) 
+    	{
+    		if (!isLws(buf[i]))
+    			return i;
+	    }
+
+    	return i;
     }
 }

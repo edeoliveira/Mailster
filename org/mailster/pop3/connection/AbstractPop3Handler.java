@@ -31,4 +31,5 @@ public interface AbstractPop3Handler
 {
     public abstract void quit(AbstractPop3Connection conn);
     public abstract boolean isUsingAPOPAuthMethod(AbstractPop3Connection conn);
+    public abstract boolean isSecureAuthRequired(AbstractPop3Connection conn);
 }

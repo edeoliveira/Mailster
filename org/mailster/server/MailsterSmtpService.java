@@ -65,9 +65,6 @@ public class MailsterSmtpService
 
     private MailsterPop3Service pop3Service;
     private MailsterSWT main;
-
-    // By default ensure the most secured method
-    private boolean usingAPOPAuthMethod = true;
     
     class MailQueueControl implements Runnable
     {
@@ -155,9 +152,9 @@ public class MailsterSmtpService
         }
     }
 
-    public MailsterSmtpService(MailsterSWT main)
+    public MailsterSmtpService()
     {
-        this.main = main;
+        this.main = MailsterSWT.getInstance();
         
         try 
         {        	
@@ -222,7 +219,7 @@ public class MailsterSmtpService
                 Integer pop3Port = new Integer(pop3Service.getPort());
                 try 
                 {
-        			pop3Service.startService(usingAPOPAuthMethod, debug);
+        			pop3Service.startService(debug);
         	        main.log(ConfigurationManager.MAILSTER_VERSION
         	                + MessageFormat.format(Messages.getString("MailsterSWT.log.pop3.started"), //$NON-NLS-1$
                                     new Object[] { pop3Port })); 
@@ -316,17 +313,6 @@ public class MailsterSmtpService
     {
         return autoStart;
     }
-
-	public boolean isUsingAPOPAuthMethod() 
-	{
-		return usingAPOPAuthMethod;
-	}
-
-	public void setUsingAPOPAuthMethod(boolean usingAPOPAuthMethod) 
-	{
-		this.usingAPOPAuthMethod = usingAPOPAuthMethod;
-        pop3Service.setUsingAPOPAuthMethod(usingAPOPAuthMethod);
-	}
 
     public MailsterPop3Service getPop3Service()
     {

@@ -32,19 +32,19 @@ import org.mailster.util.StringUtilities;
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class UserCommand implements Pop3Command
+public class UserCommand extends Pop3Command
 {
     public boolean isValidForState(Pop3State state)
     {
         return !state.isAuthenticated();
     }
 
-    public void execute(AbstractPop3Handler handler, AbstractPop3Connection conn,
-            String cmd)
+    public void execute(AbstractPop3Handler handler, 
+                        AbstractPop3Connection conn, 
+                        String cmd)
     {
-        // Should support only one connection method as recommended by RFC
-        if (handler.isUsingAPOPAuthMethod(conn))
-            conn.println("-ERR USER/PASS method not supported use APOP instead");
+        if (handler.isSecureAuthRequired(conn))
+            conn.println("-ERR USER/PASS method not authorized. Please use a secure authentication instead");
         else
         {
             try

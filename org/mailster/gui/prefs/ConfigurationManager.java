@@ -55,7 +55,7 @@ public class ConfigurationManager
     /**
      * Application version number
      */
-    public final static String MAILSTER_VERSION_NB	= "v0.8.1";
+    public final static String MAILSTER_VERSION_NB	= "v0.8.2";
     
     /**
      * Application version string
@@ -114,11 +114,6 @@ public class ConfigurationManager
     public final static String WINDOW_HEIGHT_KEY = "window.height";
 
     /* Control divider options */
-    /**
-     * The key to access the log view divider ratio
-     */
-    public final static String LOG_DIVIDER_RATIO_KEY = "window.logView.divider.ratio";
-
     /**
      * The key to access the output view divider ratio
      */
@@ -190,6 +185,16 @@ public class ConfigurationManager
      */
     public final static String START_POP3_ON_SMTP_START_KEY = "protocols.start.pop3.onSMTPStart";
     
+    /**
+     * <code>true</code> if SSL clients authentication is required
+     */
+    public final static String AUTH_SSL_CLIENT_KEY = "protocols.ssl.client.requireAuth";
+    
+    /**
+     * The SSL protocol in use
+     */
+    public final static String PREFERRED_SSL_PROTOCOL_KEY = "protocols.ssl.server.protocol";
+    
     /* Pop3 options */
     /**
      * The key to access the pop3 options
@@ -226,11 +231,16 @@ public class ConfigurationManager
      * the host for the POP3 server.
      */
     public final static String POP3_CONNECTION_TIMEOUT_KEY = "pop3.connection.timeout";
-    
+
     /**
-     * The POP3 authentification method used
+     * <code>true</code> if only secured authentication mechanisms are allowed.
      */
-    public final static String POP3_AUTH_METHOD_KEY = "pop3.authentication.method";
+    public final static String POP3_REQUIRE_SECURE_AUTH_METHOD_KEY = "pop3.authentication.secureMethodRequired";
+
+    /**
+     * <code>true</code> if APOP authentication mechanism is allowed.
+     */
+    public final static String POP3_ALLOW_APOP_AUTH_METHOD_KEY = "pop3.authentication.allowAPOP";
     
     /* SMTP options */
     /**

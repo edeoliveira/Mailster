@@ -31,14 +31,16 @@ import org.mailster.pop3.connection.Pop3State;
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class NoopCommand implements Pop3Command
+public class NoopCommand extends Pop3Command
 {
     public boolean isValidForState(Pop3State state)
     {
         return true;
     }
 
-    public void execute(AbstractPop3Handler handler, AbstractPop3Connection conn, String cmd)
+    public void execute(AbstractPop3Handler handler, 
+                        AbstractPop3Connection conn, 
+                        String cmd)
     {
         conn.println("+OK Zog zog");
     }

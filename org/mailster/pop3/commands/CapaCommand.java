@@ -31,14 +31,16 @@ import org.mailster.pop3.connection.Pop3State;
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class CapaCommand implements Pop3Command
+public class CapaCommand extends Pop3Command
 {
     public boolean isValidForState(Pop3State state)
     {
         return true;
     }
 
-    public void execute(AbstractPop3Handler handler, AbstractPop3Connection conn, String cmd)
+    public void execute(AbstractPop3Handler handler, 
+                        AbstractPop3Connection conn, 
+                        String cmd)
     {
         //RFC 2449
         conn.println("+OK Capability list follows");

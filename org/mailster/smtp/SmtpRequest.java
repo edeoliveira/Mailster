@@ -162,7 +162,7 @@ public class SmtpRequest {
     String params = null;
 
     if (state == SmtpState.DATA_HDR) {
-      if (s.equals(".")) {
+      if (".".equals(s)) {
         action = SmtpActionType.DATA_END;
       } else if (s.length() < 1) {
         action = SmtpActionType.BLANK_LINE;
@@ -171,7 +171,7 @@ public class SmtpRequest {
         params = s;
       }
     } else if (state == SmtpState.DATA_BODY) {
-      if (s.equals(".")) {
+      if (".".equals(s)) {
         action = SmtpActionType.DATA_END;
       } else {
         action = SmtpActionType.UNRECOG;

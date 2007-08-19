@@ -32,14 +32,16 @@ import org.mailster.pop3.mailbox.MailBox;
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class QuitCommand implements Pop3Command
+public class QuitCommand extends Pop3Command
 {
     public boolean isValidForState(Pop3State state)
     {
         return true;
     }
 
-    public void execute(AbstractPop3Handler handler, AbstractPop3Connection conn, String cmd)
+    public void execute(AbstractPop3Handler handler, 
+                        AbstractPop3Connection conn, 
+                        String cmd)
     {
         MailBox inbox = null;
         try
@@ -48,7 +50,7 @@ public class QuitCommand implements Pop3Command
             if (inbox != null)
                 inbox.deleteMarked();
             
-            conn.println("+OK Mailster POP3 Server shutdown");
+            conn.println("+OK Signing off from Mailster POP3");
             handler.quit(conn);
         }
         catch (Exception e)

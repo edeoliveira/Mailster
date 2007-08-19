@@ -5,6 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.mailster.pop3.commands.auth.AuthCommand;
+import org.mailster.pop3.commands.auth.AuthCramMD5Command;
+import org.mailster.pop3.commands.auth.AuthCramSHA1Command;
+import org.mailster.pop3.commands.auth.AuthDigestMD5Command;
+import org.mailster.pop3.commands.auth.AuthLoginCommand;
+import org.mailster.pop3.commands.auth.AuthPlainCommand;
+import org.mailster.util.md5.MD5;
+
 /**
  * ---<br>
  * Mailster (C) 2007 De Oliveira Edouard
@@ -35,16 +43,30 @@ import java.util.Map;
  */
 public class Pop3CommandRegistry
 {
+    static
+    {
+        // Disable native library loading
+        MD5.initNativeLibrary(true);
+    }
+    
     private final static Map<String, Pop3Command> commands = new HashMap<String, Pop3Command>();
     private final static Object[][] COMMANDS = new Object[][] {
-            { "QUIT", QuitCommand.class, Boolean.FALSE }, { "STAT", StatCommand.class, Boolean.FALSE },
-            { "APOP", ApopCommand.class, Boolean.FALSE }, { "USER", UserCommand.class, Boolean.TRUE },
-            { "PASS", PassCommand.class, Boolean.FALSE }, { "LIST", ListCommand.class, Boolean.FALSE },
-            { "UIDL", UidlCommand.class, Boolean.TRUE },  { "TOP", TopCommand.class, Boolean.TRUE },
-            { "RETR", RetrCommand.class, Boolean.FALSE }, { "DELE", DeleCommand.class, Boolean.FALSE },
-            { "NOOP", NoopCommand.class, Boolean.FALSE }, { "RSET", RsetCommand.class, Boolean.FALSE },
-            { "CAPA", CapaCommand.class, Boolean.FALSE }, { "IMPLEMENTATION", ImplCommand.class, Boolean.TRUE },
-            { "STLS", StartTLSCommand.class, Boolean.TRUE }
+            { "QUIT", QuitCommand.class, Boolean.FALSE }, 
+            { "STAT", StatCommand.class, Boolean.FALSE },
+            { "APOP", ApopCommand.class, Boolean.FALSE },
+            { "USER", UserCommand.class, Boolean.TRUE },
+            { "PASS", PassCommand.class, Boolean.FALSE },   
+            { "LIST", ListCommand.class, Boolean.FALSE },
+            { "UIDL", UidlCommand.class, Boolean.TRUE },
+            { "TOP", TopCommand.class, Boolean.TRUE },
+            { "RETR", RetrCommand.class, Boolean.FALSE },
+            { "DELE", DeleCommand.class, Boolean.FALSE },
+            { "NOOP", NoopCommand.class, Boolean.FALSE },
+            { "RSET", RsetCommand.class, Boolean.FALSE },
+            { "CAPA", CapaCommand.class, Boolean.FALSE }, 
+            { "IMPLEMENTATION", ImplCommand.class, Boolean.TRUE },
+            { "STLS", StartTLSCommand.class, Boolean.TRUE }, 
+            { "AUTH", AuthCommand.class, Boolean.TRUE }
     };
 
     private static void load() throws Exception
@@ -57,6 +79,12 @@ public class Pop3CommandRegistry
             Pop3Command command = (Pop3Command) type.newInstance();
             commands.put(name, command);
         }
+        
+        AuthCommand.register("DIGEST-MD5", new AuthDigestMD5Command());
+        AuthCommand.register("CRAM-MD5", new AuthCramMD5Command());
+        AuthCommand.register("CRAM-SHA1", new AuthCramSHA1Command());
+        AuthCommand.register("PLAIN", new AuthPlainCommand());
+        AuthCommand.register("LOGIN", new AuthLoginCommand());
     }
 
     protected static List<String> listCapabilities()
@@ -65,7 +93,17 @@ public class Pop3CommandRegistry
         for (int i = 0; i < COMMANDS.length; i++)
         {
             if (((Boolean)COMMANDS[i][2]).booleanValue())
-                capabilities.add(COMMANDS[i][0].toString());
+            {
+            	Pop3Command cmd = getCommand((String)COMMANDS[i][0]);
+            	if (cmd instanceof CapabilitiesInterface)
+            	{
+            		String capa = ((CapabilitiesInterface)cmd).getCapability();
+            		if (capa != null)
+            			capabilities.add(capa);
+            	}
+            	else
+            		capabilities.add(COMMANDS[i][0].toString());
+            }
         }
         
         return capabilities;

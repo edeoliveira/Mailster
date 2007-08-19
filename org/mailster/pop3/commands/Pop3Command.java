@@ -26,16 +26,30 @@ import org.mailster.pop3.connection.Pop3State;
  * Web Site</a> <br>
  * ---
  * <p>
- * Pop3Command.java - Interface that defines what a POP3 command class has to 
+ * Pop3Command.java - Abstract class that defines what a POP3 command class has to 
  * implement to be registered in the command registry.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public interface Pop3Command
+public abstract class Pop3Command
 {
+    /**
+     * Checks if command is valid for the specified POP3 state.
+     * 
+     * @param state the POP3 state
+     * 
+     * @return true, if is valid for state
+     */
     public abstract boolean isValidForState(Pop3State state);
 
+    /**
+     * Executes the command.
+     * 
+     * @param handler a pop3 handler
+     * @param conn a pop3 connection
+     * @param cmd the command line sent by the client
+     */
     public abstract void execute(AbstractPop3Handler handler, AbstractPop3Connection conn,
             String cmd);
 }

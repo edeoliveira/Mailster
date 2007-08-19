@@ -10,8 +10,10 @@ import org.apache.mina.filter.SSLFilter;
 import org.apache.mina.filter.SSLFilter.SSLFilterMessage;
 import org.apache.mina.transport.socket.nio.SocketSessionConfig;
 import org.mailster.pop3.commands.ApopCommand;
+import org.mailster.pop3.commands.MultiStatePop3Command;
 import org.mailster.pop3.commands.Pop3Command;
 import org.mailster.pop3.commands.Pop3CommandRegistry;
+import org.mailster.pop3.commands.Pop3CommandState;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.MinaPop3Connection;
@@ -50,9 +52,11 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
     implements AbstractPop3Handler
 {
     // Session objects
-    private final static String CONNECTION           = Pop3ProtocolHandler.class.getName()+".connection";
-    private final static String PEER_CLOSED_SESSION  = Pop3ProtocolHandler.class.getName()+".peerClosedSession"; 
-    private final static String USING_APOP_AUTH      = Pop3ProtocolHandler.class.getName()+".usingApopAuth";
+    protected final static String CONNECTION = Pop3ProtocolHandler.class.getName()+".connection";
+    private final static String PEER_IS_CLOSING_SESSION = Pop3ProtocolHandler.class.getName()+".peerIsClosingSession"; 
+    private final static String USING_APOP_AUTH = Pop3ProtocolHandler.class.getName()+".usingApopAuth";
+    private final static String SECURED_AUTH_REQUIRED = Pop3ProtocolHandler.class.getName()+".securedAuthRequired";
+    private final static String LAST_INCOMPLETE_COMMAND = Pop3ProtocolHandler.class.getName()+".lastIncompleteCommand";
     
     // Default 10 Minutes Timeout by RFC recommendation (see RFC 1939);
     public final static int DEFAULT_TIMEOUT_SECONDS = 600;
@@ -65,6 +69,7 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
     
     // Defaults to maximum security.
     private boolean usingAPOPAuthMethod = true;
+    private boolean secureAuthRequired = true;
 
     public Pop3ProtocolHandler(UserManager userManager)
     {
@@ -86,12 +91,12 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
         // We're going to use SSL negotiation notification.
         session.setAttribute(SSLFilter.USE_NOTIFICATION);
 
-        // Init session POP3 protocol internals
+        // Initialize POP3 protocol session attributes
         MinaPop3Connection conn = new MinaPop3Connection(session, userManager);
         session.setAttribute(CONNECTION, conn);        
         session.setAttribute(USING_APOP_AUTH, usingAPOPAuthMethod);
-        session.setAttribute(PEER_CLOSED_SESSION, Boolean.FALSE);
-        
+        session.setAttribute(SECURED_AUTH_REQUIRED, secureAuthRequired);
+        session.setAttribute(PEER_IS_CLOSING_SESSION, Boolean.FALSE);        
         sendGreetings(conn);
     }
 
@@ -119,7 +124,7 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
 
     public void sessionIdle(IoSession session, IdleStatus status)
     {
-        log.info("session timed out");
+        log.info("Session timed out");
         MinaPop3Connection conn = (MinaPop3Connection) session.getAttribute(CONNECTION);
         conn.println("421 Service shutting down and closing transmission channel");
         if (conn.getState().isAuthenticated())
@@ -129,7 +134,7 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
 
     public void exceptionCaught(IoSession session, Throwable cause)
     {
-        log.error("Exception occured :", cause);
+        log.error("Exception occured : {}", cause.getMessage());
         MinaPop3Connection conn = (MinaPop3Connection) session.getAttribute(CONNECTION);
         if (conn != null && conn.getState().isAuthenticated())
             conn.getState().getMailBox().releaseLock();
@@ -139,14 +144,17 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
     public void messageReceived(IoSession session, Object message)
             throws Exception
     {
+        if (((Boolean)session.getAttribute(PEER_IS_CLOSING_SESSION)).booleanValue())
+            session.close();
+        
     	if (message instanceof SSLFilterMessage)
     	{
-    		log.info("SSL FILTER message -> "+message);
+    		log.debug("SSL filter message -> {}", message);
     		return;
     	}
     	
         String request = (String) message;
-        log.info("C: " + request);
+        log.info("C: {}", request);
         
         if (request == null)
         {
@@ -154,28 +162,40 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
             return;
         }
         
-        String commandName = new StringTokenizer(request, " ").nextToken()
-                .toUpperCase();
-        Pop3Command command = Pop3CommandRegistry.getCommand(commandName);
+        MinaPop3Connection conn = (MinaPop3Connection) session.getAttribute(CONNECTION);        
+        Pop3CommandState state = (Pop3CommandState) session.getAttribute(LAST_INCOMPLETE_COMMAND);
+        Pop3Command command = null;
         
-        MinaPop3Connection conn = (MinaPop3Connection) session.getAttribute(CONNECTION);
-        
-        if (command == null)
+        if (state == null)
         {
-            conn.println("-ERR Command not recognized");
-            return;
+	        String commandName = new StringTokenizer(request, " ").nextToken().toUpperCase();
+	        command = Pop3CommandRegistry.getCommand(commandName);
+	        
+	        if (command == null)
+	        {
+	            conn.println("-ERR Command not recognized");
+	            return;
+	        }
+	
+	        if (!command.isValidForState(conn.getState()))
+	        {
+	            conn.println("-ERR Command not valid for this state");
+	            return;
+	        }
         }
-
-        if (!command.isValidForState(conn.getState()))
-        {
-            conn.println("-ERR Command not valid for this state");
-            return;
-        }
-
-        command.execute(this, conn, request);
+        else
+        	command = state.getCommand();
         
-        if (((Boolean)session.getAttribute(PEER_CLOSED_SESSION)).booleanValue())
-            session.close();
+        if (command instanceof MultiStatePop3Command)
+        {
+            state = ((MultiStatePop3Command)command).execute(this, conn, request, state);
+            session.setAttribute(LAST_INCOMPLETE_COMMAND, state);
+        }
+        else
+        {
+        	command.execute(this, conn, request);
+        	session.setAttribute(LAST_INCOMPLETE_COMMAND, null);
+        }
     }
 
     public boolean isUsingAPOPAuthMethod(AbstractPop3Connection conn)
@@ -184,15 +204,26 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
         return ((Boolean) c.getSession().getAttribute(USING_APOP_AUTH)).booleanValue();
     }
 
+	public boolean isSecureAuthRequired(AbstractPop3Connection conn) 
+	{
+		MinaPop3Connection c = (MinaPop3Connection) conn;
+        return ((Boolean) c.getSession().getAttribute(SECURED_AUTH_REQUIRED)).booleanValue();
+	}
+	
     public void setUsingAPOPAuthMethod(boolean usingAPOPAuthMethod)
     {
         this.usingAPOPAuthMethod = usingAPOPAuthMethod;
     }
     
+    public void setSecureAuthRequired(boolean secureAuthRequired)
+    {
+        this.secureAuthRequired = secureAuthRequired;
+    }
+    
     public void quit(AbstractPop3Connection conn)
     {
         MinaPop3Connection c = (MinaPop3Connection) conn;
-        c.getSession().setAttribute(PEER_CLOSED_SESSION, Boolean.TRUE);
+        c.getSession().setAttribute(PEER_IS_CLOSING_SESSION, Boolean.TRUE);
     }
 
     /**

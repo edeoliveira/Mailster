@@ -43,7 +43,9 @@ import ca.odell.glazedlists.gui.TableFormat;
 public class SmtpMessageTableLabelProvider extends EventTableLabelProvider
 	implements IFontProvider, IColorProvider 
 {
-    private static Image attachedFilesImage, flaggedImage, unflaggedImage;
+    private static Image attachedFilesImage;
+    private static Image flaggedImage;
+    private static Image unflaggedImage;
     private static Color tableRowColor;
 
 	/** 

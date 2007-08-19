@@ -3,6 +3,7 @@ package org.mailster.util;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * ---<br>
@@ -37,7 +38,18 @@ public class DateUtilities
      * Simple day & hour formatter.
      */
     public final static SimpleDateFormat df = 
-    	new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$	
+    	new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$
+    
+    /**
+     * Simple GMT day & hour formatter.
+     */
+    public final static SimpleDateFormat gmt = 
+    	new SimpleDateFormat("dd/MM/yyyy HH:mm:ss z"); //$NON-NLS-1$
+    
+    static {
+    	gmt.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+    
 	/**
      * Hour date formatter
      */

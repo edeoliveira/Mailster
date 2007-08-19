@@ -1,10 +1,9 @@
 package org.mailster.pop3.connection;
 
-import java.io.IOException;
-
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.SSLFilter;
-import org.mailster.pop3.connection.ssl.X509SecureSocketFactory;
+import org.mailster.crypto.X509SecureSocketFactory;
+import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
 import org.mailster.pop3.mailbox.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,24 +38,42 @@ import org.slf4j.LoggerFactory;
 public class MinaPop3Connection implements AbstractPop3Connection
 {
     private final static String lineSeparator = "\r\n";
-    private final static Logger log = LoggerFactory.getLogger(MinaPop3Connection.class);
+    private final static Logger LOG = LoggerFactory.getLogger(MinaPop3Connection.class);
 
     private static SSLFilter sslFilter;
     
     private IoSession session;
     private Pop3State state;
-
-    static
+    
+    public static void setupSSLParameters(SSLProtocol protocol, 
+                                          boolean clientAuthNeeded)
     {
-    	try
+        try
         {
-        	X509SecureSocketFactory ssf = X509SecureSocketFactory.getInstance();
-            sslFilter = new SSLFilter(ssf.getContext());
+            getSSLFilter(protocol).setNeedClientAuth(clientAuthNeeded);
         }
         catch (Exception e)
-        {                
-            e.printStackTrace();
+        {
+            throw new RuntimeException(e);
         }
+    }
+    
+    public static boolean isClientAuthNeeded()
+    {
+        return sslFilter != null 
+            && sslFilter.isNeedClientAuth();
+    }
+    
+    private synchronized static SSLFilter getSSLFilter(SSLProtocol protocol) 
+        throws Exception
+    {
+        if (sslFilter == null)
+        {
+            X509SecureSocketFactory ssf = X509SecureSocketFactory.getInstance(protocol);
+            sslFilter = new SSLFilter(ssf.getContext());
+        }
+            
+        return sslFilter;
     }
     
     public MinaPop3Connection(IoSession session, UserManager userManager)
@@ -77,23 +94,23 @@ public class MinaPop3Connection implements AbstractPop3Connection
 
     public void println(String line)
     {
+        LOG.info("S: {}", line);
+
         if (line == null)
             return;
         
-        StringBuilder sb = new StringBuilder(line.length()
-                + lineSeparator.length());
-        sb.append(line);
-        sb.append(lineSeparator);
-        log.info("S: " + line);
-        session.write(sb.toString());
+        if (line.endsWith(lineSeparator))
+            line = line.substring(0, line.length()-2);
+        
+        session.write(line);
     }
 
-    public void startTLS(String response) throws IOException
+    public void startTLS(String response) throws Exception
     {
         // Insert SSLFilter to get ready for handshaking
-        session.getFilterChain().addFirst("SSLfilter", sslFilter);
+        session.getFilterChain().addFirst("SSLfilter", getSSLFilter(null));
 
-        // Disable encryption temporarilly.
+        // Disable encryption temporarily.
         // This attribute will be removed by SSLFilter
         // inside the Session.write() call below.
         session.setAttribute(SSLFilter.DISABLE_ENCRYPTION_ONCE, Boolean.TRUE);
@@ -107,6 +124,7 @@ public class MinaPop3Connection implements AbstractPop3Connection
 
     public boolean isTLSConnection()
     {
-        return sslFilter.isSSLStarted(session);
+        return sslFilter != null 
+            && sslFilter.isSSLStarted(session);
     }
 }

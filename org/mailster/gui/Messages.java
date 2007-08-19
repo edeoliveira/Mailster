@@ -62,8 +62,6 @@ public class Messages
      * language. If so the <code>ResourceBundle</code> is being loaded and
      * wrapped in a <code>LanguageResource</code> object.
      * </p>
-     * 
-     * @since 0.3.0
      */
     static 
     {
@@ -157,9 +155,12 @@ public class Messages
     }
     
     /**
-     * Loads a string from the resource bundle file.
+     * Loads a string from the resource bundle file. If not found or
+     * empty, try to load the string from the default bundle then 
+     * returns the key between square brackets.
      * 
      * @param key the key to load the message string
+     * 
      * @return the string or the key if string wasn't found
      */
     public static String getString(String key)
@@ -186,6 +187,31 @@ public class Messages
         	return "[" + key + "]";
         }
     }
+    
+    /**
+     * Loads a string from the resource bundle file. If not found or
+     * empty, returns the <code>defaultValue</code>.
+     * 
+     * @param key the key to load the message string
+     * @param defaultValue the value to return if not found or empty
+     * 
+     * @return the string or the key if string wasn't found
+     */
+    public static String getString(String key, String defaultValue)
+    {
+        try
+        {
+            String s = bundle.getString(key);
+            if ("".equals(s))
+                return defaultValue;
+            
+            return s;
+        }
+        catch (MissingResourceException e)
+        {
+            return defaultValue;
+        }
+    }    
 
 	public static Locale getLocale() 
 	{

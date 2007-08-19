@@ -14,7 +14,6 @@ import org.apache.mina.common.SimpleByteBufferAllocator;
 import org.apache.mina.common.ThreadModel;
 import org.apache.mina.filter.LoggingFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.codec.textline.TextLineCodecFactory;
 import org.apache.mina.filter.executor.ExecutorFilter;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
@@ -100,12 +99,12 @@ public class MailsterPop3Service
         chain.addLast("threadPool", new ExecutorFilter(executor));
 
         chain.addLast("codec", new ProtocolCodecFilter(
-                new TextLineCodecFactory(Charset.forName(CHARSET_NAME))));
+                new InetTextCodecFactory(Charset.forName(CHARSET_NAME))));
 
         handler = new Pop3ProtocolHandler(userManager);
     }
-
-    public void startService(boolean usingAPOPAuthMethod, boolean debug) throws IOException
+    
+    public void startService(boolean debug) throws IOException
     {
     	this.debugEnabled = debug;
         if (debugEnabled)
@@ -116,7 +115,6 @@ public class MailsterPop3Service
         else
             iSocketAddr = new InetSocketAddress(InetAddress.getByName(host), port);
         
-        setUsingAPOPAuthMethod(usingAPOPAuthMethod);
         acceptor.bind(iSocketAddr, handler, config);        
     }
     
@@ -126,11 +124,16 @@ public class MailsterPop3Service
             getString(ConfigurationManager.DEFAULT_ENCLOSURES_DIRECTORY_KEY);
     }
     
-    protected void setUsingAPOPAuthMethod(boolean usingAPOPAuthMethod)
+    public void setUsingAPOPAuthMethod(boolean usingAPOPAuthMethod)
     {
         handler.setUsingAPOPAuthMethod(usingAPOPAuthMethod);
     }
 
+    public void setSecureAuthRequired(boolean secureAuthRequired)
+    {
+        handler.setSecureAuthRequired(secureAuthRequired);
+    }
+    
     public void stopService() throws IOException
     {
     	if (debugEnabled)

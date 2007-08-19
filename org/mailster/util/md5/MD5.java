@@ -89,7 +89,7 @@ import java.io.File;
  * @author Timothy W Macinta (twm@alum.mit.edu) (optimizations and bug fixes)
  */
 
-public class MD5
+public final class MD5
 {
     /**
      * MD5 state
