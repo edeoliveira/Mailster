@@ -92,6 +92,7 @@ public class LanguageConfigurationPage
 
         String[] columns = { Messages.getString("languageHeader"),
                                 Messages.getString("isoCodeHeader"),
+                                Messages.getString("versionHeader"),
                                 Messages.getString("translatorHeader"),
                                 Messages.getString("translationDateHeader") };
 

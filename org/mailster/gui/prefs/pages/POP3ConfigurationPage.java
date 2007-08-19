@@ -1,13 +1,10 @@
 package org.mailster.gui.prefs.pages;
 
 import org.eclipse.jface.preference.StringFieldEditor;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
@@ -55,9 +52,15 @@ public class POP3ConfigurationPage
     extends DefaultConfigurationPage
 {
     /**
-     * <code>ComboViewer</code> to select the POP3 authentication method.
+     * <code>Button</code> to decide if only the secured authentication 
+     * methods are allowed.
      */
-    private ComboViewer pop3AuthenticationMethodViewer;
+    private Button requireSecuredAuthMethodsEditor;
+    
+    /**
+     * <code>Button</code> to decide if APOP authentication is allowed.
+     */
+    private Button allowAPOPEditor;    
 
     /**
      * <code>FieldEditor</code> for the POP3 server host/address.
@@ -103,8 +106,7 @@ public class POP3ConfigurationPage
      */
     public boolean isValid()
     {
-        MailsterPrefStore store = (MailsterPrefStore) getPreferenceStore();
-        MailsterSWT main = store.getMailsterMainWindow();
+        MailsterSWT main = MailsterSWT.getInstance();
         
         if (pop3PortEditor.getIntValue() == main.getSMTPService().getPort())
         {
@@ -131,11 +133,12 @@ public class POP3ConfigurationPage
             return false;
         
         MailsterPrefStore store = (MailsterPrefStore) getPreferenceStore();
-        MailsterSWT main = store.getMailsterMainWindow();
+        MailsterSWT main = MailsterSWT.getInstance();
         
-        String authMethod = (String)((IStructuredSelection)
-                this.pop3AuthenticationMethodViewer.getSelection()).getFirstElement();
-        store.setValue(ConfigurationManager.POP3_AUTH_METHOD_KEY, authMethod);
+        store.setValue(ConfigurationManager.POP3_REQUIRE_SECURE_AUTH_METHOD_KEY, 
+        		requireSecuredAuthMethodsEditor.getSelection());
+        store.setValue(ConfigurationManager.POP3_ALLOW_APOP_AUTH_METHOD_KEY, 
+        		allowAPOPEditor.getSelection());
         
         pop3ServerEditor.store();
         pop3PortEditor.store();
@@ -148,7 +151,10 @@ public class POP3ConfigurationPage
         	getUserManager().getMailBoxManager().
         	setPop3SpecialAccountLogin(pop3SpecialAccountNameEditor.getStringValue());
         main.getSMTPService().getPop3Service().setHost(pop3ServerEditor.getStringValue());
-        main.getSMTPService().setUsingAPOPAuthMethod(authMethod.equals("APOP"));
+        main.getSMTPService().getPop3Service().
+        	setUsingAPOPAuthMethod(allowAPOPEditor.getSelection());
+        main.getSMTPService().getPop3Service().
+    		setSecureAuthRequired(requireSecuredAuthMethodsEditor.getSelection());
         UserManager.setDefaultPassword(pop3PasswordEditor.getStringValue());
         Pop3ProtocolHandler.setTimeout(connectionTimeoutEditor.getIntValue());
         
@@ -215,23 +221,21 @@ public class POP3ConfigurationPage
         pop3PortEditor.setPageIncrement(100);        
         setupEditor(pop3PortEditor);
         
-        Label pop3AuthenticationLabel = new Label(pop3GeneralOptions, SWT.LEFT);      
-        pop3AuthenticationLabel.setText(Messages
-                .getString("pop3AuthenticationLabel"));
-        pop3AuthenticationLabel.setLayoutData(new GridData(GridData.BEGINNING,
-                GridData.CENTER, false, false)); 
-        
-        pop3AuthenticationMethodViewer = new ComboViewer(
-                pop3GeneralOptions, SWT.BORDER | SWT.READ_ONLY);
-        pop3AuthenticationMethodViewer.setContentProvider(
-                new ArrayContentProvider());
-        pop3AuthenticationMethodViewer.setInput(
-                new String[] {
-                        Messages.getString("MailsterSWT.pop3.authenticationMethod.apop"),  //$NON-NLS-1$
-                        Messages.getString("MailsterSWT.pop3.authenticationMethod.classic")  //$NON-NLS-1$
-                });
-        pop3AuthenticationMethodViewer.setSelection(
-                new StructuredSelection(getPreferenceStore().getString(ConfigurationManager.POP3_AUTH_METHOD_KEY)));
+    	requireSecuredAuthMethodsEditor = new Button(pop3GeneralOptions, SWT.CHECK);
+    	requireSecuredAuthMethodsEditor.setText(Messages.getString("requireSecuredAuthMethodsLabel"));
+    	requireSecuredAuthMethodsEditor.setLayoutData(
+        		LayoutUtils.createGridData(GridData.BEGINNING, 
+        		GridData.CENTER, false, false, 2, 1));
+    	requireSecuredAuthMethodsEditor.setSelection(
+    			getPreferenceStore().getBoolean(ConfigurationManager.POP3_REQUIRE_SECURE_AUTH_METHOD_KEY));
+    	
+    	allowAPOPEditor = new Button(pop3GeneralOptions, SWT.CHECK);
+    	allowAPOPEditor.setText(Messages.getString("allowAPOPLabel"));
+    	allowAPOPEditor.setLayoutData(
+        		LayoutUtils.createGridData(GridData.BEGINNING, 
+        		GridData.CENTER, false, false, 2, 1));
+    	allowAPOPEditor.setSelection(
+    			getPreferenceStore().getBoolean(ConfigurationManager.POP3_ALLOW_APOP_AUTH_METHOD_KEY));    	
         
         // Separator
         new Label(content, SWT.NONE);

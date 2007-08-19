@@ -94,23 +94,23 @@ public class EnclosuresConfigurationPage
      */    
     public void createFieldEditors() 
     {        
-        this.enclosuresDirectoryEditor = new DirectoryFieldEditor(
-                ConfigurationManager.DEFAULT_ENCLOSURES_DIRECTORY_KEY, Messages
-                        .getString("enclosuresDirectoryLabel"), this
-                        .getFieldEditorParent(),
+        enclosuresDirectoryEditor = new DirectoryFieldEditor(
+                ConfigurationManager.DEFAULT_ENCLOSURES_DIRECTORY_KEY,
+                Messages.getString("enclosuresDirectoryLabel"), 
+                getFieldEditorParent(),
                 DirectoryFieldEditor.VALIDATE_ON_KEY_STROKE);
-        this.enclosuresDirectoryEditor.setChangeButtonText(Messages
+        enclosuresDirectoryEditor.setChangeButtonText(Messages
                 .getString("browseButton"));
-        this.enclosuresDirectoryEditor
+        enclosuresDirectoryEditor
                 .setTextLimit(DirectoryFieldEditor.UNLIMITED);
-        this.enclosuresDirectoryEditor.setErrorMessage(Messages
+        enclosuresDirectoryEditor.setErrorMessage(Messages
                 .getString("invalidDirectoryMessage"));
-        this.addField(this.enclosuresDirectoryEditor);
+        addField(enclosuresDirectoryEditor);
 
-        this.executeEnclosureOnClickEditor = new BooleanFieldEditor(
+        executeEnclosureOnClickEditor = new BooleanFieldEditor(
                 ConfigurationManager.EXECUTE_ENCLOSURE_ON_CLICK_KEY,
-                Messages.getString("executeEnclosureOnClickLabel"), this
-                        .getFieldEditorParent());
-        this.addField(this.executeEnclosureOnClickEditor);
+                Messages.getString("executeEnclosureOnClickLabel"), 
+                getFieldEditorParent());
+        addField(executeEnclosureOnClickEditor);
     }
 }

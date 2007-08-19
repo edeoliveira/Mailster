@@ -47,7 +47,9 @@ import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.prefs.DefaultConfigurationPage;
 import org.mailster.gui.prefs.store.MailsterPrefStore;
 import org.mailster.gui.prefs.utils.JobExecutionInterval;
+import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.LayoutUtils;
+import org.mailster.smtp.SmtpHeadersInterface;
 
 /**
  * ---<br>
@@ -80,7 +82,7 @@ public class GeneralConfigurationPage
     extends DefaultConfigurationPage 
 {
     /**
-	 * <code>Button</code> for the ask on remove Mail setting
+	 * <code>Button</code> for the ask on mail removal setting
 	 */
 	private Button askOnRemoveMail;
 
@@ -151,7 +153,7 @@ public class GeneralConfigurationPage
     public boolean performOk() 
     {
         MailsterPrefStore store = (MailsterPrefStore) getPreferenceStore();
-        MailsterSWT main = store.getMailsterMainWindow();
+        MailsterSWT main = MailsterSWT.getInstance();
         
         store.setValue(ConfigurationManager.ASK_ON_REMOVE_MAIL_KEY, 
                 askOnRemoveMail.getSelection());
@@ -176,11 +178,11 @@ public class GeneralConfigurationPage
 	        main.getMailView().setForcedMozillaBrowserUse(false);
         }
         
-        String contentType = (String)((IStructuredSelection)
-                preferredContentTypeViewer.getSelection()).getFirstElement();
-        main.getMailView().setPreferredContentType(contentType);
-        store.setValue(ConfigurationManager.PREFERRED_CONTENT_TYPE_KEY, 
-        		preferredContentTypeViewer.getCombo().getSelectionIndex());
+        int index = preferredContentTypeViewer.getCombo().getSelectionIndex();
+        main.getMailView().setPreferredContentType(index == 0 ? 
+        			SmtpHeadersInterface.TEXT_HTML_CONTENT_TYPE : 
+        			SmtpHeadersInterface.TEXT_PLAIN_CONTENT_TYPE);
+        store.setValue(ConfigurationManager.PREFERRED_CONTENT_TYPE_KEY, index);
         
         return true;
     }
@@ -233,13 +235,13 @@ public class GeneralConfigurationPage
         askOnRemoveMail.setText(Messages.getString("askOnRemoveMailLabel"));
         askOnRemoveMail.setLayoutData(
         		LayoutUtils.createGridData(GridData.BEGINNING, 
-        		GridData.CENTER, false, false, 2, 1, SWT.DEFAULT, SWT.DEFAULT));
+        		GridData.CENTER, false, false, 2, 1));
         
         saveWindowParamaters = new Button(uiGroup, SWT.CHECK);
         saveWindowParamaters.setText(Messages.getString("saveMainWindowParamsLabel"));
         saveWindowParamaters.setLayoutData(
         		LayoutUtils.createGridData(GridData.BEGINNING, 
-                		GridData.CENTER, false, false, 2, 1, SWT.DEFAULT, SWT.DEFAULT));
+                		GridData.CENTER, false, false, 2, 1));
         
         // Separator
         new Label(content, SWT.NONE);
@@ -285,24 +287,11 @@ public class GeneralConfigurationPage
                         Messages.getString("MailsterSWT.contentType.plain"),  //$NON-NLS-1$
                 }); 
 
-        // Disable default and apply buttons for general configuration page
+        // Disable default and apply buttons
         noDefaultAndApplyButton();
         
         load();        
         return content;
-    }
-    
-    private void selectComboValue(ComboViewer viewer, String key, IPreferenceStore store)
-    {
-    	String[] input = (String[]) viewer.getInput();
-    	try
-    	{
-    		viewer.setSelection(new StructuredSelection(input[store.getInt(key)]));
-    	}
-    	catch (Exception ex)
-    	{
-    		viewer.setSelection(new StructuredSelection(input[0]));
-    	}
     }
     
     /**
@@ -317,10 +306,10 @@ public class GeneralConfigurationPage
                         store.getLong(ConfigurationManager.MAIL_QUEUE_REFRESH_INTERVAL_KEY))));
     
         if (isXulOptionnal)
-        	selectComboValue(preferredBrowserViewer, 
+        	DialogUtils.selectComboValue(preferredBrowserViewer, 
         			ConfigurationManager.PREFERRED_BROWSER_KEY, store);
         
-        selectComboValue(preferredContentTypeViewer, 
+        DialogUtils.selectComboValue(preferredContentTypeViewer, 
     			ConfigurationManager.PREFERRED_CONTENT_TYPE_KEY, store);
         
         askOnRemoveMail.setSelection(

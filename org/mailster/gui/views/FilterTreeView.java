@@ -88,6 +88,9 @@ public class FilterTreeView
     
             public boolean matches(StoredSmtpMessage msg) 
             {
+            	if (selectedItem == root)
+                    return !msg.getFlags().contains(Flags.Flag.FLAGGED);
+            	else
                 if (selectedItem == deletedMailsTreeItem)
                     return msg.getFlags().contains(Flags.Flag.FLAGGED);
                 else
@@ -108,7 +111,7 @@ public class FilterTreeView
         public void filter() 
         {
             final TreeItem[] selected = mailBoxTree.getSelection();
-            if (selected == null || selected.length == 0 || selected[0] == root)
+            if (selected == null || selected.length == 0)
                 this.fireMatchAll();
             else
                 this.fireChanged(new HostMatcher(selected[0]));

@@ -3,7 +3,6 @@ package org.mailster.gui.views;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -139,12 +138,11 @@ public class HeadersView
     	StringBuilder sb = new StringBuilder();
         SmtpHeadersInterface headers = msg.getHeaders();
         
-        String date = DateUtilities.df.format(new Date());
+        String date = "-";
         
         try
         {
-            date = DateUtilities.df.format(DateUtilities.rfc822DateFormatter
-                    .parse(MailUtilities.getNonNullHeaderValue(headers, SmtpHeadersInterface.DATE)));
+            date = DateUtilities.df.format(DateUtilities.rfc822DateFormatter.parse(msg.getDate()));
         }
         catch (ParseException pex) {}
         
@@ -178,7 +176,7 @@ public class HeadersView
         fullText = sb.toString();        
     }
     
-    public void createView(Composite parent, SmtpMessage msg)
+    public final void createView(Composite parent, SmtpMessage msg)
     {
         final Color startColor = SWTHelper.createColor(243, 245, 248);
         final Color endColor = SWTHelper.createColor(179, 192, 206);
@@ -206,11 +204,11 @@ public class HeadersView
         final Image minimizedImage = SWTHelper.loadImage("plus.gif"); //$NON-NLS-1$
         final Image expandedImage = SWTHelper.loadImage("minus.gif"); //$NON-NLS-1$
 
-        final Label image = new Label(composite, 0);
+        final Label image = new Label(composite, SWT.NONE);
         image.setImage(expandedImage);
         image.setAlignment(SWT.TOP);
         image.addMouseListener(new MouseAdapter() {
-            public void mouseDown(MouseEvent arg0)
+            public void mouseDown(MouseEvent evt)
             {
                 minimized = !minimized;
                 image.setImage(minimized ? minimizedImage : expandedImage);
@@ -231,7 +229,7 @@ public class HeadersView
         data.grabExcessVerticalSpace = true;
         image.setLayoutData(data);
 
-        headersLabel = new StyledLabel(composite, 0);
+        headersLabel = new StyledLabel(composite, SWT.NONE);
         headersLabel.setText(fullText);
         
         headersLabel.setFont(headerFont);

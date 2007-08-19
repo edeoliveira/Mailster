@@ -9,7 +9,6 @@ import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.prefs.DefaultFieldEditorConfigurationPage;
-import org.mailster.gui.prefs.store.MailsterPrefStore;
 import org.mailster.gui.prefs.widgets.HostFieldEditor;
 import org.mailster.gui.prefs.widgets.SpinnerFieldEditor;
 
@@ -79,8 +78,7 @@ public class SMTPConfigurationPage
      */
     public boolean isValid()
     {
-        MailsterPrefStore store = (MailsterPrefStore) getPreferenceStore();
-        MailsterSWT main = store.getMailsterMainWindow();
+        MailsterSWT main = MailsterSWT.getInstance();
         
         if (smtpPortEditor.getIntValue() == main.getSMTPService().getPop3Service().getPort())
         {
@@ -108,8 +106,7 @@ public class SMTPConfigurationPage
 
         super.performOk();
         
-        MailsterPrefStore store = (MailsterPrefStore) getPreferenceStore();
-        MailsterSWT main = store.getMailsterMainWindow();
+        MailsterSWT main = MailsterSWT.getInstance();
 
         main.getSMTPService().setPort(smtpPortEditor.getIntValue());
         main.getSMTPService().setHostName(smtpServerEditor.getStringValue());

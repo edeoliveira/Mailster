@@ -1,4 +1,40 @@
 #####
+Version 0.8.2 (2007-08-19) - Codename Sasquatch
+
+UPGRADED to MINA 1.1.1
+
+CORE :
+- Reworked SSL module to handle peer authentication.
+- Fixed threading issue in the APOP POP3 command.
+- Added the following POP3 AUTH mechanisms : LOGIN, PLAIN, CRAM-MD5, 
+  CRAM-SHA1, DIGEST-MD5. Note that DIGEST-MD5 supports all qop options 
+  i.e authentication, integrity and privacy (3DES, DES, RC4 RC4-56, 
+  RC4-40 ciphers are available).
+- Fixed an issue with line termination in POP3 protocol.
+- Fixed premature connection closing of the POP3 server.
+
+GUI :
+- Fixed dialog boxes size computing which now adapt to translations.
+- Fixed table column resizing behaviour.
+- Added options in the UI to control SSL parameters.
+- Added dialogs to show X509 certificates structure. These dialogs
+  allow interacting with the user during a SSL handshake negociation 
+  when client authentication is required.
+- Added a version number to the translations, this way people will know
+  which translations are up to date with the application version.
+- Inbox will no longer display the mails contained in trash folder.
+- Homepage button moved from mail view toolbar to main toolbar.
+- Added a synchronization button to sync selections and deletions between
+  the mail view and the table view.
+- Log view is now a tab in the mail view that can be closed if not desired.
+- Updated POP3 authentication options to allow a much fine grained control
+  based on security.
+ 
+TRANSLATIONS :
+- Bulgarian translation added (thanks to Delian).
+- Italian translation added (thanks to Luca baffa).
+
+#####
 Version 0.8.1 (2007-07-15) - Codename Green Lantern
 
 IMPORTANT NOTE : Migrated to SWT/JFACE 3.3 codebase.

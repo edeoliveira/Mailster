@@ -40,7 +40,6 @@ import org.mailster.util.StringUtilities;
  */
 public class LanguageResource implements Comparable<LanguageResource>
 {
-
     /**
      * Predefined <code>String</code> constant for unknown keys which are not
      * part of the <code>LanguageResource</code>
@@ -58,6 +57,12 @@ public class LanguageResource implements Comparable<LanguageResource>
      * <code>LanguageResource</code>
      */
     private final static String TRANSLATION_DATE = "translation_date";
+    
+    /**
+     * Predefined key to access the translation version of a
+     * <code>LanguageResource</code>
+     */
+    private final static String TRANSLATION_VERSION = "translation_version";
 
     /**
      * The <code>ResourceBundle</code> associated to the
@@ -66,7 +71,7 @@ public class LanguageResource implements Comparable<LanguageResource>
     private ResourceBundle bundle;
 
     /**
-     * Creates a new <code>LanguageResource</code> whcih works on the
+     * Creates a new <code>LanguageResource</code> which works on the
      * specified <code>ResourceBundle</code>, i.e. extracts the messages from
      * it.
      * 
@@ -107,6 +112,24 @@ public class LanguageResource implements Comparable<LanguageResource>
     public String getISOLanguage()
     {
         return bundle.getLocale().getLanguage();
+    }
+    
+    /**
+     * Gets the version of this <code>LanguageResource</code>,
+     * e.g. the version of the application with which the resource is compliant.
+     * 
+     * @return the version of this <code>LanguageResource</code>
+     */
+    public String getVersion()
+    {
+    	try
+        {
+            return bundle.getString(TRANSLATION_VERSION);
+        }
+        catch (MissingResourceException mex)
+        {
+            return "-";
+        }
     }
 
     /**

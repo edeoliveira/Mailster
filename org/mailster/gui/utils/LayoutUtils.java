@@ -23,6 +23,7 @@
  *******************************************************************************/
 package org.mailster.gui.utils;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -116,28 +117,39 @@ public class LayoutUtils
      * @param horizontalSpan the number of column cells that the control will
      *            take up
      * @param verticalSpan the number of row cells that the control will take up
-     * @param heightHint the preferred height in pixels. This value is the hHint
-     *            passed into Control.computeSize(int, int, boolean) to
-     *            determine the preferred size of the control
      * @param widthHint the preferred width in pixels. This value is the wHint
      *            passed into Control.computeSize(int, int, boolean) to
      *            determine the preferred size of the control
+     * @param heightHint the preferred height in pixels. This value is the hHint
+     *            passed into Control.computeSize(int, int, boolean) to
+     *            determine the preferred size of the control
+     *            
      * @return a new <code>GridData</code> object according to the specified
      *         settings
      */
     public static GridData createGridData(int horizontalAlignment,
             int verticalAlignment, boolean grabExcessHorizontalSpace,
             boolean grabExcessVerticalSpace, int horizontalSpan,
-            int verticalSpan, int heightHint, int widthHint)
+            int verticalSpan, int widthHint, int heightHint)
     {
         GridData data = new GridData(horizontalAlignment, verticalAlignment, 
         		grabExcessHorizontalSpace, grabExcessVerticalSpace, 
         		horizontalSpan, verticalSpan);
-        data.heightHint = heightHint;
         data.widthHint = widthHint;
+        data.heightHint = heightHint;        
 
-        return (data);
+        return data;
     }
+    
+    public static GridData createGridData(int horizontalAlignment,
+            int verticalAlignment, boolean grabExcessHorizontalSpace,
+            boolean grabExcessVerticalSpace, int horizontalSpan,
+            int verticalSpan)
+    {
+        return createGridData(horizontalAlignment, verticalAlignment, 
+        		grabExcessHorizontalSpace, grabExcessVerticalSpace, 
+        		horizontalSpan, verticalSpan, SWT.DEFAULT, SWT.DEFAULT);
+    }    
 
     /**
      * Creates a new <code>FillLayout</code> using the specified settings.

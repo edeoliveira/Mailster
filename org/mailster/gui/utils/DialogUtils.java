@@ -25,8 +25,12 @@ package org.mailster.gui.utils;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -44,7 +48,6 @@ import org.mailster.gui.SWTHelper;
  */
 public class DialogUtils
 {
-
     /**
      * Center a shell on screen.
      * 
@@ -59,6 +62,21 @@ public class DialogUtils
         shell.setLocation(x, y);
     }
 
+    /**
+     * Center a shell relatively to it's parent.
+     * 
+     * @param shell the shell to center on screen
+     */
+    public static void centerShellOnParentShell(Shell shell)
+    {
+        Rectangle shellRect = shell.getBounds();
+        Rectangle displayRect = shell.getParent().getShell().getBounds();
+        Point pt = shell.getParent().getLocation();
+        int x = pt.x + (displayRect.width - shellRect.width) / 2;
+        int y = pt.y + (displayRect.height - shellRect.height) / 2;
+        shell.setLocation(x, y);
+    }
+    
     /**
      * Creates a question dialog. Note that the dialog will have no visual
      * representation (no widgets) until it is told to open. The
@@ -88,48 +106,57 @@ public class DialogUtils
 
                 if (Display.getDefault().getDismissalAlignment() == SWT.LEFT)
                 {
-                    /*
-                     * Default dismissal button (YES) has to be on the left side
-                     */
+                    // Default dismissal button (YES) has to be on the left side
 
-                    /* Create YES Button */
+                    // Create YES Button
                     yesButton = this.createButton(parent,
                             IDialogConstants.YES_ID, Messages
                                     .getString("yesButton"), true);
 
-                    /* Create NO Button */
+                    // Create NO Button
                     noButton = this.createButton(parent,
                             IDialogConstants.NO_ID, Messages
                                     .getString("noButton"), false);
                 }
                 else
                 {
-                    /*
-                     * Default dismissal button (YES) has to be on the right
-                     * side
-                     */
+                    // Default dismissal button (YES) has to be on the right
 
-                    /* Create NO Button */
+                    // Create NO Button
                     noButton = this.createButton(parent,
                             IDialogConstants.NO_ID, Messages
                                     .getString("noButton"), true);
 
-                    /* Create YES Button */
+                    // Create YES Button
                     yesButton = this.createButton(parent,
                             IDialogConstants.YES_ID, Messages
                                     .getString("yesButton"), false);
                 }
-                /* Set Image for YES button and adjust layout */
+                
+                // Set Image for YES button and adjust layout
                 yesButton.setImage(SWTHelper.loadImage("button_ok.png"));
                 yesButton.setAlignment(SWT.RIGHT);
                 this.setButtonLayoutData(yesButton);
 
-                /* Set Image for NO button and adjust layout */
+                // Set Image for NO button and adjust layout
                 noButton.setImage(SWTHelper.loadImage("button_cancel.png"));
                 noButton.setAlignment(SWT.RIGHT);
                 this.setButtonLayoutData(noButton);
             }
         };
-        return (dialog);
+        return dialog;
+    }
+    
+    public static void selectComboValue(ComboViewer viewer, String key, IPreferenceStore store)
+    {
+    	String[] input = (String[]) viewer.getInput();
+    	try
+    	{
+    		viewer.setSelection(new StructuredSelection(input[store.getInt(key)]));
+    	}
+    	catch (Exception ex)
+    	{
+    		viewer.setSelection(new StructuredSelection(input[0]));
+    	}
     }
 }

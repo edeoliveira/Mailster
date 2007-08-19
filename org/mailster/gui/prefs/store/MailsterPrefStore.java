@@ -29,7 +29,6 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.util.SafeRunnable;
-import org.mailster.MailsterSWT;
 import org.mailster.gui.prefs.ConfigurationManager;
 
 /**
@@ -74,11 +73,6 @@ import org.mailster.gui.prefs.ConfigurationManager;
 public class MailsterPrefStore extends EventManager implements
         IPersistentPreferenceStore 
 {
-	/**
-	 * A refererence to the main window.
-	 */
-	private MailsterSWT main;
-	
 	/**
 	 * The header inserted at top of the properties file.
 	 */
@@ -141,16 +135,6 @@ public class MailsterPrefStore extends EventManager implements
         this();        
         Assert.isNotNull(filename);
         this.filename = filename;
-    }
-
-    public void setMailsterMainWindow(MailsterSWT main)
-    {
-    	this.main = main;
-    }
-    
-    public MailsterSWT getMailsterMainWindow()
-    {
-    	return main;
     }
     
     /*

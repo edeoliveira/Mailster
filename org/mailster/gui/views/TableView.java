@@ -10,10 +10,12 @@ import javax.mail.Flags;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CheckboxCellEditor;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Color;
@@ -106,8 +108,14 @@ public class TableView
     
     public void refreshTable()
     {
-        if (msgTableViewer != null)
-            msgTableViewer.getTableViewer().refresh();
+        if (viewer != null)
+        	viewer.refresh();
+    }
+    
+    public void setSelection(ISelection sel)
+    {
+    	if (viewer != null)
+    		viewer.setSelection(sel, true);
     }
     
     public AbstractEventList<StoredSmtpMessage> getDataList()
@@ -120,7 +128,8 @@ public class TableView
         eventList.clear();
     }
     
-    private Comparable getFieldValue(SmtpMessage msg, TableColumn selected)
+    @SuppressWarnings("unchecked")
+	private Comparable getFieldValue(SmtpMessage msg, TableColumn selected)
     {
         if (selected == to)
             return msg.getHeaderValue(SmtpHeadersInterface.TO).toLowerCase();
@@ -316,7 +325,7 @@ public class TableView
                             mailView.createMailTab(stored);
                             treeView.updateMessagesCounts(eventList);
                         }
-                        else if (e.type == SWT.Selection)
+                        else if (e.type == SWT.Selection && mailView.isSynced())
                             mailView.selectMailTab(stored.getMessage());
                     }
                 }
@@ -330,10 +339,11 @@ public class TableView
         table.addListener(SWT.Selection, tableListener);
         table.addListener(SWT.DefaultSelection, tableListener);
 
-        table.addControlListener(new ControlAdapter() {
+        parent.addControlListener(new ControlAdapter() {
             public void controlResized(ControlEvent e)
             {
-                updateTableColumnsWidth();
+                if (e.getSource() instanceof SashForm)
+                    updateTableColumnsWidth();
             }
         });
 
@@ -401,6 +411,8 @@ public class TableView
     	                    		StoredSmtpMessage stored = (StoredSmtpMessage)item.getData();
     	                    		l.add(stored);
     	                    		mailView.getSMTPService().getPop3Service().removeMessage(stored);
+    	                    		if (mailView.isSynced())
+    	                    			mailView.closeTab(stored.getMessage());
     	                    	}
                                 table.deselectAll();
     	                    	dataList.removeAll(l);                                
