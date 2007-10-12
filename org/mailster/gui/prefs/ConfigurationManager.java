@@ -55,7 +55,7 @@ public class ConfigurationManager
     /**
      * Application version number
      */
-    public final static String MAILSTER_VERSION_NB	= "v0.8.2";
+    public final static String MAILSTER_VERSION_NB	= "v0.8.3";
     
     /**
      * Application version string
@@ -194,6 +194,11 @@ public class ConfigurationManager
      * The SSL protocol in use
      */
     public final static String PREFERRED_SSL_PROTOCOL_KEY = "protocols.ssl.server.protocol";
+    
+    /**
+     * The crypto strength of the automatically generated certificates.
+     */
+    public final static String CRYPTO_STRENGTH_KEY =  "protocols.crypto.strength";
     
     /* Pop3 options */
     /**
