@@ -1,13 +1,16 @@
 package org.mailster.smtp;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.MimeBodyPart;
 
 import org.mailster.util.MailUtilities;
 
@@ -258,11 +261,11 @@ public class SmtpMessagePart
     public SmtpMessagePart[] getAttachedFiles()
     {
         if (attachedFiles == null)
-        {
-            ArrayList<SmtpMessagePart> l = new ArrayList<SmtpMessagePart>();
+        {            
             if (getParts() == null)
                 return new SmtpMessagePart[0];
-
+            
+            ArrayList<SmtpMessagePart> l = new ArrayList<SmtpMessagePart>();
             Iterator<SmtpMessagePart> it = getParts().iterator();
             while (it.hasNext())
             {
@@ -276,6 +279,22 @@ public class SmtpMessagePart
         return attachedFiles;
     }
 
+    /**
+     * Converts from a <code>SmtpMessage</code> to a <code>MimeMessage</code>.
+     * 
+     * @param charset the charset to use
+     * @return a <code>MimeMessage</code> object
+     * @throws MessagingException if MimeMessage creation fails
+     * @throws UnsupportedEncodingException if charset is unknown
+     */
+    public MimeBodyPart asMimeBodyPart(String charset) throws MessagingException, UnsupportedEncodingException
+    {
+        if (charset == null)
+        	charset = SimpleSmtpServer.DEFAULT_CHARSET;
+        
+        return new MimeBodyPart(new ByteArrayInputStream(toString(true).getBytes(charset)));
+    } 
+    
     public SmtpMessagePart getParentPart()
     {
         return parentPart;
