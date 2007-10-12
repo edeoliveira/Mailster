@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
@@ -199,12 +200,26 @@ public class MailsterSmtpService
     		Display.getDefault().asyncExec(new MailQueueObserver());
     }
 
+    public void clearQueue()
+    {
+    	if (!ConfigurationManager.CONFIG_STORE.
+                getBoolean(ConfigurationManager.ASK_ON_REMOVE_MAIL_KEY) 
+            || MessageDialog.openConfirm(main.getShell(), 
+                    Messages.getString("MailView.dialog.confirm.deleteMails"), 
+                    Messages.getString("MailView.dialog.confirm.clear")))
+        {
+	        receivedMessages.clear();
+	        main.getMailView().clearDataList();
+	        main.getSMTPService().getPop3Service().getUserManager().
+	        	getMailBoxManager().removeAllMessagesFromSpecialAccount();
+	        main.getOutlineView().setMessage(null);
+        }
+    }
+    
     public void startServer(boolean debug)
     {
         try
         {            
-            receivedMessages.clear();
-            main.getMailView().clearDataList();
             server.setDebug(debug);
             server.start();
             
