@@ -116,14 +116,7 @@ public class ApopCommand extends Pop3Command
                 }
                 
                 if (hash.equals(cmdLine[2]))
-                {
-                    state.setAuthenticated();
-                    boolean locked = state.getMailBox().tryAcquireLock(3, 100);
-                    if (locked)
-                        conn.println("+OK maildrop locked and ready");
-                    else
-                        conn.println("-ERR maildrop is already locked");
-                }
+                	tryLockingMailbox(conn);
                 else
                     conn.println("-ERR permission denied");
             }

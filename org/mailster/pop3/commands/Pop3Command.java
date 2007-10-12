@@ -52,4 +52,19 @@ public abstract class Pop3Command
      */
     public abstract void execute(AbstractPop3Handler handler, AbstractPop3Connection conn,
             String cmd);
+    
+    /**
+     * Try to lock a mailbox after a successfull login.
+     * 
+     * @param conn the connection
+     */
+    public void tryLockingMailbox(AbstractPop3Connection conn)
+    {
+    	conn.getState().setAuthenticated();
+        boolean locked = conn.getState().getMailBox().tryAcquireLock(3, 100);
+        if (locked)
+            conn.println("+OK maildrop locked and ready");
+        else
+            conn.println("-ERR maildrop is already locked");
+    }
 }
