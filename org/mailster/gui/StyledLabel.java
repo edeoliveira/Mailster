@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
@@ -41,6 +41,8 @@ import org.eclipse.swt.widgets.Display;
  */
 public class StyledLabel extends StyledText
 {
+	public final static Color LINK_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
+	
     public StyledLabel(Composite c, int flags)
     {
         super(c, flags);
@@ -59,26 +61,24 @@ public class StyledLabel extends StyledText
             {
                 int start = buffer.indexOf("<a>");
                 int end = buffer.indexOf("</a>");
+                int tmp = buffer.indexOf("<b>");
 
-                if (start != -1
-                        && end != -1
+                if (start != -1 && end != -1
                         && start < end
-                        && (buffer.indexOf("<b>") == -1 || start < buffer
-                                .indexOf("<b>")))
+                        && (tmp == -1 || start < tmp))
                 {
                     buffer.delete(end, end + 4);
                     buffer.delete(start, start + 3);
                     StyleRange range = new StyleRange();
                     range.start = start;
                     range.length = end - start - 3;
-                    range.foreground = Display.getDefault().getSystemColor(
-                            SWT.COLOR_BLUE);
+                    range.foreground = LINK_COLOR;
                     range.underline = true;
                     ranges.add(range);
                 }
                 else
                 {
-                    start = buffer.indexOf("<b>");
+                    start = tmp;
                     end = buffer.indexOf("</b>");
 
                     if (start != -1 && end != -1 && start < end)
@@ -100,11 +100,6 @@ public class StyledLabel extends StyledText
         }
         else
             super.setText(s);
-    }
-
-    public Point computeSize(int wHint, int hHint, boolean flushCache)
-    {
-        return super.computeSize(wHint, hHint, true);
     }
 
     protected void checkSubclass()
