@@ -23,7 +23,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -37,10 +36,9 @@ import org.mailster.util.MailUtilities;
 public class SmtpMessage
 {
 	/**
-	 * Variables used for MimeMessage conversion.
+	 * Variable used for MimeMessage conversion.
 	 */
-    private final static Properties props = System.getProperties();
-    private final static Session session = Session.getDefaultInstance(props, null);
+    private final static Session MAIL_SESSION = Session.getDefaultInstance(System.getProperties(), null);
 
     /** 
      * Headers. 
@@ -214,7 +212,7 @@ public class SmtpMessage
         if (charset == null)
         	charset = SimpleSmtpServer.DEFAULT_CHARSET;
         
-        return new MimeMessage(session, 
+        return new MimeMessage(MAIL_SESSION, 
         		new ByteArrayInputStream(getRawMessage().getBytes(charset)));
     }        
     

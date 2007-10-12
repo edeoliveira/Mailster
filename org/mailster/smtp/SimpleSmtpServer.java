@@ -82,7 +82,7 @@ public class SimpleSmtpServer implements Runnable
 	}
 	
 	/**
-	 * A thread watchdog.
+	 * A watchdog thread.
 	 */
 	private Watchdog watchdog;
 	
