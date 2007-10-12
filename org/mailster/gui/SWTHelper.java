@@ -22,6 +22,8 @@ import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.mailster.MailsterSWT;
 import org.mailster.util.MailUtilities;
 import org.slf4j.Logger;
@@ -362,7 +364,16 @@ public class SWTHelper
     public static Color createColor(int r, int g, int b)
     {
         Color c = new Color(Display.getDefault(), r, g, b);
-        resourceTracker.put(c.getRGB().toString(), c);
+        String key = c.getRGB().toString();
+        Object obj = resourceTracker.get(key);
+        
+        if (obj != null)
+        {
+        	c.dispose();
+        	return (Color) obj;
+        }
+        
+        resourceTracker.put(key, c);
         return c;
     }
 
@@ -498,5 +509,34 @@ public class SWTHelper
         }
 
         return result;
-    }     
+    }
+       
+    public static void expandAll(Tree tree)
+    {
+    	TreeItem root = tree.getItem(0);
+    	if (root == null)
+    		return;
+    	root.setExpanded(true);
+    	setNodesExpandedState(root, true);
+    }
+    
+    public static void collapseAll(Tree tree)
+    {
+    	TreeItem root = tree.getItem(0);
+    	if (root == null)
+    		return;
+    	root.setExpanded(false);
+    	setNodesExpandedState(root, false);
+    }
+    
+    private static void setNodesExpandedState(TreeItem current, boolean expand)
+    {
+    	if (current == null || current.getItemCount() == 0)
+    		return;
+        for (TreeItem item : current.getItems())
+        {
+        	item.setExpanded(expand);
+        	setNodesExpandedState(item, expand);
+        }
+    }
 }
