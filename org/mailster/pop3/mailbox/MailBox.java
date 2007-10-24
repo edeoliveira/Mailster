@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 import javax.mail.Flags.Flag;
@@ -48,7 +48,7 @@ public class MailBox
     private static final Logger log = LoggerFactory.getLogger(MailBox.class);
     
     private final Semaphore available = new Semaphore(1);
-    private Hashtable<Long, StoredSmtpMessage> mails = new Hashtable<Long, StoredSmtpMessage>();
+    private ConcurrentHashMap<Long, StoredSmtpMessage> mails = new ConcurrentHashMap<Long, StoredSmtpMessage>();
     private String mailBoxID;
     private String email;
     
@@ -107,7 +107,12 @@ public class MailBox
     
     public void removeMessage(StoredSmtpMessage msg)
     {
-        mails.remove(msg.getId());
+   		mails.remove(msg.getId());
+    }
+    
+    public void removeAllMessages()
+    {
+   		mails.clear();
     }
     
     /**

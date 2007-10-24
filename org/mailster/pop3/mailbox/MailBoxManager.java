@@ -55,6 +55,11 @@ public class MailBoxManager
     	return pop3SpecialAccountMailbox.storeMessage(msg);
     }
     
+    public void removeAllMessagesFromSpecialAccount()
+    {
+    	pop3SpecialAccountMailbox.removeAllMessages();
+    }
+    
     public void removeMessageFromSpecialAccount(StoredSmtpMessage msg) 
     {
         pop3SpecialAccountMailbox.removeMessage(msg);
