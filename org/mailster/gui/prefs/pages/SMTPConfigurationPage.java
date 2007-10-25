@@ -66,7 +66,7 @@ public class SMTPConfigurationPage
     {
         super(Messages
                 .getString("smtpConfigurationPageTitle"), SWTHelper
-                .getImageDescriptor("wizard/connectionConfig32.png"),
+                .getImageDescriptor("wizard/proxyConfig32.png"),
                 DefaultFieldEditorConfigurationPage.GRID);    
     }
     

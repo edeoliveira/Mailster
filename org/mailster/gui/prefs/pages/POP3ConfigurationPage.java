@@ -95,7 +95,7 @@ public class POP3ConfigurationPage
     {
         super(Messages
                 .getString("pop3ConfigurationPageTitle"), SWTHelper
-                .getImageDescriptor("wizard/connectionConfig32.png"));    
+                .getImageDescriptor("wizard/proxyConfig32.png"));    
     }
     
     /**
@@ -183,8 +183,7 @@ public class POP3ConfigurationPage
         Group pop3GeneralGroup = new Group(content, SWT.NONE);
         pop3GeneralGroup.setLayout(new GridLayout());
         pop3GeneralGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        pop3GeneralGroup.setText(Messages
-                .getString("pop3GeneralGroupHeader"));
+        pop3GeneralGroup.setText(Messages.getString("pop3GeneralGroupHeader"));
         
         Composite pop3GeneralOptions = new Composite(pop3GeneralGroup, SWT.NONE);
         pop3GeneralOptions.setLayout(
