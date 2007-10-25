@@ -54,14 +54,7 @@ public class AuthLoginCommand extends AuthAlgorithmCommand
         Pop3State state = conn.getState();
 
         if (state.getUser().getPassword().equals(pwd))
-        {
-            state.setAuthenticated();
-            boolean locked = state.getMailBox().tryAcquireLock(3, 100);
-            if (locked)
-                conn.println("+OK maildrop locked and ready");
-            else
-                conn.println("-ERR maildrop is already locked");
-        }
+        	tryLockingMailbox(conn);
         else
             conn.println("-ERR permission denied");
         

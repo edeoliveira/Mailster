@@ -332,12 +332,7 @@ public class AuthDigestMD5Command extends AuthAlgorithmCommand
 				else
 				if (state.getNextState() >= GET_CLIENT_ACK_STATE && "".equals(cmd))
 				{
-					conn.getState().setAuthenticated();
-		            boolean locked = conn.getState().getMailBox().tryAcquireLock(3, 100);
-		            if (locked)
-		                conn.println("+OK maildrop locked and ready");
-		            else
-		                conn.println("-ERR maildrop is already locked");
+					tryLockingMailbox(conn);
 
 		            IoSession session = ((MinaPop3Connection) conn).getSession();
 		            
