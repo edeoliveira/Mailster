@@ -286,9 +286,6 @@ public class GeneralConfigurationPage
                         Messages.getString("MailsterSWT.contentType.html"),  //$NON-NLS-1$
                         Messages.getString("MailsterSWT.contentType.plain"),  //$NON-NLS-1$
                 }); 
-
-        // Disable default and apply buttons
-        noDefaultAndApplyButton();
         
         load();        
         return content;
