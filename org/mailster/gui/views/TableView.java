@@ -190,21 +190,20 @@ public class TableView
         final FilterList<StoredSmtpMessage> filterList = new FilterList<StoredSmtpMessage>(
                 treeFilteredList, matcher);
         
-        dataList = new SortedList<StoredSmtpMessage>(filterList,
-                new Comparator<StoredSmtpMessage>() {
-                    public int compare(StoredSmtpMessage row0, StoredSmtpMessage row1)
-                    {
-                        try
-                        {
-                            return compareTo(row0.getMessage(), row1.getMessage(), table.getSortColumn());
-                        }
-                        catch (Exception ex)
-                        {
-                            ex.printStackTrace();
-                            return 0;
-                        }
-                    }
-                });
+        dataList = new SortedList<StoredSmtpMessage>(filterList, new Comparator<StoredSmtpMessage>() {
+            public int compare(StoredSmtpMessage row0, StoredSmtpMessage row1)
+            {
+                try
+                {
+                    return compareTo(row0.getMessage(), row1.getMessage(), table.getSortColumn());
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                    return 0;
+                }
+            }
+        });
         
         treeView.addMessageCounter(dataList, eventList);
         
@@ -254,6 +253,9 @@ public class TableView
         date.setWidth(100);
         date.setAlignment(SWT.RIGHT);
 
+        final Color selectionForeground = SWTHelper.createColor(12, 97, 232);
+        final Color selectionBackground = SWTHelper.createColor(32, 119, 240);
+        
         table.addListener(SWT.EraseItem, new Listener() {
             public void handleEvent(Event event)
             {
@@ -286,12 +288,10 @@ public class TableView
                 Rectangle rect = event.getBounds();
                 Color foreground = gc.getForeground();
                 Color background = gc.getBackground();
-                Display display = Display.getDefault();
                 if (selected)
                 {
-                    gc.setForeground(display.getSystemColor(SWT.COLOR_BLUE));
-                    gc.setBackground(display
-                            .getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+                	gc.setForeground(selectionForeground);
+                	gc.setBackground(selectionBackground);
                     gc.fillGradientRectangle(0, rect.y, area.width+100, rect.height, false);
                 }
                 else
