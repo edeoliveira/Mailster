@@ -109,6 +109,11 @@ public class CertificateDialog extends Dialog
     private Certificate[] chain;  
     
     /**
+     * <code>true</true> if validation messages should be shown.
+     */
+    private boolean showValidationMessages;
+    
+    /**
      * Creates a new <code>CertificateDialog</code> instance.
      * 
      * @param shell the parent shell
@@ -406,17 +411,20 @@ public class CertificateDialog extends Dialog
         }
         catch (Exception e) {}
         
-        Label resultLabel = new Label(composite, SWT.WRAP);
-        resultLabel.setText(Messages.getString("MailsterSWT.dialog.certificate.validation")); //$NON-NLS-1$
-        resultLabel.setFont(SWTHelper.SYSTEM_FONT_BOLD);
-        resultLabel.setLayoutData(LayoutUtils.createGridData(
-                GridData.BEGINNING, GridData.BEGINNING, true, false, 2, 1));
-        
-        Text results = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.VERTICAL);
-        results.setEditable(false);
-        results.setLayoutData(LayoutUtils.createGridData(
-                GridData.FILL, GridData.FILL, false, true, 2, 1));
-        results.setText("");
+        if (showValidationMessages)
+        {
+	        Label resultLabel = new Label(composite, SWT.WRAP);
+	        resultLabel.setText(Messages.getString("MailsterSWT.dialog.certificate.validation")); //$NON-NLS-1$
+	        resultLabel.setFont(SWTHelper.SYSTEM_FONT_BOLD);
+	        resultLabel.setLayoutData(LayoutUtils.createGridData(
+	                GridData.BEGINNING, GridData.BEGINNING, true, false, 2, 1));
+	        
+	        Text results = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.VERTICAL);
+	        results.setEditable(false);
+	        results.setLayoutData(LayoutUtils.createGridData(
+	                GridData.FILL, GridData.FILL, false, true, 2, 1));
+	        results.setText("");
+        }
     }
     
     private void createDetailTabItem(CTabFolder folder, CTabItem item)
@@ -521,7 +529,7 @@ public class CertificateDialog extends Dialog
         
         parseCertificateChains(root);
         
-        expandAll(tree);
+        SWTHelper.expandAll(tree);
         tree.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				Certificate cert = (Certificate) event.item.getData();
@@ -529,24 +537,6 @@ public class CertificateDialog extends Dialog
 				valueText.setText("");
 			}
 		});
-    }
-    
-    private void expandAll(Tree tree)
-    {
-    	TreeItem root = tree.getItem(0);
-    	root.setExpanded(true);
-        expandAll(root);
-    }
-    
-    private void expandAll(TreeItem current)
-    {
-    	if (current == null || current.getItemCount() == 0)
-    		return;
-        for (TreeItem item : current.getItems())
-        {
-        	item.setExpanded(true);
-        	expandAll(item);
-        }
     }
     
     private TreeItem generateNode(TreeItem parent, String childName, Object data)
@@ -822,7 +812,7 @@ public class CertificateDialog extends Dialog
 	        		CertificateUtilities.byteArrayToString(selected.getPublicKey().getEncoded()));	        
     	}
     	
-        expandAll(tree);
+    	SWTHelper.expandAll(tree);
         
         tree.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
