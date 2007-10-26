@@ -106,5 +106,8 @@ public class LanguageConfigurationPage
         languageEditor.setSelectionColumn(1);
         languageEditor.setColumnWidth(0, 110);
         addField(languageEditor);
+        
+        // Disable default and apply buttons
+        noDefaultAndApplyButton();
     }
 }
