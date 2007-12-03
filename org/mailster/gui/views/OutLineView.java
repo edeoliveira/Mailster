@@ -1,9 +1,6 @@
 package org.mailster.gui.views;
 
-import java.io.InputStream;
 import java.util.Iterator;
-
-import javax.mail.internet.MimeBodyPart;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -16,7 +13,6 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
 import org.mailster.MailsterSWT;
-import org.mailster.crypto.MailsterKeyStoreFactory;
 import org.mailster.crypto.smime.SmimeUtilities;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
@@ -90,44 +86,6 @@ public class OutLineView extends TreeView
         new ToolItem(toolBar, SWT.SEPARATOR);
         
         //TODO decryption
-        ToolItem decryptItem = new ToolItem(toolBar, SWT.PUSH);
-        decryptItem.setImage(SWTHelper.loadImage("smime.gif")); //$NON-NLS-1$
-        decryptItem.setToolTipText(Messages
-                .getString("MailView.decrypt.tooltip")); //$NON-NLS-1$
-
-        decryptItem.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent event)
-            {   
-                try 
-                {
-                	CTabFolder folder = MailsterSWT.getInstance().getMailView().getCTabFolder();
-                    if (folder != null && folder.getSelection().getData() != null)
-                    {
-                    	SmtpMessage msg = ((StoredSmtpMessage) folder.getSelection().getData()).getMessage();
-                    	char[] pwd = new char[] {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
-                    	MimeBodyPart mbp = SmimeUtilities.decryptMimeBodyPart(msg, 
-														                    			(SmtpMessagePart) tree.getSelection()[0].getData(), 
-														                    			MailsterKeyStoreFactory.loadKeyStore("PKCS12", "clients.p12", pwd), 
-														                    			pwd);
-                    	if (mbp != null)
-                    	{
-                    		InputStream in = mbp.getRawInputStream();
-                    		byte[] buffer = new byte[4096];
-                    		int len = 0;
-                    		while ((len = in.read(buffer)) >=0)
-                    		{
-                    			if (len > 0)
-                    				System.out.println(new String(buffer, 0, len));
-                    		}
-                    	}
-                    }
-                } 
-                catch (Exception e) 
-                {
-                    e.printStackTrace();
-                }
-            }
-        });
     }
     
     public void setMessage(SmtpMessage msg)

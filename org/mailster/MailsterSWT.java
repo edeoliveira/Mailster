@@ -25,8 +25,6 @@ import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.CoolItem;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.ExpandBar;
-import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
@@ -46,10 +44,14 @@ import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationDialog;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.prefs.store.MailsterPrefStore;
+import org.mailster.gui.pshelf.PShelf;
+import org.mailster.gui.pshelf.PShelfItem;
+import org.mailster.gui.pshelf.PaletteShelfRenderer;
 import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.gui.views.FilterTreeView;
 import org.mailster.gui.views.MailView;
+import org.mailster.gui.views.OutLineView;
 import org.mailster.pop3.Pop3ProtocolHandler;
 import org.mailster.pop3.connection.MinaPop3Connection;
 import org.mailster.pop3.mailbox.MailBoxManager;
@@ -106,6 +108,7 @@ public class MailsterSWT
     private Shell sShell;
     private TrayItem trayItem;
     private MailView mailView;
+    private OutLineView outlineView;
     
     private SashForm filterViewDivider;
 
@@ -131,60 +134,50 @@ public class MailsterSWT
     {
         return mailView;
     }
-
-    private void createExpandItem(ExpandBar bar, final Composite composite,
-            String text, String imageName, boolean expanded)
-    {
-        final ExpandItem item = new ExpandItem(bar, SWT.NONE);
-        item.setText(text);
-        item.setHeight(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
-        item.setControl(composite);
-        item.setImage(imageName == null ? trayImage : SWTHelper.loadImage(imageName));
-        item.setExpanded(expanded);
         
-        composite.addListener(SWT.Resize, new Listener() {
-            public void handleEvent(Event e) 
-            {
-                Point size = composite.getSize();
-                Point size2 = composite.computeSize(size.x, SWT.DEFAULT);
-                item.setHeight(size2.y);
-            }
-        });
-    }
-
-    private GridLayout createLayout(boolean multipleControls)
-    {
-    	int spacing = multipleControls ? 2 : 0;
-    	return LayoutUtils.createGridLayout(
-    			(multipleControls ? 3 : 1), false, 0, 0, 4, 4, 4, 4, spacing, spacing);
-    }
-
-    private void createExpandBarAndMailView(Composite parent)
+    private void createPShelfAndMailView(Composite parent)
     {
         filterViewDivider = new SashForm(parent, SWT.NONE);
         filterViewDivider.setOrientation(SWT.HORIZONTAL);
         filterViewDivider.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
-
-        ExpandBar bar = new ExpandBar(filterViewDivider, SWT.V_SCROLL);
-        bar.setSpacing(6);
-
-        // Tree item
-        Composite composite = new Composite(bar, SWT.NONE);
-        composite.setLayout(createLayout(false));
         
-        FilterTreeView treeView = new FilterTreeView(composite);
+        Composite back = new Composite(filterViewDivider, SWT.BORDER);
+        back.setLayout(LayoutUtils.createGridLayout(1, false, 0, 0, 0, 0, 0, 0, 0, 0));
+        back.setLayoutData(LayoutUtils.createGridData(GridData.FILL, GridData.FILL, true, true, 1, 1));
+        
+        PShelf shelf = new PShelf(back, SWT.NONE);
+        shelf.setBackground(SWTHelper.createColor(128, 173, 249));        
+        ((PaletteShelfRenderer) shelf.getRenderer()).setShadeColor(SWTHelper.createColor(12, 97, 232));
+        
+        shelf.setLayoutData(LayoutUtils.createGridData(GridData.FILL, GridData.FILL, true, true, 1, 1));
+        
+        PShelfItem treeItem = new PShelfItem(shelf,SWT.NONE);
+        treeItem.setText(Messages.getString("MailsterSWT.expandbar.treeView")); //$NON-NLS-1$
+        treeItem.setImage(SWTHelper.loadImage("filter.gif")); //$NON-NLS-1$
+        treeItem.getBody().setLayout(LayoutUtils.createGridLayout(1, false, 1, 1, 1, 1, 0, 0, 0, 0));
+        
+        FilterTreeView treeView = new FilterTreeView(treeItem.getBody(), true);
         treeView.setLayoutData(LayoutUtils.createGridData(
-                GridData.FILL, GridData.FILL, true, true, 1, 1, SWT.DEFAULT, 400));
+                GridData.FILL, GridData.FILL, true, true, 1, 1));
         
-        createExpandItem(bar, composite, Messages
-                .getString("MailsterSWT.expandbar.treeView"), "filter.gif", true); //$NON-NLS-1$ //$NON-NLS-2$
+        PShelfItem outlineItem = new PShelfItem(shelf,SWT.NONE);
+        outlineItem.setText(Messages.getString("MailsterSWT.expandbar.outlineView")); //$NON-NLS-1$
+        outlineItem.setImage(SWTHelper.loadImage("outline.gif")); //$NON-NLS-1$
+        outlineItem.getBody().setLayout(LayoutUtils.createGridLayout(1, false, 1, 1, 1, 1, 0, 0, 0, 0));
         
-        // About item
-        composite = new Composite(bar, SWT.NONE);
-        composite.setLayout(createLayout(false));
-
-        Link l = new Link(composite, SWT.NONE);
-        l.setText(ConfigurationManager.MAILSTER_VERSION + "\n\n"
+        outlineView = new OutLineView(outlineItem.getBody(), true);        
+        outlineView.setLayoutData(LayoutUtils.createGridData(
+                GridData.FILL, GridData.FILL, true, true, 1, 1));
+        
+        PShelfItem aboutItem = new PShelfItem(shelf,SWT.NONE);
+        aboutItem.setText(Messages.getString("MailsterSWT.expandbar.about")); //$NON-NLS-1$
+        aboutItem.setImage(trayImage);
+        aboutItem.getBody().setLayout(new GridLayout());
+        aboutItem.getBody().setBackground(SWTHelper.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+        aboutItem.getBody().setBackgroundMode(SWT.INHERIT_FORCE);
+        
+        Link l = new Link(aboutItem.getBody(), SWT.NONE);
+        l.setText(ConfigurationManager.MAILSTER_VERSION + "\n\n" //$NON-NLS-1$
                     + ConfigurationManager.MAILSTER_COPYRIGHT);
         l.setToolTipText(ConfigurationManager.MAILSTER_HOMEPAGE);
         l.addListener(SWT.Selection, new Listener() {
@@ -193,16 +186,9 @@ public class MailsterSWT
                 getMailView().showURL(event.text, true);
             }
         });
-
-        l.setLayoutData(LayoutUtils.createGridData(GridData.FILL, 
-        		GridData.FILL, true, true, 3, 1));
-
-        createExpandItem(bar, composite, Messages
-                .getString("MailsterSWT.expandbar.about"), null, true); //$NON-NLS-1$
-
+        
         mailView = new MailView(filterViewDivider, treeView);
         filterViewDivider.setWeights(new int[] { 29, 71 });
-        bar.layout(true);
     }
 
     private void createShellToolBars()
@@ -218,13 +204,11 @@ public class MailsterSWT
         serverStartToolItem.setImage(startImage);
         serverStartToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.start.label")); //$NON-NLS-1$
-        
 
         serverDebugToolItem = new ToolItem(toolBar, SWT.PUSH);
         serverDebugToolItem.setImage(debugImage);
         serverDebugToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.debug.label")); //$NON-NLS-1$
-        
 
         serverStopToolItem = new ToolItem(toolBar, SWT.PUSH);
         serverStopToolItem.setImage(stopImage);
@@ -233,17 +217,7 @@ public class MailsterSWT
                 .getString("MailsterSWT.stop.label")); //$NON-NLS-1$        
 
         new ToolItem(toolBar, SWT.SEPARATOR);
-
-        final ToolItem showLogViewToolItem = new ToolItem(toolBar, SWT.PUSH);
-        showLogViewToolItem.setImage(SWTHelper.loadImage("console_view.gif")); //$NON-NLS-1$
-        showLogViewToolItem.setToolTipText(Messages
-                .getString("MailsterSWT.showLogView.tooltip")); //$NON-NLS-1$                
         
-        final ToolItem refreshToolItem = new ToolItem(toolBar, SWT.PUSH);
-        refreshToolItem.setImage(SWTHelper.loadImage("refresh.gif")); //$NON-NLS-1$
-        refreshToolItem.setToolTipText(Messages
-                .getString("MailsterSWT.refreshQueue.tooltip")); //$NON-NLS-1$        
-
         final ToolItem configToolItem = new ToolItem(toolBar, SWT.PUSH);
         configToolItem.setImage(SWTHelper.loadImage("config.gif")); //$NON-NLS-1$
         configToolItem.setToolTipText(Messages
@@ -270,27 +244,21 @@ public class MailsterSWT
                     smtpService.startServer(true);
                 else if (e.widget == serverStopToolItem)
                     smtpService.shutdownServer(false);
-                else if (e.widget == refreshToolItem)
-                    smtpService.refreshEmailQueue(false);
                 else if (e.widget == configToolItem)
                     ConfigurationDialog.run(sShell);
                 else if (e.widget == aboutToolItem)
                 	(new AboutDialog(sShell, mailView)).open();
                 else if (e.widget == homeToolItem)
                 	mailView.showURL(ConfigurationManager.MAILSTER_HOMEPAGE, false);
-                else if (e.widget == showLogViewToolItem)
-                	mailView.createLogConsole();
             }
         };
         
         serverStartToolItem.addSelectionListener(selectionAdapter);
         serverDebugToolItem.addSelectionListener(selectionAdapter);
         serverStopToolItem.addSelectionListener(selectionAdapter);
-        refreshToolItem.addSelectionListener(selectionAdapter);
         configToolItem.addSelectionListener(selectionAdapter);
         aboutToolItem.addSelectionListener(selectionAdapter);
         homeToolItem.addSelectionListener(selectionAdapter);
-        showLogViewToolItem.addSelectionListener(selectionAdapter);
 
         // Add a coolItem to the coolBar
         CoolItem coolItem = new CoolItem(coolBar, SWT.NONE);
@@ -552,6 +520,10 @@ public class MailsterSWT
         	store.setValue(ConfigurationManager.POP3_CONNECTION_TIMEOUT_KEY, 
         			Pop3ProtocolHandler.DEFAULT_TIMEOUT_SECONDS);
         	
+        	store.setValue(ConfigurationManager.AUTH_SSL_CLIENT_KEY, true);
+        	store.setValue(ConfigurationManager.PREFERRED_SSL_PROTOCOL_KEY, SSLProtocol.TLS.toString());
+        	store.setValue(ConfigurationManager.CRYPTO_STRENGTH_KEY, 512);
+        	
         	store.setValue(ConfigurationManager.SMTP_SERVER_KEY, "");
         	store.setValue(ConfigurationManager.SMTP_PORT_KEY, 
         			SimpleSmtpServer.DEFAULT_SMTP_PORT);
@@ -659,12 +631,12 @@ public class MailsterSWT
         gridData.grabExcessVerticalSpace = true;
         gridData.verticalAlignment = GridData.FILL;
 
-        createExpandBarAndMailView(sShell);
+        createPShelfAndMailView(sShell);
         
-        Label statusBar = new Label(sShell, SWT.BORDER);
+        CLabel statusBar = new CLabel(sShell, SWT.BORDER);
         statusBar.setLayoutData(LayoutUtils.createGridData(GridData.FILL, 
-        		GridData.END, true, false, 1, 1, SWT.DEFAULT, 16));
-        statusBar.setText(" "+ConfigurationManager.MAILSTER_VERSION);
+        		GridData.CENTER, true, false, 1, 1, SWT.DEFAULT, 16));
+        statusBar.setText(" "+ConfigurationManager.MAILSTER_COPYRIGHT);
         
         sShell.setSize(new Point(800, 600));
         DialogUtils.centerShellOnScreen(sShell);
@@ -915,5 +887,10 @@ public class MailsterSWT
     public Shell getShell()
     {
         return sShell;
+    }
+    
+    public OutLineView getOutlineView()
+    {
+    	return outlineView;
     }
 }

@@ -65,7 +65,7 @@ public class ConfigurationManager
     /**
      * Application homepage
      */
-    public final static String MAILSTER_HOMEPAGE = "http://mailster.sourceforge.net/";
+    public final static String MAILSTER_HOMEPAGE = "http://tedorg.free.fr/en/projects.php";
     
     /**
      * Application copyright

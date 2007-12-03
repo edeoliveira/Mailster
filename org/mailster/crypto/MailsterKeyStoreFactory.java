@@ -30,6 +30,8 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.mailster.gui.prefs.ConfigurationManager;
+import org.mailster.gui.prefs.store.MailsterPrefStore;
 import org.mailster.util.StreamWriterUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,24 +71,30 @@ public class MailsterKeyStoreFactory
 	 */
     private static final Logger LOG = LoggerFactory.getLogger(MailsterKeyStoreFactory.class);
 
-	private final static String KEYSTORE_FILENAME 				= "Mailster.p12";
-	private final static String KEYSTORE_FULL_PATH 				= 
-		StreamWriterUtilities.USER_DIR+"/"+KEYSTORE_FILENAME;
-    
-    private final static String DN_ORGANISATION                 = "O=Mailster.org";
-    private final static String DN_ORGANISATION_UNIT            = "OU=http://mailster.sourceforge.net";
-    private final static String DN_COUNTRY                      = "C=FR";
-    private final static String DN_ROOT                         = DN_ORGANISATION+", "+
-                                                                  DN_ORGANISATION_UNIT+", "+
-                                                                  DN_COUNTRY;
+	private final static String KEYSTORE_FILENAME 			= "Mailster.p12";
+	private final static String SSL_CERT_FILENAME 				= "ssl_server.crt";
+	private final static String CLI_KEYSTORE_FILENAME 	= "clients.p12";
+
+	private final static String KEYSTORE_FULL_PATH 			= getFullPath(KEYSTORE_FILENAME);
+	private final static String SSL_CERT_FULL_PATH 			= getFullPath(SSL_CERT_FILENAME);
+	private final static String CLI_KEYSTORE_FULL_PATH 	= getFullPath(CLI_KEYSTORE_FILENAME);
+	
+    private final static String DN_ORGANISATION                = "O=Mailster.org";
+    private final static String DN_ORGANISATION_UNIT     = "OU=http://mailster.sourceforge.net";
+    private final static String DN_COUNTRY                      		= "C=FR";
+    private final static String DN_ROOT                         			= DN_ORGANISATION+", "+
+												                                                                  DN_ORGANISATION_UNIT+", "+
+												                                                                  DN_COUNTRY;
 	
     private static final String ROOT_CA_ALIAS 					= "root";
-    private static final String INTERMEDIATE_CA_ALIAS 			= "intermediate_CA";
-    private static final String MAILSTER_SSL_ALIAS 				= "ssl_cert";
-    public static final String TED_CERT_ALIAS                   = "ssl_cert";
+    private static final String INTERMEDIATE_CA_ALIAS 	= "intermediate_CA";
+    private static final String MAILSTER_SSL_ALIAS 			= "ssl_cert";
+    private static final String DUMMY_SSL_CLIENT_ALIAS	= "ssl_dummy_client_cert";
+    
+    //TOSEE
+    public static final String TED_CERT_ALIAS                   	= "ted_cert";
 	
-	protected final static char[] KEYSTORE_PASSWORD 	= 
-		new char[] {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
+	protected final static char[] KEYSTORE_PASSWORD 	= new char[] {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
 	
 	private static MailsterKeyStoreFactory _instance;
 	private KeyStore store;
@@ -113,20 +121,47 @@ public class MailsterKeyStoreFactory
 		return _instance;
 	}
 	
+	private static String getFullPath(String fileName)
+	{
+		return StreamWriterUtilities.USER_DIR+"/"+fileName;
+	}
+	
+	public static void regenerate()
+		throws Exception
+	{
+		LOG.info("Regenerating Mailster certificates ...");
+		
+		// Delete previous files
+		(new File(KEYSTORE_FULL_PATH)).delete();
+		(new File(SSL_CERT_FULL_PATH)).delete();
+		(new File(CLI_KEYSTORE_FULL_PATH)).delete();
+		
+		getInstance().loadDefaultKeyStore();
+		X509SecureSocketFactory.reload();
+	}
+	
 	public static void main(String args[])
 	{
-		(new File(KEYSTORE_FULL_PATH)).delete();
-		getInstance();
+		try 
+		{
+			regenerate();
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+		
 		System.exit(0);
 	}
 	
-	private KeyStore loadDefaultKeyStore()
+	private synchronized KeyStore loadDefaultKeyStore()
 	{
 		try
         {
 			store = KeyStore.getInstance("PKCS12", "BC");
             InputStream fis = new FileInputStream(KEYSTORE_FULL_PATH);
             store.load(fis, KEYSTORE_PASSWORD);
+            fis.close();
             LOG.debug("Key store "+KEYSTORE_FULL_PATH+" successfuly loaded");
         }
         catch (Exception ex)
@@ -137,21 +172,29 @@ public class MailsterKeyStoreFactory
         return store;
 	}
 	
+	private int getCryptoStrength()
+	{
+		return ((MailsterPrefStore) ConfigurationManager.CONFIG_STORE).getInt(
+				ConfigurationManager.CRYPTO_STRENGTH_KEY);
+	}
+	
 	private KeyStore createDefaultKeyStore()
 	{
 		try
         {               
-            X500PrivateCredential rootCredential = CertificateUtilities.createRootCredential(
+			LOG.info("Creating main key store ...");
+			int keySize = getCryptoStrength();
+            X500PrivateCredential rootCredential = CertificateUtilities.createRootCredential(keySize,
                     "CN=Mailster AUTHORITY, "+DN_ROOT, ROOT_CA_ALIAS);                    
             
             X500PrivateCredential interCredential = 
-                CertificateUtilities.createIntermediateCredential(rootCredential.getPrivateKey(), 
+                CertificateUtilities.createIntermediateCredential(keySize,rootCredential.getPrivateKey(), 
                         rootCredential.getCertificate(), DN_ROOT, INTERMEDIATE_CA_ALIAS);
             
             final String DN = "EmailAddress=ted@home.com, CN=DE OLIVEIRA Edouard, " +DN_ROOT;
             
             X500PrivateCredential endCredential =
-                CertificateUtilities.createEntityCredential(interCredential.getPrivateKey(), 
+                CertificateUtilities.createEntityCredential(keySize, interCredential.getPrivateKey(), 
                         interCredential.getCertificate(), TED_CERT_ALIAS, DN, true); 
             
             // Generate store
@@ -174,8 +217,13 @@ public class MailsterKeyStoreFactory
             generateDummySSLClientCertificate(clientCerts);
             generateSSLServerCertificate(store, rootCredential);
             
-            clientCerts.store(new FileOutputStream("clients.p12"), KEYSTORE_PASSWORD);            
-            store.store(new FileOutputStream(KEYSTORE_FULL_PATH), KEYSTORE_PASSWORD);
+            FileOutputStream fos = new FileOutputStream(CLI_KEYSTORE_FULL_PATH); 
+            clientCerts.store(fos, KEYSTORE_PASSWORD);
+            fos.close();
+            
+            fos = new FileOutputStream(KEYSTORE_FULL_PATH);
+            store.store(fos, KEYSTORE_PASSWORD);
+            fos.close();
             
             LOG.debug("Key store {} successfuly created", KEYSTORE_FULL_PATH);
         }
@@ -190,7 +238,8 @@ public class MailsterKeyStoreFactory
 	private void generateSSLServerCertificate(KeyStore store, X500PrivateCredential rootCredential) 
 		throws Exception
 	{
-        KeyPair pair = CertificateUtilities.generateRSAKeyPair(1024);
+		LOG.info("Generating SSL server certificate ...");
+        KeyPair pair = CertificateUtilities.generateRSAKeyPair(getCryptoStrength());
         String DN = "CN=localhost, " +DN_ROOT;        
         X509V3CertificateGenerator v3CertGen = CertificateUtilities.initCertificateGenerator(
                 pair, rootCredential.getCertificate().getSubjectX500Principal().getName(), 
@@ -219,13 +268,14 @@ public class MailsterKeyStoreFactory
         X509Certificate publicKeyCertificate = v3CertGen.generate(pair.getPrivate());
         store.setKeyEntry(MAILSTER_SSL_ALIAS, pair.getPrivate(),
         		KEYSTORE_PASSWORD, new Certificate[] { publicKeyCertificate, rootCredential.getCertificate() });
-        CertificateUtilities.exportCertificate(publicKeyCertificate, "ssl_server.crt", false);
+        CertificateUtilities.exportCertificate(publicKeyCertificate, SSL_CERT_FULL_PATH, false);
 	}
     
     private void generateDummySSLClientCertificate(KeyStore ks) 
         throws Exception
     {
-        KeyPair pair = CertificateUtilities.generateRSAKeyPair(1024);
+    	LOG.info("Generating a Dummy SSL client certificate ...");
+        KeyPair pair = CertificateUtilities.generateRSAKeyPair(getCryptoStrength());
         String DN = "CN=SSL dummy client cert, O=Dummy org., C=FR";        
         X509V3CertificateGenerator v3CertGen = CertificateUtilities.initCertificateGenerator(
                 pair, DN, DN, true, CertificateUtilities.DEFAULT_VALIDITY_PERIOD);
@@ -242,7 +292,7 @@ public class MailsterKeyStoreFactory
                 new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth));
         
         X509Certificate cert = v3CertGen.generate(pair.getPrivate());
-        ks.setKeyEntry("client", pair.getPrivate(), KEYSTORE_PASSWORD, 
+        ks.setKeyEntry(DUMMY_SSL_CLIENT_ALIAS, pair.getPrivate(), KEYSTORE_PASSWORD, 
                 new Certificate[] {cert});
     }    
 	
@@ -329,7 +379,11 @@ public class MailsterKeyStoreFactory
 			if (storePath == null)
 				store.load(null, pwd);
 			else
-				store.load(new FileInputStream(storePath), pwd);
+			{
+				FileInputStream fis = new FileInputStream(storePath);
+				store.load(fis, pwd);
+				fis.close();
+			}
 			
 			return store;
 		} 

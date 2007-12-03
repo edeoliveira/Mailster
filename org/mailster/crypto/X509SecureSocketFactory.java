@@ -15,7 +15,6 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
 
 /**
  * ---<br>
@@ -74,11 +73,11 @@ public class X509SecureSocketFactory implements X509TrustManager
     private SSLContext context;
     private KeyStore trustedKS;
     private KeyStore temporaryTrustedKS;
-
+    
     private static X509SecureSocketFactory _instance;
     
-    private UICertificateTrustCallBackHandler handler = 
-        new SWTCertificateTrustCallBackHandler();
+    private SSLProtocol selectedProtocol;
+    private UICertificateTrustCallBackHandler trustCallBackHandler;
     
     /**
      * The default X509TrustManager returned by SunX509.  We'll delegate
@@ -107,7 +106,8 @@ public class X509SecureSocketFactory implements X509TrustManager
         context.init(kmf.getKeyManagers(), new TrustManager[] {this}, null);
     }
     
-    public static synchronized X509SecureSocketFactory getInstance(SSLProtocol protocol) 
+    public static synchronized X509SecureSocketFactory getInstance(SSLProtocol protocol, 
+    		UICertificateTrustCallBackHandler handler) 
     	throws Exception
     {
     	if (_instance == null)
@@ -116,9 +116,26 @@ public class X509SecureSocketFactory implements X509TrustManager
                 _instance = new X509SecureSocketFactory(SSLProtocol.SSL.toString());
             else
                 _instance = new X509SecureSocketFactory(protocol.toString());
+    	    
+    	    _instance.selectedProtocol = protocol;
+    	    _instance.trustCallBackHandler = handler;
         }
     		
     	return _instance;
+    }
+    
+    public static X509SecureSocketFactory getInstance() 
+    {
+    	return _instance;
+    }    
+    
+    public static synchronized void reload()
+		throws Exception
+    {
+    	if (_instance.selectedProtocol == null)
+            _instance = new X509SecureSocketFactory(SSLProtocol.SSL.toString());
+        else
+            _instance = new X509SecureSocketFactory(_instance.selectedProtocol.toString());
     }
     
     private X509TrustManager initTrustManager(KeyStore ks) 
@@ -217,18 +234,18 @@ public class X509SecureSocketFactory implements X509TrustManager
         throws CertificateException
     {
         Semaphore sem = new Semaphore(1);
-        handler.setCallBackParameters(sem, chain);
-        handler.run();
+        trustCallBackHandler.setCallBackParameters(sem, chain);
+        trustCallBackHandler.run();
         
         try
         {
             sem.acquire();
 
-            if (handler.isCancelled())
+            if (trustCallBackHandler.isCancelled())
                 throw e;
             else
             {
-                switch (handler.getReturnCode())
+                switch (trustCallBackHandler.getReturnCode())
                 {
                     case UICertificateTrustCallBackHandler.REJECT_CERTIFICATE_CHAIN :
                         throw e;
@@ -240,6 +257,7 @@ public class X509SecureSocketFactory implements X509TrustManager
                         OutputStream os = MailsterKeyStoreFactory.getInstance().getKeyStoreOutputStream();
                         sunJSSEX509TrustManager = updateAndCheckTrustManager(trustedKS, chain, os,
                                 MailsterKeyStoreFactory.KEYSTORE_PASSWORD, authType, isServerCheck);
+                        os.close();
                 }
             }            
         }
@@ -258,4 +276,15 @@ public class X509SecureSocketFactory implements X509TrustManager
     {
         return context;
     }
+
+	public UICertificateTrustCallBackHandler getTrustCallBackHandler() 
+	{
+		return trustCallBackHandler;
+	}
+
+	public void setTrustCallBackHandler(
+			UICertificateTrustCallBackHandler trustCallBackHandler) 
+	{
+		this.trustCallBackHandler = trustCallBackHandler;
+	}
 }

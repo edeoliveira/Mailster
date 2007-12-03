@@ -24,8 +24,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -34,7 +33,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -42,6 +40,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.mailster.MailsterSWT;
+import org.mailster.gui.DropDownListener;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
@@ -91,23 +90,13 @@ public class MailView
      * This class provides the "drop down" functionality for our attached file
      * dropdown.
      */
-    class DropdownSelectionListener extends SelectionAdapter
+    class AttachedFilesDropdownListener extends DropDownListener
     {
-        private ToolItem dropdown;
-
-        private Menu menu;
-
-        /**
-         * Constructs a DropdownSelectionListener
-         * 
-         * @param dropdown the dropdown this listener belongs to
-         */
-        public DropdownSelectionListener(ToolItem dropdown)
+        public AttachedFilesDropdownListener(ToolItem dropdown)
         {
-            this.dropdown = dropdown;
-            clearMenu();
+            super(dropdown);
         }
-
+        
         /**
          * Adds an item to the dropdown list
          * 
@@ -120,9 +109,10 @@ public class MailView
             String fileName = part.getFileName();
             menuItem.setText(fileName);
 
-            if (fileName.lastIndexOf('.') != -1 &&
-            		ConfigurationManager.CONFIG_STORE.
-            		getBoolean(ConfigurationManager.EXECUTE_ENCLOSURE_ON_CLICK_KEY))
+            if (part.getContentType().contains("pkcs")) //$NON-NLS-1$
+                menuItem.setImage(SWTHelper.loadImage("smime.gif")); //$NON-NLS-1$
+            else
+            if (fileName.lastIndexOf('.') != -1)
             {
                 Program p = Program.findProgram(fileName.substring(fileName
                         .lastIndexOf('.')));
@@ -145,7 +135,9 @@ public class MailView
                             .getFileName();
                     Program p = Program.findProgram(fileName.substring(fileName
                             .lastIndexOf('.')));
-                    if (p != null)
+                    if (p != null &&
+                    		ConfigurationManager.CONFIG_STORE.
+                    		getBoolean(ConfigurationManager.EXECUTE_ENCLOSURE_ON_CLICK_KEY))
                     {
                         fileName = main.getSMTPService().getOutputDirectory()
                                 + File.separator + fileName;
@@ -154,48 +146,135 @@ public class MailView
                                 main.getSMTPService().getOutputDirectory());
                         main
                                 .log(Messages
-                                        .getString("MailView.execute.file") + fileName + " ..."); //$NON-NLS-1$
+                                        .getString("MailView.execute.file") + fileName + " ..."); //$NON-NLS-1$ //$NON-NLS-2$
                         p.execute(fileName);
                     }
                     else
-                        saveAttachedFile((SmtpMessagePart) event.widget
-                                .getData());
+                        saveAttachedFile((SmtpMessagePart) event.widget.getData());
                 }
             });
         }
 
-        public final void clearMenu()
+        public void buttonPushed()
         {
-            menu = new Menu(dropdown.getParent().getShell());
-            dropdown.setEnabled(false);
-        }
-
-        /**
-         * Called when either the button itself or the dropdown arrow is clicked
-         * 
-         * @param event the event that trigged this call
-         */
-        public void widgetSelected(SelectionEvent event)
-        {
-            // If arrow is clicked then show the list
-            if (event.detail == SWT.ARROW)
-            {
-                // Determine where to put the dropdown list
-                ToolItem item = (ToolItem) event.widget;
-                Rectangle rect = item.getBounds();
-                Point pt = item.getParent()
-                        .toDisplay(new Point(rect.x, rect.y));
-                menu.setLocation(pt.x, pt.y + rect.height);
-                menu.setVisible(true);
-            }
-            else
-            {
-                // Button has been pushed so take appropriate action
-                saveAllAttachments(menu.getItems(), main
-                        .getSMTPService().getOutputDirectory());
-            }
+        	saveAllAttachments(menu.getItems(), main.getSMTPService().getOutputDirectory());
         }
     }
+    
+    /**
+     * This class provides the "drop down" functionality for our mail view mode
+     * dropdown.
+     */
+    class MailViewModeDropdownListener extends DropDownListener
+    {
+    	public final static int HTML_MODE 	= 0;
+    	public final static int MIXED_MODE 	= 1;
+    	public final static int RAW_MODE 		= 2;
+    	
+    	private int currentMode = HTML_MODE;
+    	
+        public MailViewModeDropdownListener(ToolItem dropdown)
+        {
+            super(dropdown);
+            buildMenu();
+        }
+        
+        public void buildMenu()
+        {
+        	dropdown.setToolTipText(Messages.getString("MailView.toggle.viewModes")); //$NON-NLS-1$
+        	
+        	final MenuItem normalModeItem = new MenuItem(menu, SWT.NONE);
+        	normalModeItem.setText(Messages.getString("MailView.toggle.toInterpretedViewTooltip")); //$NON-NLS-1$
+        	normalModeItem.setImage(browserImage);
+
+            final MenuItem mixedModeItem = new MenuItem(menu, SWT.NONE);
+            mixedModeItem.setText(Messages.getString("MailView.toggle.toMixedViewTooltip")); //$NON-NLS-1$
+            mixedModeItem.setImage(mixedViewImage);
+                    	
+            final MenuItem rawModeItem = new MenuItem(menu, SWT.NONE);
+            rawModeItem.setText(Messages.getString("MailView.toggle.toRawViewTooltip")); //$NON-NLS-1$
+            rawModeItem.setImage(rawViewImage);
+
+            SelectionAdapter adapter = new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent evt) 
+				{
+					if (evt.getSource() == normalModeItem)
+						currentMode = HTML_MODE;
+					else
+					if (evt.getSource() == mixedModeItem)
+						currentMode = MIXED_MODE;
+					else
+						currentMode = RAW_MODE;
+					
+					updateMailViewMode();
+				}
+			};
+			
+			normalModeItem.addSelectionListener(adapter);
+			rawModeItem.addSelectionListener(adapter);
+			mixedModeItem.addSelectionListener(adapter);
+        }
+
+        public void updateMailViewMode()
+        {
+        	Image img = null;
+        	
+        	if (currentMode == HTML_MODE)
+				img = browserImage;
+        	else
+    		if (currentMode == MIXED_MODE)
+    			img = mixedViewImage;
+    		else
+    			img = rawViewImage;
+        	
+        	dropdown.setImage(img);
+        	dropdown.setHotImage(img);
+        	
+        	if (folder.getSelection() == null ||
+            		folder.getSelection().getData() == null)
+                return;
+        	
+        	Composite c = (Composite) folder.getSelection().getControl();
+        	Control c0 = c.getChildren()[0]; // the browser
+        	Control c1 = c.getChildren()[1]; // the raw view
+        	
+        	if (currentMode == HTML_MODE || currentMode == RAW_MODE)
+        	{
+        		StackLayout layout = null;
+        		
+        		if (!(c.getLayout() instanceof StackLayout))
+        		{
+        			layout = new StackLayout();
+        			c.setLayout(layout);
+        		}
+        		else
+        			layout = (StackLayout) c.getLayout();
+        		
+        		layout.topControl = currentMode == HTML_MODE ? c0 : c1;
+        	}
+        	else
+        	{
+        		c.setLayout(new FillLayout(SWT.VERTICAL));
+    			c0.setVisible(true);
+    			c1.setVisible(true);
+        	}
+        	
+        	c.layout();
+        }
+        
+        public void buttonPushed()
+        {
+        	if (currentMode == HTML_MODE)
+        		currentMode = MIXED_MODE;
+        	else
+    		if (currentMode == MIXED_MODE)
+    			currentMode = RAW_MODE;
+    		else
+    			currentMode = HTML_MODE;
+        	
+        	updateMailViewMode();
+        }
+    }    
 
     class MCTabFolder2Listener extends CTabFolder2Adapter
     {
@@ -252,7 +331,7 @@ public class MailView
 
         public void close(CTabFolderEvent event)
         {
-            dropdownListener.clearMenu();
+            dropdownListener.clear();
 
             if (event.item.getData() != null)
                 openedMailsIds.remove(((StoredSmtpMessage) event.item.getData())
@@ -275,16 +354,18 @@ public class MailView
     
     public final static String DEFAULT_PREFERRED_CONTENT = "text/html"; //$NON-NLS-1$
     
-    private String preferredContentType = DEFAULT_PREFERRED_CONTENT;
+    private final static Image mailImage  = SWTHelper.loadImage("mail_into.gif"); //$NON-NLS-1$
+    private final static Image homeImage = SWTHelper.loadImage("home.gif"); //$NON-NLS-1$
+    private final static Image rawViewImage = SWTHelper.loadImage("rawView.gif"); //$NON-NLS-1$
+    private final static Image mixedViewImage = SWTHelper.loadImage("mixedView.gif"); //$NON-NLS-1$
+    private final static Image browserImage = SWTHelper.loadImage("html.gif"); //$NON-NLS-1$
 
-    public final Image attachedFilesImage;
-    public final Image mailImage;
-    public final Image homeImage;
-
-    public final Image rawViewImage;
-    public final Image browserImage;
-
+    private final static Color[] tabGradient = SWTHelper.getGradientColors(5,
+    																				new Color(SWTHelper.getDisplay(), 0, 84, 227),
+																		            new Color(SWTHelper.getDisplay(), 61, 149, 255));
+    
     private ArrayList<String> openedMailsIds = new ArrayList<String>();
+    private String preferredContentType = DEFAULT_PREFERRED_CONTENT;
 
     private TableView tableView;
     private CTabFolder folder;
@@ -296,11 +377,9 @@ public class MailView
     private SashForm divider;
 
     private MCTabFolder2Listener folderLayoutListener;
-    private DropdownSelectionListener dropdownListener;
+    private AttachedFilesDropdownListener dropdownListener;
+    private MailViewModeDropdownListener viewModeListener;
 
-    private ToolItem toggleView;
-
-    private Color[] tabGradient;
     private boolean forcedMozillaBrowserUse = false;
     private boolean logViewIsScrollLocked;
     private boolean synced = true;
@@ -313,16 +392,6 @@ public class MailView
         this.parent = parent;
         this.main = MailsterSWT.getInstance();
 
-        attachedFilesImage = SWTHelper.loadImage("attach.gif"); //$NON-NLS-1$
-        mailImage = SWTHelper.loadImage("mail_into.gif"); //$NON-NLS-1$
-        homeImage = SWTHelper.loadImage("home.gif"); //$NON-NLS-1$
-        rawViewImage = SWTHelper.loadImage("rawView.gif"); //$NON-NLS-1$
-        browserImage = SWTHelper.loadImage("mail.gif"); //$NON-NLS-1$
-
-        tabGradient = SWTHelper.getGradientColors(5,
-                new Color(SWTHelper.getDisplay(), 0, 84, 227),
-                new Color(SWTHelper.getDisplay(), 61, 149, 255));
-
         SWTHelper.getDisplay().addFilter(SWT.KeyDown, new Listener() {
             public void handleEvent(Event e)
             {
@@ -331,9 +400,15 @@ public class MailView
             }
         });
         
-        createView(treeView, main.getFilterTextField());        
+        createView(treeView, main.getFilterTextField());
+        createLogConsole(false);
     }
 
+    protected CTabFolder getCTabFolder()
+    {
+    	return folder;
+    }
+    
     public SashForm getDivider()
     {
         return divider;
@@ -393,7 +468,7 @@ public class MailView
                 SWT.PUSH,
                 "", //$NON-NLS-1$ 
                 Messages.getString("MailView.collapseall.tooltip")+" (Ctrl+Shift+F4)", //$NON-NLS-1$ //$NON-NLS-2$ 
-                "collapseall.gif", true); //$NON-NLS-1$ //$NON-NLS-2$
+                "closeall.gif", true); //$NON-NLS-1$ //$NON-NLS-2$
 		
         SelectionAdapter selectionAdapter = new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e)
@@ -438,32 +513,53 @@ public class MailView
         createToolBarCommons(logViewToolBar);
     }
     
-    public void createLogConsole()
+    public void createLogConsole(boolean createTabItem)
     {
     	if (logTabItem != null)
     		return;
-    	
+
+    	final Composite logComposite = new Composite(folder, SWT.NONE);
+        logComposite.setLayout(
+                LayoutUtils.createGridLayout(1, false, 0, 0, 0, 0, 0, 0, 0, 0));
+        
+        if (log !=null && log.isReparentable())
+        {
+        	try
+        	{
+        		log.setParent(logComposite);
+        	}
+        	catch (Exception ex)
+        	{
+        		// OS does not support re-parenting ! Force log view creation
+        		log.dispose();
+        		log = null;
+        	}
+        }
+        
+    	if (!createTabItem || log == null)
+    	{
+    		log = new Text(logComposite, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.WRAP );
+            
+            GridData gridData = new GridData(GridData.FILL_BOTH);
+            gridData.grabExcessHorizontalSpace = true;
+            gridData.grabExcessVerticalSpace = true;
+			log.setLayoutData(gridData);
+			
+			log.setEditable(false);
+			log.setForeground(SWTHelper.createColor(11, 161, 11));
+			log.setBackground(log.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+			
+			if (!createTabItem)
+				return;
+    	}
+
     	logTabItem = new CTabItem(folder, SWT.CLOSE);
     	logTabItem.setText(Messages.getString("Mailview.log.console.tabname"));
     	logTabItem.setImage(SWTHelper.loadImage("console_view.gif"));
         
-        final Composite logComposite = new Composite(folder, SWT.NONE);
-        logComposite.setLayout(
-                LayoutUtils.createGridLayout(2, false, 0, 0, 0, 0, 0, 0, 0, 0));
-        
-        GridData gridData = new GridData(GridData.FILL_BOTH);
-        gridData.grabExcessHorizontalSpace = true;
-        gridData.grabExcessVerticalSpace = true;
-        
-    	log = new Text(logComposite, SWT.MULTI | SWT.BORDER
-            | SWT.V_SCROLL | SWT.WRAP );
-    
-    	log.setLayoutData(gridData);
-    	log.setEditable(false);
-    	log.setBackground(log.getDisplay().getSystemColor(SWT.COLOR_WHITE));
-        
     	if (logViewToolBar == null)
     		createLogViewToolBar();
+    	
         GridData gd = new GridData(GridData.FILL_BOTH);
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;        
@@ -511,8 +607,7 @@ public class MailView
             final StackLayout layout = new StackLayout();
             itemComposite.setLayout(layout);
             item.setControl(itemComposite);
-
-            Text rawView = createRawMailView(itemComposite);
+            
             Browser _browser = null;
 
             try
@@ -530,7 +625,7 @@ public class MailView
                 data.grabExcessHorizontalSpace = true;
                 data.horizontalAlignment = GridData.FILL;
                 data.verticalAlignment = GridData.BEGINNING;
-                h.getComposite().setLayoutData(data);
+                h.setLayoutData(data);
 
                 _browser = createBrowser(browserComposite);
                 data = new GridData();
@@ -550,6 +645,8 @@ public class MailView
                 return;
             }
 
+            Text rawView = createRawMailView(itemComposite);
+            
             _browser.setText(msg.getPreferredContent(preferredContentType));
             final Browser b = _browser;
         	_browser.addProgressListener(new ProgressAdapter() {
@@ -563,19 +660,21 @@ public class MailView
                 }
             });
             rawView.setText(msg.getRawMessage());
-
+            
             item.setData(stored);
             openedMailsIds.add(id);
             folder.setSelection(item);
             setTopRight(mailToolbar);
-            updateFolderToolbar(msg.getInternalParts());
-            setMailViewMode();
+            updateAttachedFilesButton(msg.getInternalParts());
+            viewModeListener.updateMailViewMode();
+            MailsterSWT.getInstance().getOutlineView().setMessage(msg);
 
             final Browser browser = _browser;
             item.addDisposeListener(new DisposeListener() {
                 public void widgetDisposed(DisposeEvent e)
                 {
                     browser.dispose();
+                    main.getOutlineView().setMessage(null);
                 }
             });
         }
@@ -595,8 +694,9 @@ public class MailView
                                 .getData()).getMessage().getMessageID()))
                 {
                     folder.setSelection(folder.getItems()[i]);
-                    updateFolderToolbar(msg.getInternalParts());
-                    setMailViewMode();
+                    main.getOutlineView().setMessage(msg);
+                    updateAttachedFilesButton(msg.getInternalParts());
+                    viewModeListener.updateMailViewMode();
                     return;
                 }
             }
@@ -619,23 +719,35 @@ public class MailView
     		if (folder.getItem(i).getData() != null)
     		{
     			Composite c = (Composite) folder.getItem(i).getControl();
-    			Browser browser = (Browser) ((Composite)c.getChildren()[1]).getChildren()[1];
+    			// browser is the first added component
+    			Browser browser = (Browser) ((Composite)c.getChildren()[0]).getChildren()[1];
     			
     			executeJavaScript(browser, script);
     		}   
         }
     }
     
-    private void updateFolderToolbar(final SmtpMessagePart current)
+    private void recurseMessageParts(final SmtpMessagePart current)
     {
-        dropdownListener.clearMenu();
         if (current != null)
         {
             SmtpMessagePart[] files = current.getAttachedFiles();
 
             for (int i = 0, max = files.length; i < max; i++)
                 dropdownListener.add(files[i]);
+            
+	        if (current.getParts() != null)
+	        {
+	        	for (SmtpMessagePart part : current.getParts())
+	        		recurseMessageParts(part);
+	        }
         }
+    }
+    
+    private void updateAttachedFilesButton(final SmtpMessagePart current)
+    {
+        dropdownListener.clear();
+        recurseMessageParts(current);
     }
 
     private void saveAllAttachments(MenuItem[] items, String dir)
@@ -695,29 +807,6 @@ public class MailView
             }
         }
     }
-
-    private void setMailViewMode()
-    {
-        toggleView.setHotImage(toggleView.getSelection()
-                ? rawViewImage
-                : browserImage);
-        toggleView.setToolTipText(toggleView.getSelection()
-                ? Messages.getString("MailView.toggle.toInterpretedViewTooltip")
-                : Messages.getString("MailView.toggle.toRawViewTooltip"));
-
-        if (folder.getSelection() == null ||
-        		folder.getSelection().getData() == null)
-            return;
-
-        Composite c = (Composite) folder.getSelection().getControl();
-        StackLayout layout = (StackLayout) c.getLayout();
-        if (toggleView.getSelection())
-            layout.topControl = c.getChildren()[0];
-        else
-            layout.topControl = c.getChildren()[1];
-
-        c.layout();
-    }
     
     private void setTopRight(ToolBar tb)
     {
@@ -760,8 +849,9 @@ public class MailView
 	                TableItem[] items = tableView.getTable().getSelection();
 	                if (items != null && items.length == 1 && event.item.getData() != null)
 	                {
-	                	String id = ((StoredSmtpMessage) event.item.getData())
-	                    				.getMessage().getMessageID();
+	                	SmtpMessage msg = ((StoredSmtpMessage) event.item.getData()).getMessage();
+	                	MailsterSWT.getInstance().getOutlineView().setMessage(msg);
+	                	String id = msg.getMessageID();
 	                	String selectedId = ((StoredSmtpMessage) items[0].getData()).getMessage().getMessageID();
 	                	if (!id.equals(selectedId))
 	                	{
@@ -786,9 +876,9 @@ public class MailView
                 {
                 	if (event.item.getData() != null)
 	                {
-	                    updateFolderToolbar(((StoredSmtpMessage) event.item.getData())
+                		updateAttachedFilesButton(((StoredSmtpMessage) event.item.getData())
 	                            .getMessage().getInternalParts());
-	                    setMailViewMode();
+                		viewModeListener.updateMailViewMode();
 	                    
 	                    setTopRight(mailToolbar);
 	                }
@@ -798,26 +888,34 @@ public class MailView
                 }
             }
         });
+
+        final ToolItem showLogViewToolItem = new ToolItem(mailToolbar, SWT.PUSH);
+        showLogViewToolItem.setImage(SWTHelper.loadImage("console_view.gif")); //$NON-NLS-1$
+        showLogViewToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.showLogView.tooltip")); //$NON-NLS-1$
+        showLogViewToolItem.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) 
+			{
+				createLogConsole(true);
+			}		
+		});
         
         new ToolItem(mailToolbar, SWT.SEPARATOR);
-        
-        toggleView = SWTHelper.createToolItem(
-        				mailToolbar,
-                        SWT.CHECK,
-                        "", //$NON-NLS-1$
-                        Messages.getString("MailView.toggle.toRawViewTooltip"), "mail.gif", true); //$NON-NLS-1$ //$NON-NLS-2$
 
-        toggleView.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e)
-            {
-                setMailViewMode();
-            }
-        });
+        ToolItem viewModeItem = SWTHelper.createToolItem(
+						mailToolbar,
+		                SWT.FLAT | SWT.DROP_DOWN,
+		                "", Messages.getString("MailView.toggle.toRawViewTooltip"), "html.gif", true); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        viewModeListener = new MailViewModeDropdownListener(viewModeItem);
+        viewModeItem.addSelectionListener(viewModeListener);
+        viewModeItem.setEnabled(true);
 
-        ToolItem item = SWTHelper.createToolItem(
+        ToolItem attachedFilesItem = SWTHelper.createToolItem(
         				mailToolbar,
                         SWT.FLAT | SWT.DROP_DOWN,
                         "", Messages.getString("MailView.attach.tooltip"), "attach.gif", true); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        dropdownListener = new AttachedFilesDropdownListener(attachedFilesItem);
+        attachedFilesItem.addSelectionListener(dropdownListener);
         
         createToolBarCommons(mailToolbar);
         
@@ -825,8 +923,6 @@ public class MailView
         folder.addCTabFolder2Listener(folderLayoutListener);
         
         new ToolItem(mailToolbar, SWT.SEPARATOR);
-        dropdownListener = new DropdownSelectionListener(item);
-        item.addSelectionListener(dropdownListener);
         
         folder.setTopRight(mailToolbar);
         folder.setSelectionBackground(tabGradient,
@@ -911,10 +1007,8 @@ public class MailView
             }
         }
 
-        /*if (folder.getMaximized() || folder.getMinimized())
-            folderLayoutListener.restore(null);*/
         if (dropdownListener != null)
-        	dropdownListener.clearMenu();
+        	dropdownListener.clear();
     }
     
     public void closeTab(SmtpMessage msg)
@@ -932,7 +1026,7 @@ public class MailView
                 {
                     folder.getItems()[i].dispose();
                     if (folder.getSelectionIndex() == i)
-                    	dropdownListener.clearMenu();
+                    	dropdownListener.clear();
                     break;
                 }
             }

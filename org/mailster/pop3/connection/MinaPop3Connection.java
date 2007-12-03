@@ -4,6 +4,7 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.SSLFilter;
 import org.mailster.crypto.X509SecureSocketFactory;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
+import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
 import org.mailster.pop3.mailbox.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,8 @@ public class MinaPop3Connection implements AbstractPop3Connection
     {
         if (sslFilter == null)
         {
-            X509SecureSocketFactory ssf = X509SecureSocketFactory.getInstance(protocol);
+            X509SecureSocketFactory ssf = X509SecureSocketFactory.getInstance(protocol, 
+            		new SWTCertificateTrustCallBackHandler());
             sslFilter = new SSLFilter(ssf.getContext());
         }
             

@@ -253,10 +253,10 @@ public class CertificateUtilities
     /**
      * Generate a X500PrivateCredential for the root entity.
      */
-    public static X500PrivateCredential createRootCredential(String DN, String alias)
+    public static X500PrivateCredential createRootCredential(int keySize, String DN, String alias)
         throws Exception
     {
-        KeyPair rootPair = generateRSAKeyPair(1024);
+        KeyPair rootPair = generateRSAKeyPair(keySize);
         X509Certificate rootCert = generateRootCert(DN, rootPair);
         
         return new X500PrivateCredential(rootCert, rootPair.getPrivate(), alias);
@@ -266,29 +266,29 @@ public class CertificateUtilities
      * Generate a X500PrivateCredential for the end or intermediate entity
      * depending on the <code>isEndEntity</code> argument.
      */
-    public static X500PrivateCredential createEntityCredential(
-        PrivateKey      caKey,
-        X509Certificate caCert,
-        String          alias,
-        String          DN,
-        boolean         isEndEntity)
+    public static X500PrivateCredential createEntityCredential(int keySize, 
+																											        PrivateKey      caKey,
+																											        X509Certificate caCert,
+																											        String          alias,
+																											        String          DN,
+																											        boolean         isEndEntity)
         throws Exception
     {
-        KeyPair interPair = generateRSAKeyPair(1024);
+        KeyPair interPair = generateRSAKeyPair(keySize);
         X509Certificate cert = generateV3Certificate(
                 DN, isEndEntity, interPair.getPublic(), caKey, caCert);
         
         return new X500PrivateCredential(cert, interPair.getPrivate(), alias);
     }
     
-    public static X500PrivateCredential createIntermediateCredential(
-            PrivateKey      caKey,
-            X509Certificate caCert,
-            String          rootDN,
-            String          alias)
+    public static X500PrivateCredential createIntermediateCredential(int keySize,
+																														            PrivateKey      caKey,
+																														            X509Certificate caCert,
+																														            String          rootDN,
+																														            String          alias)
             throws Exception
     {
-        return createEntityCredential(caKey, caCert, alias, "CN=Intermediate cert, "+rootDN, false);
+        return createEntityCredential(keySize, caKey, caCert, alias, "CN=Intermediate cert, "+rootDN, false);
     }
     
     public static X509Extensions getExtensions(X509Certificate cert) 

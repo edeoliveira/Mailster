@@ -6,13 +6,17 @@ import java.util.Map;
 import javax.mail.Flags;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
@@ -55,13 +59,11 @@ import ca.odell.glazedlists.matchers.Matcher;
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class FilterTreeView
+public class FilterTreeView extends TreeView
 {
     private final static Logger log = LoggerFactory.getLogger(FilterTreeView.class);
     
     private TreeItem deletedMailsTreeItem;
-    private TreeItem root;    
-    private Tree tree;
     
     private HostMatcherEditor editor;
     
@@ -144,10 +146,12 @@ public class FilterTreeView
         }
     }
     
-    public FilterTreeView(Composite parent)
+    public FilterTreeView(Composite parent, boolean enableToolbar)
     {
-        tree = new Tree(parent, SWT.FLAT | SWT.BORDER);
-        tree.setLinesVisible(false);
+    	super(parent, enableToolbar);
+    	
+        collapseAllItem.setEnabled(true);
+        expandAllItem.setEnabled(true);
         
         root = new TreeItem(tree, SWT.NONE);
         root.setImage(SWTHelper.loadImage("forum16.png")); //$NON-NLS-1$
@@ -159,6 +163,34 @@ public class FilterTreeView
         deletedMailsTreeItem.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
         deletedMailsTreeItem.setData(deletedTreeItemLabel);
         root.setExpanded(true);
+    }
+    
+    protected  void customizeToolbar(ToolBar toolBar)
+    {
+        final ToolItem refreshToolItem = new ToolItem(toolBar, SWT.PUSH);
+        refreshToolItem.setImage(SWTHelper.loadImage("refresh.gif")); //$NON-NLS-1$
+        refreshToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.refreshQueue.tooltip")); //$NON-NLS-1$   
+        
+        final ToolItem clearQueueToolItem = new ToolItem(toolBar, SWT.PUSH);
+        clearQueueToolItem.setImage(SWTHelper.loadImage("closeall.gif")); //$NON-NLS-1$
+        clearQueueToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.clearQueue.tooltip")); //$NON-NLS-1$   
+        
+        new ToolItem(toolBar, SWT.SEPARATOR);
+        
+        SelectionAdapter selectionAdapter = new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e)
+            {
+            	if (e.widget == refreshToolItem)
+                    MailsterSWT.getInstance().getSMTPService().refreshEmailQueue(false);
+                else if (e.widget == clearQueueToolItem)
+                	MailsterSWT.getInstance().getSMTPService().clearQueue();
+            }
+        };
+        
+        refreshToolItem.addSelectionListener(selectionAdapter);
+        clearQueueToolItem.addSelectionListener(selectionAdapter);
     }
     
     public static String getEmailHost(String email)
@@ -251,11 +283,6 @@ public class FilterTreeView
         
         editor = new HostMatcherEditor(tree);
         return new FilterList<StoredSmtpMessage>(eventList, editor);
-    }
-    
-    public void setLayoutData(Object layoutData) 
-    {
-        tree.setLayoutData(layoutData);
     }
 
     public void filter()

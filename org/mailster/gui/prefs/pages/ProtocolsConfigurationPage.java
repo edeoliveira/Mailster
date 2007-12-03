@@ -4,18 +4,23 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.mailster.MailsterSWT;
+import org.mailster.crypto.MailsterKeyStoreFactory;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.prefs.DefaultConfigurationPage;
 import org.mailster.gui.prefs.store.MailsterPrefStore;
+import org.mailster.gui.prefs.widgets.SpinnerFieldEditor;
 import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.pop3.connection.MinaPop3Connection;
@@ -70,7 +75,13 @@ public class ProtocolsConfigurationPage
     /**
      * <code>ComboViewer</code> to select the preferred SSL protocol
      */
-    private ComboViewer preferredSSLProtocolViewer;    
+    private ComboViewer preferredSSLProtocolViewer;
+    
+    /**
+     * <code>FieldEditor</code> to select the crypto strength of the automatically 
+     * generated certificates.
+     */
+    private SpinnerFieldEditor cryptoStrengthEditor;
     
     /**
 	 * Creates a new <code>ProtocolsConfigurationPage</code> instance.
@@ -95,8 +106,7 @@ public class ProtocolsConfigurationPage
     {
         // Create content composite
         Composite content = new Composite(parent, SWT.NONE);
-        content.setLayout(
-        		LayoutUtils.createGridLayout(2, false, 5, 5, 0, 0, 0, 0, 5, 5));
+        content.setLayout(LayoutUtils.createGridLayout(1, false, 0, 0, 5, 5, 0, 0, 0, 0));
 
         // Create general group
         Group generalGroup = new Group(content, SWT.NONE);
@@ -118,14 +128,11 @@ public class ProtocolsConfigurationPage
                 		GridData.CENTER, false, false, 2, 1));
         
         // Separator
-        (new Label(content, SWT.NONE)).setLayoutData(
-        		LayoutUtils.createGridData(GridData.BEGINNING, 
-                		GridData.CENTER, false, false, 2, 1));
+        new Label(content, SWT.NONE);
         
         // Create SSL group
         Group sslGroup = new Group(content, SWT.NONE);
-        sslGroup.setLayout(
-        		LayoutUtils.createGridLayout(2, false, 5, 5, 0, 0, 0, 0, 5, 5));
+        sslGroup.setLayout(LayoutUtils.createGridLayout(2, false, 0, 0, 5, 5, 5, 5, 5, 5));
         sslGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         sslGroup.setText(Messages.getString("sslGroupHeader"));
 
@@ -148,8 +155,44 @@ public class ProtocolsConfigurationPage
                         SSLProtocol.TLS.toString(),
                 });
         
-        // Disable default and apply buttons
-        noDefaultAndApplyButton();
+        // Separator
+        new Label(content, SWT.NONE);
+        
+        // Create crypto group
+        Group cryptoGroup = new Group(content, SWT.NONE);
+        cryptoGroup.setLayout(LayoutUtils.createGridLayout(1, false, 0, 0, 5, 5, 5, 5, 5, 5));
+        cryptoGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        cryptoGroup.setText(Messages.getString("cryptoGroupHeader"));
+        
+        Composite c = new Composite(cryptoGroup, SWT.NONE);
+        c.setLayout(LayoutUtils.createGridLayout(1, false, 0, 0, 5, 5, 0, 0, 0, 0));
+        c.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        cryptoStrengthEditor = new SpinnerFieldEditor(
+                ConfigurationManager.CRYPTO_STRENGTH_KEY, Messages.getString("cryptoStrengthLabel"), c, 4);
+        cryptoStrengthEditor.setMinimum(128);
+        cryptoStrengthEditor.setMaximum(4096);        
+        cryptoStrengthEditor.setIncrement(128);
+        cryptoStrengthEditor.setPageIncrement(512);
+        setupEditor(cryptoStrengthEditor);
+        
+        Button generateButton = new Button(cryptoGroup, SWT.PUSH);
+        generateButton.setText(Messages.getString("generateCryptoKeysAndCerts"));
+        generateButton.setLayoutData(
+        		LayoutUtils.createGridData(GridData.END, GridData.CENTER, true, false, 2, 1));
+        generateButton.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) 
+			{
+				try 
+				{
+					MailsterKeyStoreFactory.regenerate();
+				} 
+				catch (Exception ex) 
+				{
+					MailsterSWT.getInstance().log(ex.getMessage());
+				}
+			}		
+		});
         
         load();        
         return content;
@@ -193,6 +236,8 @@ public class ProtocolsConfigurationPage
         
         store.setValue(ConfigurationManager.AUTH_SSL_CLIENT_KEY, 
         		authSSLClientsStartEditor.getSelection());
+        
+        cryptoStrengthEditor.store();
         
         int index = preferredSSLProtocolViewer.getCombo().getSelectionIndex();
         store.setValue(ConfigurationManager.PREFERRED_SSL_PROTOCOL_KEY, index);

@@ -1,4 +1,38 @@
 #####
+Version 0.8.3 (2007-12-03) - Codename Harfang
+
+NOTES :
+- UPGRADED to MINA 1.1.5
+- UPGRADED to SLF4J 1.4.3
+- Updated starting scripts
+- Updated home page URL ( http://tedorg.free.fr/en/projects.php ). 
+
+TESTING :
+- Publicly available JUNIT tests to help improve robustness.
+
+CORE :
+- Fixed possible resource leaking in SWTHelper#createColor().
+
+GUI:
+- Now using PShelf as the left panel container instead of ExpandBar 
+  as it has a cleaner look :).
+- Added an outline view to show the structure of the selected mail.
+- Fixed bug where the attached files drop down button did not show
+  all the attached files.
+- Added UI option to configure cryptographic strength.
+- Log window now try to use the re-parentable abilities of the 
+  system to keep the log state behind the scenes even when the 
+  tab is not visible.
+- Added a clear mail queue button as mail queue is no more cleared
+  when starting the server. Confirmation is required by a dialog. 
+- Added an S/MIME signature checking ability. It's visually 
+  represented by an icon in the headers view that show wether 
+  the signature was verified or not.
+- Signing information is available in the UI. The dialog shows the
+  signer(s) certificates data.
+- Added a certificate creation facility in the preferences.   
+
+#####
 Version 0.8.2 (2007-08-19) - Codename Sasquatch
 
 UPGRADED to MINA 1.1.1

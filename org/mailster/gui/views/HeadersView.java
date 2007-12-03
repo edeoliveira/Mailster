@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.mail.internet.MimeMultipart;
+
+import org.bouncycastle.mail.smime.SMIMESigned;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -20,6 +23,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.mailster.MailsterSWT;
+import org.mailster.crypto.MailsterKeyStoreFactory;
+import org.mailster.crypto.smime.SmimeUtilities;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.StyledLabel;
@@ -58,6 +64,14 @@ import org.mailster.util.MailUtilities;
  */
 public class HeadersView
 {
+    private final static Image minimizedImage = SWTHelper.loadImage("plus.gif"); //$NON-NLS-1$
+    private final static Image expandedImage = SWTHelper.loadImage("minus.gif"); //$NON-NLS-1$
+    private final static Image smimeOkImage = SWTHelper.loadImage("smime_ok.gif"); //$NON-NLS-1$
+    private final static Image smimeNokImage = SWTHelper.loadImage("smime_nok.gif"); //$NON-NLS-1$
+    
+    private final static Color startColor = SWTHelper.createColor(243, 245, 248);
+    private final static Color endColor = SWTHelper.createColor(179, 192, 206);
+
     private static Font headerFont;
     private boolean minimized = false;
     private StyledLabel headersLabel;
@@ -65,6 +79,8 @@ public class HeadersView
 
     private String fullText = "";
     private String resumeText = "";
+    private boolean isSigned;
+    private boolean isSignatureValid;
     
     static
     {
@@ -107,8 +123,9 @@ public class HeadersView
         {
             if (s != null)
             {
-            	if (s.indexOf('<') != -1)
-            		s = s.substring(s.indexOf('<'),s.indexOf('>')+1);
+            	int pos = s.indexOf('<');
+            	if (pos != -1)
+            		s = s.substring(pos,s.indexOf('>')+1);
             	else
             		s = s.trim();
                 recipients.remove(s);
@@ -128,9 +145,9 @@ public class HeadersView
         return formatEmailList(recipients);
     }
     
-    public Composite getComposite()
+    public void setLayoutData(Object layoutData) 
     {
-        return composite;
+    	composite.setLayoutData(layoutData);
     }
     
     private void computeTextStrings(SmtpMessage msg)
@@ -178,56 +195,20 @@ public class HeadersView
     
     public final void createView(Composite parent, SmtpMessage msg)
     {
-        final Color startColor = SWTHelper.createColor(243, 245, 248);
-        final Color endColor = SWTHelper.createColor(179, 192, 206);
         composite = new Composite(parent, SWT.BORDER);
         composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
         composite.setLayout(
-                LayoutUtils.createGridLayout(2, false, 0, 4, 0, 0, 0, 0, 0, 2));
-        composite.addListener (SWT.Resize, new Listener () {
-            public void handleEvent (Event event) {
-                Image oldImage = composite.getBackgroundImage();
-                Display display = SWTHelper.getDisplay();
-                Rectangle rect = composite.getClientArea ();
-                Image newImage = new Image (display, Math.max (1, rect.width), 1);  
-                GC gc = new GC (newImage);
-                gc.setForeground (startColor);
-                gc.setBackground (endColor);
-                gc.fillGradientRectangle (rect.x, rect.y, rect.width, 1, false);
-                gc.dispose ();
-                composite.setBackgroundImage (newImage);
-                if (oldImage != null) oldImage.dispose ();
-                oldImage = newImage;
-            }
-        });
-
-        final Image minimizedImage = SWTHelper.loadImage("plus.gif"); //$NON-NLS-1$
-        final Image expandedImage = SWTHelper.loadImage("minus.gif"); //$NON-NLS-1$
-
+                LayoutUtils.createGridLayout(3, false, 0, 4, 0, 1, 0, 0, 0, 2));
+        
         final Label image = new Label(composite, SWT.NONE);
         image.setImage(expandedImage);
-        image.setAlignment(SWT.TOP);
-        image.addMouseListener(new MouseAdapter() {
-            public void mouseDown(MouseEvent evt)
-            {
-                minimized = !minimized;
-                image.setImage(minimized ? minimizedImage : expandedImage);
-
-                if (minimized)
-                    headersLabel.setText(resumeText);
-                else
-                    headersLabel.setText(fullText);
-
-                composite.getParent().layout(true);
-            }
-        });
-
-        computeTextStrings(msg);
-        
+        image.setAlignment(SWT.CENTER);
         GridData data = new GridData();
         data.verticalAlignment = GridData.BEGINNING;
         data.grabExcessVerticalSpace = true;
         image.setLayoutData(data);
+        
+        computeTextStrings(msg);
 
         headersLabel = new StyledLabel(composite, SWT.NONE);
         headersLabel.setText(fullText);
@@ -235,7 +216,87 @@ public class HeadersView
         headersLabel.setFont(headerFont);
         data = new GridData();
         data.horizontalAlignment = GridData.BEGINNING;
+        data.verticalAlignment = GridData.BEGINNING;
         data.grabExcessHorizontalSpace = true;
         headersLabel.setLayoutData(data);
+        
+        final Label smime = new Label(composite, SWT.NONE);
+        smime.setImage(null);
+        smime.setAlignment(SWT.BOTTOM);
+        data = new GridData();
+        data.verticalAlignment = GridData.END;
+        data.grabExcessVerticalSpace = true;
+        smime.setLayoutData(data);
+        
+    	isSigned = SmimeUtilities.isSignedMessage(msg);
+    	
+    	if (isSigned)
+    	{	    		
+			try 
+			{
+				isSignatureValid = SmimeUtilities.isValid(
+						new SMIMESigned((MimeMultipart)msg.asMimeMessage().getContent()),
+															MailsterKeyStoreFactory.getInstance().getRootCertificate());				
+			}
+			catch (Exception e) 
+			{
+				MailsterSWT.getInstance().log(e.getMessage());
+			}
+			
+			if (isSignatureValid)
+			{
+    			smime.setImage(smimeOkImage);
+    			smime.setToolTipText(Messages.getString("HeadersView.signatureOk.tooltip"));  //$NON-NLS-1$
+			}
+    		else
+    		{
+    			smime.setImage(smimeNokImage);
+    			smime.setToolTipText(Messages.getString("HeadersView.signatureNotOk.tooltip"));  //$NON-NLS-1$
+    		}
+    	}
+    	
+        composite.addListener (SWT.Resize, new Listener () {
+            public void handleEvent (Event event) 
+            {
+                Image oldImage = composite.getBackgroundImage();
+                Rectangle rect = composite.getClientArea ();
+                int width = Math.max (1, rect.width);
+                Image newImage = new Image (composite.getDisplay(), width, 1);  
+                GC gc = new GC (newImage);
+                gc.setForeground (startColor);
+                gc.setBackground (endColor);
+                gc.fillGradientRectangle (rect.x, rect.y, width, 1, false);
+                gc.dispose();
+                composite.setBackgroundImage (newImage);
+                if (oldImage != null) 
+                	oldImage.dispose();
+            }
+        });
+        
+        image.addMouseListener(new MouseAdapter() {
+            public void mouseDown(MouseEvent evt)
+            {
+                minimized = !minimized;
+                image.setImage(minimized ? minimizedImage : expandedImage);
+
+                if (minimized)
+                {
+                    headersLabel.setText(resumeText);
+                    if (isSignatureValid)
+                    	smime.setImage(null);
+                }
+                else
+                {
+                    headersLabel.setText(fullText);
+                    if (isSignatureValid)
+    	    			smime.setImage(smimeOkImage);
+    	    		else
+    	    		if (isSigned)
+    	    			smime.setImage(smimeNokImage);
+                }
+                
+                composite.getParent().layout(true);
+            }
+        });
     }
 }
