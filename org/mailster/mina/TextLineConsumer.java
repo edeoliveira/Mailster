@@ -203,6 +203,8 @@ public class TextLineConsumer implements DataConsumer
             }
             else
             {
+            	// fix for DIRMINA-506
+            	in.position(in.position()-matchCount);
                 matchCount = 0;
             }
         }
