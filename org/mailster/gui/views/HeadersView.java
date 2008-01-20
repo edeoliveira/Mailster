@@ -34,6 +34,8 @@ import org.mailster.smtp.SmtpHeadersInterface;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.util.DateUtilities;
 import org.mailster.util.MailUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ---<br>
@@ -64,6 +66,11 @@ import org.mailster.util.MailUtilities;
  */
 public class HeadersView
 {
+    /** 
+     * Log object for this class. 
+     */
+    private static final Logger log = LoggerFactory.getLogger(HeadersView.class);
+    
     private final static Image minimizedImage = SWTHelper.loadImage("plus.gif"); //$NON-NLS-1$
     private final static Image expandedImage = SWTHelper.loadImage("minus.gif"); //$NON-NLS-1$
     private final static Image smimeOkImage = SWTHelper.loadImage("smime_ok.gif"); //$NON-NLS-1$
@@ -118,17 +125,44 @@ public class HeadersView
     private static void removeMatchesFromList(List<String> recipients, 
             SmtpMessage msg, String headerName)
     {
+    	if (recipients.size() <=0)
+    		return;
+    	
         String[] values = msg.getHeaders().getHeaderValues(headerName);
+        
+        // Detect recipients formating.
+        boolean withDelimiters = recipients.get(0).contains("<");
+        
         for (String s : values)
         {
             if (s != null)
             {
             	int pos = s.indexOf('<');
-            	if (pos != -1)
-            		s = s.substring(pos,s.indexOf('>')+1);
-            	else
-            		s = s.trim();
-                recipients.remove(s);
+            	
+            	try
+            	{
+	            	if (withDelimiters)
+	            	{
+	            		if (pos == -1)
+	            			s = "<"+s.trim()+">";
+	            		else
+	            			s = s.substring(pos-1,s.indexOf('>'));
+	            	}
+	            	else
+	            	{
+		            	if (pos != -1)
+		            		s = s.substring(pos,s.indexOf('>')+1);
+		            	else
+		            		s = s.trim();
+	            	}
+	            	
+	                recipients.remove(s);
+            	}
+            	catch (Exception ex)
+            	{
+            		// Just to prevent malformed email addresses
+            		log.debug("Malformed email adress", ex);            		
+            	}
             }
         }
     }
