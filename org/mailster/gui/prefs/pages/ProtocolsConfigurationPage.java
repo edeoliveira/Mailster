@@ -170,7 +170,7 @@ public class ProtocolsConfigurationPage
 
         cryptoStrengthEditor = new SpinnerFieldEditor(
                 ConfigurationManager.CRYPTO_STRENGTH_KEY, Messages.getString("cryptoStrengthLabel"), c, 4);
-        cryptoStrengthEditor.setMinimum(128);
+        cryptoStrengthEditor.setMinimum(512);
         cryptoStrengthEditor.setMaximum(4096);        
         cryptoStrengthEditor.setIncrement(128);
         cryptoStrengthEditor.setPageIncrement(512);
