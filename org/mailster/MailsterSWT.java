@@ -1,5 +1,6 @@
 package org.mailster;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -217,6 +218,7 @@ public class MailsterSWT
                 .getString("MailsterSWT.stop.label")); //$NON-NLS-1$        
 
         new ToolItem(toolBar, SWT.SEPARATOR);
+        new ToolItem(toolBar, SWT.SEPARATOR);
         
         final ToolItem configToolItem = new ToolItem(toolBar, SWT.PUSH);
         configToolItem.setImage(SWTHelper.loadImage("config.gif")); //$NON-NLS-1$
@@ -224,11 +226,18 @@ public class MailsterSWT
                 .getString("MailsterSWT.config.tooltip")); //$NON-NLS-1$  
         
         new ToolItem(toolBar, SWT.SEPARATOR);
+        new ToolItem(toolBar, SWT.SEPARATOR);
         
         final ToolItem homeToolItem = new ToolItem(toolBar, SWT.PUSH);
         homeToolItem.setImage(SWTHelper.loadImage("home.gif")); //$NON-NLS-1$
         homeToolItem.setToolTipText(Messages
                 .getString("MailView.home.page.tooltip")); //$NON-NLS-1$  
+        
+        final ToolItem changelogToolItem = new ToolItem(toolBar, SWT.PUSH);
+        final Image changeLogImage = SWTHelper.loadImage("changelog.gif"); //$NON-NLS-1$
+        changelogToolItem.setImage(changeLogImage);
+        changelogToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.changelog.tooltip")); //$NON-NLS-1$ 
         
         final ToolItem aboutToolItem = new ToolItem(toolBar, SWT.PUSH);
         aboutToolItem.setImage(SWTHelper.loadImage("about.gif")); //$NON-NLS-1$
@@ -248,7 +257,10 @@ public class MailsterSWT
                     ConfigurationDialog.run(sShell);
                 else if (e.widget == aboutToolItem)
                 	(new AboutDialog(sShell, mailView)).open();
-                else if (e.widget == homeToolItem)
+                else if (e.widget == changelogToolItem)
+					mailView.showURL(changeLogImage, "file://"+System.getProperty("user.dir")+File.separator+"changelog.htm", 
+								Messages.getString("MailsterSWT.changelog.tooltip"));
+				else if (e.widget == homeToolItem)
                 	mailView.showURL(ConfigurationManager.MAILSTER_HOMEPAGE, false);
             }
         };
@@ -259,6 +271,7 @@ public class MailsterSWT
         configToolItem.addSelectionListener(selectionAdapter);
         aboutToolItem.addSelectionListener(selectionAdapter);
         homeToolItem.addSelectionListener(selectionAdapter);
+        changelogToolItem.addSelectionListener(selectionAdapter);
 
         // Add a coolItem to the coolBar
         CoolItem coolItem = new CoolItem(coolBar, SWT.NONE);
@@ -590,7 +603,22 @@ public class MailsterSWT
             }
         });
         main.createSShell();
-        main.applyPreferences();      
+        main.applyPreferences();
+        
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+        	public void run() {
+                try
+                {                    
+                	_main.smtpService.shutdownServer(true);
+                    if (_main.trayItem != null)
+                    	_main.trayItem.dispose();
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+        	};
+        });
     }
 
     public static void main(String[] args)
