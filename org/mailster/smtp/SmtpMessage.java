@@ -21,7 +21,8 @@ import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.LinkedList;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.mail.MessagingException;
@@ -63,6 +64,11 @@ public class SmtpMessage
     private String messageID;
 
     private String internalDate;
+    
+    private String charset;
+    private Charset serverCharset = null;
+    private Boolean needsConversion = null;
+    
     /**
      * Likewise, a global id for Message-ID generation.
      */
@@ -76,7 +82,7 @@ public class SmtpMessage
         headers = new SmtpHeaders();
         body = new StringBuilder();
         rawMessage = new StringBuilder();
-        recipients = new LinkedList<String>();
+        recipients = new ArrayList<String>();
     }
 
     /**
@@ -96,18 +102,25 @@ public class SmtpMessage
                 headers.addHeaderLine(params);
             else if (SmtpState.DATA_BODY == response.getNextState())
             {
-                String charset = getBodyCharset();
-                if (charset != null)
+            	if (needsConversion == null)
+            	{
+            		String charset = getBodyCharset();            		
+            		needsConversion = charset  != null && SimpleSmtpServer.DEFAULT_CHARSET.equals(charset);
+            		if (charset  != null && SimpleSmtpServer.DEFAULT_CHARSET.equals(charset))
+            			serverCharset = Charset.forName(SimpleSmtpServer.DEFAULT_CHARSET);
+            	}
+            	
+                if (Boolean.TRUE.equals(needsConversion))
                 {
                     try
-                    {
-                        params = new String(params
-                                .getBytes(SimpleSmtpServer.DEFAULT_CHARSET),
-                                charset);
+                    {                        
+                        params = new String(params.getBytes(SimpleSmtpServer.DEFAULT_CHARSET), charset);
+                        // Since 1.6
+                        //params = new String(params.getBytes(serverCharset), charset);
                     }
                     catch (UnsupportedEncodingException e)
                     {
-                        e.printStackTrace();
+                        e.printStackTrace();                        
                     }
                 }
                 body.append(params);
