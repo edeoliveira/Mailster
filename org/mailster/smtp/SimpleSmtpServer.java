@@ -63,13 +63,16 @@ public class SimpleSmtpServer implements Runnable
 			{
 				try
 				{
-					synchronized(this)
+					if (server.out != null)
 					{
-						if ((server.getLastActiveTime() + server.getConnectionTimeout()) 
-							< System.currentTimeMillis())
-							server.timeout();
+						synchronized(this)
+						{
+							if ((server.getLastActiveTime() + server.getConnectionTimeout()) 
+								< System.currentTimeMillis())
+								server.timeout();
+						}
 					}
-				
+					
 					// go to sleep for 10 seconds.
 					sleep(1000 * 10);
 				}
@@ -108,9 +111,8 @@ public class SimpleSmtpServer implements Runnable
 	
 	/**
 	 * Current socket output <code>PrintWriter</code>.
-	 * *
 	 */
-	private PrintWriter out;
+	protected PrintWriter out;
 	
     /**
      * Output client/server commands for debugging. Off by default.
@@ -277,7 +279,7 @@ public class SimpleSmtpServer implements Runnable
         serverListeners = newTabListeners;
     }
 
-    public void fireMessageReceived(final SmtpMessage msg)
+    private void fireMessageReceived(final SmtpMessage msg)
     {
         Thread thread = new Thread() {
             public void run()
@@ -291,7 +293,7 @@ public class SimpleSmtpServer implements Runnable
         thread.start();
     }
 
-    public void fireServerStateUpdated()
+    private void fireServerStateUpdated()
     {
         Thread thread = new Thread() {
             public void run()
@@ -382,9 +384,14 @@ public class SimpleSmtpServer implements Runnable
                          */
                     	List<SmtpMessage> msgs = handleTransaction(out, input);
                         if (isInternalStoreActivated())
-                        	receivedMail.addAll(msgs);                        
+                        	receivedMail.addAll(msgs);
                     }
-                    socket.close();
+                    
+                    // Cleaning connection
+                    input.close();
+                    out.close();
+                    this.out = null;
+                    socket.close();                    
                 }
                 catch (IOException ioex)
                 {
@@ -418,7 +425,7 @@ public class SimpleSmtpServer implements Runnable
     }
 
     /**
-     * Stops the server. Server is shutdown after processing of the current
+     * Stops the server. Server is shut down after processing of the current
      * request is complete.
      */
     public void stop()
