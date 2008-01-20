@@ -395,8 +395,13 @@ public class MailView
         SWTHelper.getDisplay().addFilter(SWT.KeyDown, new Listener() {
             public void handleEvent(Event e)
             {
-                if (e.keyCode == SWT.F4 && e.stateMask == SWT.MOD1 + SWT.MOD2)
-                	closeAllMailTabs();
+                if (e.keyCode == SWT.F4)
+                {
+                	if (e.stateMask == SWT.MOD1 + SWT.MOD2)                
+                		closeTabs(true);
+                	else if (e.stateMask == SWT.MOD2)                
+                    	closeTabs(false);
+                }
             }
         });
         
@@ -476,7 +481,7 @@ public class MailView
                 if (e.widget == syncedButton)
                 	synced =  syncedButton.getSelection();
                 else if (e.widget == collapseAllButton)
-                	closeAllMailTabs();
+                	closeTabs(true);
             }
         };
         
@@ -931,7 +936,17 @@ public class MailView
                 SWT.COLOR_WHITE));
     }
 
+    public void showURL(Image img, String url,  String title)
+    {
+    	showURL(img, url, title, false);
+    }
+    
     public void showURL(String url, boolean setURLAsTitle)
+    {
+    	showURL(null, url, null, setURLAsTitle);
+    }
+    
+    public void showURL(Image img, String url, String title, boolean setURLAsTitle)
     {
         CTabItem item = null;
         try
@@ -940,8 +955,15 @@ public class MailView
             if (setURLAsTitle)
                 item.setText(url);
             else
+            if (title != null)
+            	item.setText(title);
+            else
                 item.setText(Messages.getString("MailView.tabitem.title")); //$NON-NLS-1$
-            item.setImage(homeImage);
+            
+            if (img != null)
+            	item.setImage(img);
+            else
+            	item.setImage(homeImage);
 
             GridData gridData = new GridData();
             gridData.horizontalAlignment = GridData.FILL;
@@ -989,27 +1011,26 @@ public class MailView
     public void clearDataList()
     {
         tableView.clearDataList();
-        closeAllMailTabs();
+        closeTabs(true);
     }
-
-    private void closeAllMailTabs()
+    
+    private void closeTabs(boolean onlyMailTabs)
     {
         for (int i = folder.getItemCount() - 1; i >= 0; i--)
         {
             CTabItem item = folder.getItems()[i];
 
             if (item.getData() != null)
-            {
                 openedMailsIds.remove(((StoredSmtpMessage) item.getData())
                         .getMessage().getMessageID());
 
-                item.dispose();
-            }
+            if (item.getData() != null || !onlyMailTabs)
+            	item.dispose();
         }
 
         if (dropdownListener != null)
         	dropdownListener.clear();
-    }
+    }    
     
     public void closeTab(SmtpMessage msg)
     {
