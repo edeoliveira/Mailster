@@ -2,6 +2,11 @@ INSTALLATION NOTES for All platforms
 
 - JAVA 1.5 is required.
 
+- Some cryptographic restrictions which apply to your country may 
+prevent you to start Mailster. You can either download unrestricted
+policy files from sun website or change the config.properties to
+use a lower crypto strength (minimum required strength is 512). 
+
 - Correctly set the JAVA_HOME variable in the batch launch file (named
 Mailster.bat for Windows systems and Mailster.sh for Linux).
 

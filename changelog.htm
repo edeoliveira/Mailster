@@ -1,0 +1,329 @@
+<html>
+<head>
+	<title>Mailster Changelog</title>
+	<link type="text/css" rel="stylesheet" href="changelog.css">
+</head>
+<body style="background-color:#F5F3F1" ><div id="changelog" class="rbdc">
+		<dl class="changes">
+			<dt>ver.0.8.3</dt>
+            <dd><strong class="bdx">Released on 2007-12-03 / Codename Harfang</strong></dd>
+            <dd>
+                <strong>Notes</strong>
+                <ul>
+                    <li>UPGRADED to MINA 1.1.5.</li>
+                    <li>UPGRADED to SLF4J 1.4.3.</li>
+                    <li>Updated starting scripts.</li>
+                    <li>Updated home page URL ( http://tedorg.free.fr/en/projects.php ).</li>
+                </ul>
+            </dd>
+            <dd>
+                <strong>Testing</strong>
+                <ul>
+                    <li>Publicly available JUNIT tests to help improve robustness.</li>
+                </ul>
+            </dd>            
+            <dd>
+                <strong>Core</strong>
+                <ul>
+                    <li>Fixed possible resource leaking in SWTHelper#createColor().</li>
+                </ul>
+            </dd>
+			<dd>
+                <strong>GUI</strong>
+                <ul>
+                    <li>Now using PShelf as the left panel container instead of ExpandBar 
+  						as it has a cleaner look :).</li>
+                    <li>Added an outline view to show the structure of the selected mail.</li>
+                    <li>Fixed bug where the attached files drop down button did not show
+  						all the attached files.</li>
+                    <li>Added UI option to configure cryptographic strength.</li>
+                    <li>Log window now try to use the re-parentable abilities of the 
+						  system to keep the log state behind the scenes even when the 
+						  tab is not visible.</li>
+                    <li>Added a clear mail queue button as mail queue is no more cleared
+  						when starting the server. Confirmation is required by a dialog.</li>
+                    <li>Added an S/MIME signature checking ability. It's visually 
+						  represented by an icon in the headers view that show wether 
+						  the signature was verified or not.</li>
+                    <li>Signing information is available in the UI. The dialog shows the
+  						signer(s) certificates data.</li>
+  					<li>Added a certificate creation facility in the preferences.</li>
+                </ul>
+            </dd>
+			<dt>ver.0.8.2</dt>
+				<dd><strong class="bdx">Released on 2007-08-19 / Codename Sasquatch</strong></dd>
+				<dd>
+					<strong>Upgraded libs to MINA 1.1.1</strong>
+				</dd>
+				<dd>
+					<strong>Core</strong>
+					<ul>
+						<li>Reworked SSL module to handle peer authentication.</li>
+						<li>Fixed threading issue in the APOP POP3 command.</li>
+						<li>Added the following POP3 AUTH mechanisms : LOGIN, PLAIN, CRAM-MD5, 
+							CRAM-SHA1, DIGEST-MD5. Note that DIGEST-MD5 supports all qop options 
+							i.e authentication, integrity and privacy (3DES, DES, RC4 RC4-56, 
+							RC4-40 ciphers are available).</li>
+						<li>Fixed an issue with line termination in POP3 protocol.</li>
+						<li>Fixed premature connection closing of the POP3 server.</li>
+					</ul>
+				</dd>
+				<dd>
+					<strong>GUI</strong>
+					<ul>
+						<li>Fixed dialog boxes size computing which now adapts to translations.</li>
+						<li>Fixed table column resizing behaviour.</li>
+						<li>Added options in the UI to control SSL parameters.</li>
+						<li>Added dialogs to show X509 certificates structure. These dialogs
+							allow interacting with the user during a SSL handshake negociation 
+							when client authentication is required.</li>
+						<li>Added a version number to the translations, this way people will know
+							which translations are up to date with the application version.</li>
+						<li>Inbox will no longer display the mails contained in trash folder.</li>
+						<li>Homepage button moved from mail view toolbar to main toolbar.</li>
+						<li>Added a synchronization button to sync selections and deletions between
+							the mail view and the table view.</li>
+						<li>Log view is now a tab in the mail view that can be closed if not desired.</li>
+						<li>Updated POP3 authentication options to allow a much fine grained control
+							based on security.</li>
+					</ul>
+				</dd>
+				<dd>		
+					<strong>Translations</strong>
+					<ul>
+						<li>Bulgarian translation added (thanks to Delian).</li>
+						<li>Italian translation added (thanks to Luca baffa).</li>
+					</ul>
+				</dd>
+		<dt>ver.0.8.1</dt>
+				<dd><strong class="bdx">Released on 2007-07-15 / Codename Green Lantern</strong></dd>
+				<dd>
+					<strong>IMPORTANT NOTE : Migrated to SWT/JFACE 3.3 codebase</strong>
+				</dd>
+				<dd>
+					<strong>GUI</strong>
+					<ul>
+						<li>Added a preference dialog which allows to setup many aspects 
+							of Mailster. Quick options were removed from the UI.</li>
+						<li>Nicer about dialog box.</li>
+						<li>Updated images in the mail table and in the filter tree. 
+						  	Also updated about box dialog banner.</li>
+					</ul>
+				</dd>
+				<dd>
+					<strong>Core</strong>
+					<ul>
+						<li>Reduced memory footprint.</li>
+						<li>Speeded up some string algorithms using StringBuilder instead of
+  							StringBuffer.</li>
+						<li>Improved logging efficiency.</li>
+						<li>POP3 protocol will now also be set to debug mode when SMTP server is 
+							started in debug mode.</li>
+						<li>Tweaked possible bottlenecks in POP3 protocol handling.</li>
+						<li>Reverted back to fast MD5 algorithm use in APOP command.</li>
+						<li>Fixed a mailbox lock problem when a POP3 client wasn't cleanly closing
+							the connection.</li>
+						<li>To improve server efficiency, JVM should be started with the -server 
+							argument. The starting scripts were modified accordingly.</li> 
+						<li>Fixed handling of badly forged emails.</li>
+						<li>Fixed SSL certificate validity range.</li>
+						<li>Fixed and improved preferred content type computation.</li>
+					</ul>
+				</dd>
+				<dd>		
+					<strong>Translations</strong>
+					<ul>
+						<li>Chinese translation added (thanks to Titan Tang).</li>
+						<li>Portuguese (Portugal/Brazil) translations added (thanks to 
+  							Joana M. F. Trindade).</li>
+						<li>German translation added (thanks to Julian Rabe).</li>
+						<li>Spanish translation added (thanks to Julian Cadena).</li>
+						<li>Russian translation added (thanks to Alexey Misharev).</li>
+						<li>Dutsch translation added (thanks to Sebastiaan Mindreau).</li>
+						<li>Turkish translation added (thanks to Muhammet Kara).</li>																
+					</ul>
+				</dd>
+
+				<dt>ver.0.8.0</dt>
+				<dd><strong class="bdx">Released on 2007-06-08 / Codename Unicorn</strong></dd>
+				<dd>		
+					<strong>POP3</strong>
+					<ul>
+						<li>As HTML rendering can depend on the client emailer, i decided to include
+							  a full pop3 implementation. Received mails can be retrieved on a per 
+							  mailbox basis or using the special account mailbox named 
+							  'pop3.all@Mailster.host.org'. The password used to retrieve any mailbox 
+							  content is always the same 'pwd'.<p>
+							  
+							  The pop3 engine uses MINA high performance NIO library.
+							  (see http://mina.apache.org)</li>
+					</ul>  
+					<strong>GUI</strong>
+					<ul>
+						<li>Added a read attribute to messages in order to provide visual information
+						  on which mails were read by removing the bold attribute of the font.</li>
+						<li>Fixed the table lines alternate background coloring.</li>
+						<li>Fixed table selection drawing.</li>
+						<li>Added an icon to the attachment column to provide some info on the 
+						  column purpose.</li>
+						<li>Added an icon to the filter label.</li>  
+						<li>Fixed the width of the refresh spinner.</li>
+						<li>Information on UI events now appear on balloon tooltips over trayitem
+						  icon (when supported by OS of course).</li>
+						<li>added a new command line argument to select UI language
+						  (for example MailsterSWT -lang=PT would load UI using portuguese resource
+						  bundle).</li>
+						<li>Internationalized mail header view.</li>
+						<li>Fix to prevent loosing messages while UI is updating received messages queue.</li>
+						<li>Added a UI button to expose CTRL+SHIFT+F4 shortcut that enables to close
+						  all opened mail tabs at one time.</li>
+						<li>Refresh queue timeout modifications are now applied live. In previous versions
+						  you had to restart the server to apply the new timeout value.</li>
+						<li>CTRL+A now selects all table elements.</li>
+						<li>Added POP3 options to configure port and authentication method of the POP3
+						  service.</li>
+						<li>Added a tree filtering view that groups mail by target hosts. Also introduced a
+						  trash folder where mails are moved when DEL is pressed. If Shift+DEL is pressed,
+						  then mails are completely removed from UI and from the special account mailbox.</li>
+						<li>Added an about dialog box.</li>
+					</ul>
+					<strong>SWT</strong>
+					<ul>
+						<li>Fixed Display handling. I will now use the current display if available 
+						  and will revert to default one when not, except when display object 
+						  is used for example to create objects like colors and fonts or in 
+						  static initializations where i use direct calls to Display.getDefault().</li>
+					</ul>
+
+					<strong>Core</strong>
+					<ul>
+						<li>Fixed SMTP server handling of clients premature disconnections.</li>
+					</ul>
+				</dd>
+
+				<dt>ver.0.7.0</dt>
+				<dd><strong class="bdx">Released on 2007-04-26 / Codename FireHawk</strong></dd>
+				<dd>
+					<strong>GUI</strong>
+					<ul>
+						<li>Fixed exception when closing app without shutting down the server.</li>
+						<li>Added an advanced mail header view which exposes cc and bcc recipients.</li>
+						<li>When clicking on an individual attached file in the list UI now tries
+						  to start the shell associated program.</li>
+						<li>A search toolbar now offer LIVE mail filtering capabilities based on 
+						  'subject', and 'to' header fields.</li>
+						<li>Improved table and log view look and feel.</li>
+						<li>Log view can now be scroll locked.</li>
+						<li>UI translation effort on the way ;p.</li> 
+					</ul>
+					<strong>Core</strong>
+					<ul>
+						<li>Fixed server socket creation : socket was listening only to localhost 
+						  connections since dumbster core modifications introduced hostname binding.</li>
+  					</ul>
+				</dd>
+
+				<dt>ver.0.6.1</dt>
+				<dd><strong class="bdx">Released on 2007-04-03</strong></dd>
+				<dd>
+					<strong>GUI</strong>
+					<ul>
+						<li>log view is now resizeable.</li>
+						<li>added choice of rendering browser on windows platforms when IE
+						  and mozilla/Xul are available.</li>
+						<li>Internationalized log window messages.</li>
+						<li>added a debug mode start.</li>
+						<li>Fixed bug [1680783] : UI locks on email with no Message-Id header.</li>
+					</ul>
+
+					<strong>Core</strong>
+					<ul>
+						<li>Implemented RFE [1354569] : Bcc recipients are now exposed in API.</li>
+						<li>Implemented RFE [1474894] : Provided a way to output debugging information
+						  if VM argument "com.dumbster.smtp.debug" is set then debug info is output 
+						  to System.err when autostart is set at command line.</li>
+						<li>Code refactoring.</li>
+					</ul>
+					<strong>Dumbster</strong>
+					<ul>
+						<li>Event system tightly integrated into Dumbster and new emailReceived event added.</li>
+						<li>Fixed bug [1313597] : Fix for non-ASCII charsets (like for example Japanese chars)
+						  (JDK seems to be required as JRE doesn't install the additionals charset codecs
+						  required for correct handling of non-ASCII charsets) based on Shinya Kasatani patch
+						  proposal.</li>
+						<li>Fixed issue with extended headers, they're not parsed as regular headers do, leaving
+						  them intact for further treatment.</li>
+					</ul>
+				</dd>
+
+				<dt>ver.0.6.0</dt>
+				<dd><strong class="bdx">Released on 2007-03-13</strong></dd>
+				<dd>
+					<strong>NOTES</strong>
+					<ul>
+						<li>Many improvements made to core and GUI !</li>
+					</ul>
+					<strong>GUI</strong>
+					<ul>
+						<li>Splash screen added.</li>
+						<li>Added command line options to auto start server and to set default 
+						  timeout for email queue refreshing.</li>
+						<li>Now fully hands over OS ressources (Colors and images).</li>
+						<li>Improved mail view.</li>
+						<li>Added browsing capabilities to show project related web pages.</li>
+						<li>Added raw message view.</li>
+						<li>Multi language support effort started (currently supports english and french locals).</li>
+						<li>Added column sorting in mail table.</li>
+						<li>Improved SWT browser use robustness.</li>
+					</ul>
+					<strong>Core</strong>
+					<ul>
+						<li>Support for multipart messages related, mixed, alternative (Dumbster RFE 1059109).</li>
+						<li>Added support for attached files handling.</li>
+						<li>Now fully supports encoded headers.</li>
+						<li>Support for preferred content-type selection.</li>
+						<li>New & improved mail parsing code robustness.</li>
+						<li>Code refactoring & reformatting.</li>
+						<li>Documentation effort on the way.</li>
+					</ul>
+					<strong>Dumbster</strong>
+					<ul>
+						<li>Bugs 1307560, 1432371 fixed : bad CR handling in messages.</li>
+						<li>Bug 1229248 fixed : server state now is correctly reported.</li>
+						<li>Bug 1354564 fixed : multiple line headers handled but server
+						  fails to return exact headers format because they're interpreted.</li>
+						<li>Bug 1615268 fixed : calling javax.mail.Transport.isConnected() 
+						  doesn't create extra msg anymore.</li>
+						<li>Bug 1354551 fixed : no more deadlocks in SimpleSmtpServer.start().</li>
+						<li>Bug 1474700 fixed : using ddkilzer fix for accepting MAIL FROM after RSET.</li><p>
+						<li>Added security fix : socket is now binding to localhost by default but it is possible
+						  to specify another hostname.</li>
+						<li>Rewrited some code portions to comply with Java 1.5.</li>
+						<li>Added event system to communicate with UI.</li>
+					</ul>
+				</dd>
+
+				<dt>ver.0.2.0</dt>
+				<dd><strong class="bdx">Released on 2007-03-01</strong></dd>
+				<dd>
+					<strong>NOTES</strong>
+					<ul>
+						<li>Upgraded to SWT 3.3 M5 widgets.</li>
+						<li>Much easier library loading. </li>
+						<li>Mailster released for Linux (see README.txt for release notes).</li>
+						<li>Added CHANGELOG.txt and README.txt.</li>
+					</ul>
+				</dd>
+				
+				<dt>ver.0.1.0</dt>
+				<dd><strong class="bdx">Released on 2007-02-22</strong></dd>
+				<dd>
+					<strong>NOTES</strong>
+					<ul>
+						<li>Initial release on sourceforge.</li>
+					</ul>
+				</dd>
+		</dl>
+	</div>
+</body>
+</html>
