@@ -3,7 +3,6 @@ package org.mailster.gui;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -175,17 +174,11 @@ public class SWTHelper
      */
     public static ImageDescriptor getImageDescriptor(String fileName)
     {
-        try 
-        {
-            URL url = new File(DESC_IMAGES_DIRECTORY + fileName).toURI().toURL();
-            return (ImageDescriptor.createFromURL(url));
-        } 
-        catch (MalformedURLException e) 
-        {
-            /* Should never happen */
-            log.info("ImageDescriptor [{}] did not load successfully", fileName);
-            return ImageDescriptor.getMissingImageDescriptor();
-        }
+        URL url = ClassLoader.getSystemResource(DESC_IMAGES_DIRECTORY + fileName);
+        if (url == null)
+        	return ImageDescriptor.getMissingImageDescriptor();
+        else
+        	return (ImageDescriptor.createFromURL(url));
     }
     
     /**
