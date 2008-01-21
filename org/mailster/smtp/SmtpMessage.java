@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,7 +65,7 @@ public class SmtpMessage
     private String internalDate;
     
     private String charset;
-    private Charset serverCharset = null;
+    //private Charset serverCharset = null;
     private Boolean needsConversion = null;
     
     /**
@@ -106,8 +105,8 @@ public class SmtpMessage
             	{
             		String charset = getBodyCharset();            		
             		needsConversion = charset  != null && SimpleSmtpServer.DEFAULT_CHARSET.equals(charset);
-            		if (charset  != null && SimpleSmtpServer.DEFAULT_CHARSET.equals(charset))
-            			serverCharset = Charset.forName(SimpleSmtpServer.DEFAULT_CHARSET);
+            		/*if (charset  != null && SimpleSmtpServer.DEFAULT_CHARSET.equals(charset))
+            			serverCharset = Charset.forName(SimpleSmtpServer.DEFAULT_CHARSET);*/
             	}
             	
                 if (Boolean.TRUE.equals(needsConversion))
@@ -336,9 +335,17 @@ public class SmtpMessage
     {
         recipients.add(recipient);
     }
-
+    
     /**
-     * Returns a List of the recipients of this message (from the SMTP
+     * Add a list of recipients to the list of recipients.
+     */
+    public void addRecipients(List<String> l)
+    {
+        this.recipients.addAll(l);
+    }    
+    
+    /**
+     * Returns the recipients of this message (from the SMTP
      * envelope). Bcc recipients are consequently exposed for testing.
      * 
      * @return the list of recipients
