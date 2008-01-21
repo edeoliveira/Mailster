@@ -287,7 +287,8 @@ public class SmtpMessagePart
      * @throws MessagingException if MimeMessage creation fails
      * @throws UnsupportedEncodingException if charset is unknown
      */
-    public MimeBodyPart asMimeBodyPart(String charset) throws MessagingException, UnsupportedEncodingException
+    public MimeBodyPart asMimeBodyPart(String charset) 
+    	throws MessagingException, UnsupportedEncodingException
     {
         if (charset == null)
         	charset = SimpleSmtpServer.DEFAULT_CHARSET;
