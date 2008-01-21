@@ -411,7 +411,7 @@ public class MailUtilities
     {
         String contentType = headers
                 .getHeaderValue(SmtpHeadersInterface.CONTENT_TYPE);
-        return contentType.startsWith("multipart");
+        return contentType != null && contentType.startsWith("multipart");
     }
 
     /**
