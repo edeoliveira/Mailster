@@ -138,6 +138,7 @@ public class MailsterKeyStoreFactory
 		
 		getInstance().loadDefaultKeyStore();
 		X509SecureSocketFactory.reload();
+		LOG.info("Certificates created and loaded successfully !");
 	}
 	
 	public static void main(String args[])
