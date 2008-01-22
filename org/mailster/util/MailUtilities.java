@@ -425,7 +425,7 @@ public class MailUtilities
     {
         String contentType = headers
                 .getHeaderValue(SmtpHeadersInterface.CONTENT_TYPE);
-        return contentType.startsWith("message");
+        return contentType != null && contentType.startsWith("message");
     }
 
     /**
