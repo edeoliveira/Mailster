@@ -146,17 +146,26 @@ public class HeadersView
 	            		if (pos == -1)
 	            			s = "<"+s.trim()+">";
 	            		else
-	            			s = s.substring(pos-1,s.indexOf('>'));
+	            			s = s.substring(pos,s.indexOf('>')+1);
+	            		
+	            		for (String str : recipients)
+	            		{
+	            			if (str != null && str.contains(s))
+	            			{
+	            					recipients.remove(str);
+	            					break;
+	            			}
+	            		}
 	            	}
 	            	else
 	            	{
 		            	if (pos != -1)
-		            		s = s.substring(pos,s.indexOf('>')+1);
+		            		s = s.substring(pos+1,s.indexOf('>'));
 		            	else
 		            		s = s.trim();
+		            	
+		            	recipients.remove(s);
 	            	}
-	            	
-	                recipients.remove(s);
             	}
             	catch (Exception ex)
             	{
@@ -169,9 +178,7 @@ public class HeadersView
     
     private static String formatBccList(SmtpMessage msg)
     {
-        List<String> recipients = new ArrayList<String>(msg.getRecipients().size());
-        for (String s : msg.getRecipients())
-            recipients.add(s);
+        List<String> recipients = new ArrayList<String>(msg.getRecipients());
         
         removeMatchesFromList(recipients, msg, SmtpHeadersInterface.TO);
         removeMatchesFromList(recipients, msg, SmtpHeadersInterface.CC);
