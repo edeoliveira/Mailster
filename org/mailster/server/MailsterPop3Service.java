@@ -176,8 +176,9 @@ public class MailsterPop3Service
     {
         for (String recipient : msg.getRecipients())
         {
-            recipient = recipient.substring(recipient.indexOf('<') + 1,
-                    recipient.indexOf('>'));
+        	if (recipient.indexOf('<') > -1)
+        		recipient = recipient.substring(recipient.indexOf('<') + 1, recipient.indexOf('>'));
+        	
             log.debug("Storing new message in mailbox of recipient <{}>", recipient);
             Pop3User user = userManager.getUserByEmail(recipient);
             MailBox mbox = userManager.getMailBoxManager().getMailBoxByUser(user);            
