@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.DefaultIoFilterChainBuilder;
@@ -95,12 +96,19 @@ public class MailsterPop3Service
         ((SocketAcceptorConfig) config).setReuseAddress(true);
         DefaultIoFilterChainBuilder chain = config.getFilterChain();
 
-        executor = Executors.newCachedThreadPool();
-        chain.addLast("threadPool", new ExecutorFilter(executor));
-
         chain.addLast("codec", new ProtocolCodecFilter(
                 new InetTextCodecFactory(Charset.forName(CHARSET_NAME))));
 
+		executor = Executors.newCachedThreadPool(new ThreadFactory() {
+			int sequence;
+			
+			public Thread newThread(Runnable r) 
+			{					
+				return new Thread(r, "POP3 Thread "+(++sequence));
+			}			
+		});
+		chain.addLast("threadPool", new ExecutorFilter(executor));
+		
         handler = new Pop3ProtocolHandler(userManager);
     }
     
