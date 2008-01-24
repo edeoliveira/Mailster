@@ -139,13 +139,10 @@ public class MailView
                     		ConfigurationManager.CONFIG_STORE.
                     		getBoolean(ConfigurationManager.EXECUTE_ENCLOSURE_ON_CLICK_KEY))
                     {
-                        fileName = main.getSMTPService().getOutputDirectory()
-                                + File.separator + fileName;
-                        saveAllAttachments(
-                                new MenuItem[] { (MenuItem) event.widget },
-                                main.getSMTPService().getOutputDirectory());
-                        main
-                                .log(Messages
+                    	String tmpDir = System.getProperty("java.io.tmpdir");
+                        fileName = tmpDir + fileName;
+                        saveAllAttachments(new MenuItem[] { (MenuItem) event.widget }, tmpDir);
+                        main.log(Messages
                                         .getString("MailView.execute.file") + fileName + " ..."); //$NON-NLS-1$ //$NON-NLS-2$
                         p.execute(fileName);
                     }
