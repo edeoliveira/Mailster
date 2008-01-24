@@ -103,8 +103,8 @@ public class SmtpMessage
             {
             	if (needsConversion == null)
             	{
-            		String charset = getBodyCharset();            		
-            		needsConversion = charset  != null && SimpleSmtpServer.DEFAULT_CHARSET.equals(charset);
+            		charset = getBodyCharset();
+            		needsConversion = charset  != null && !SimpleSmtpServer.DEFAULT_CHARSET.equals(charset);
             		/*if (charset  != null && SimpleSmtpServer.DEFAULT_CHARSET.equals(charset))
             			serverCharset = Charset.forName(SimpleSmtpServer.DEFAULT_CHARSET);*/
             	}
