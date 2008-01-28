@@ -121,12 +121,25 @@ public class SmtpMessageTableLabelProvider extends EventTableLabelProvider
 
 	public Color getBackground(Object element) 
 	{
-        if (element != null && sourceList.indexOf(element) % 2 == 1)
+        if (element != null && isEvenElement(element))
             return tableRowColor;
         
         return null;
 	}
 
+	private boolean isEvenElement(Object element) 
+	{
+		sourceList.getReadWriteLock().readLock().lock();
+		try 
+		{
+		    return sourceList.indexOf(element) % 2 == 1;
+		} 
+		finally 
+		{
+			sourceList.getReadWriteLock().readLock().unlock();
+		}
+	}
+	
 	public Color getForeground(Object element) 
 	{
 		return null;
