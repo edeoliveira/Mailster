@@ -1,10 +1,12 @@
 package org.mailster.pop3.mailbox;
 
+import java.text.ParseException;
 import java.util.Date;
 
 import javax.mail.Flags;
 
 import org.mailster.smtp.SmtpMessage;
+import org.mailster.util.DateUtilities;
 
 /**
  * ---<br>
@@ -41,10 +43,28 @@ public class StoredSmtpMessage
     
     private SmtpMessage message;
     private Date internalDate = new Date();
+    private Date messageDate;
     private Flags flags = new Flags();
     private Long id;
     
     private boolean checked;
+    
+    public Date getMessageDate()
+    {
+    	if (messageDate == null)
+    	{
+    		try 
+			{
+				messageDate = DateUtilities.rfc822DateFormatter.parse(message.getDate());
+			} 
+			catch (ParseException e) 
+			{
+				return null;
+			}
+    	}
+    	
+    	return messageDate;
+    }
     
     public boolean isChecked()
     {
