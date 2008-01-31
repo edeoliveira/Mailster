@@ -104,7 +104,8 @@ public class MailsterPop3Service
 			
 			public Thread newThread(Runnable r) 
 			{					
-				return new Thread(r, "POP3 Thread "+(++sequence));
+				sequence += 1;
+				return new Thread(r, "POP3 Thread "+sequence);
 			}			
 		});
 		chain.addLast("threadPool", new ExecutorFilter(executor));
