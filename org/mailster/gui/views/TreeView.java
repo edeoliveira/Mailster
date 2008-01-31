@@ -39,12 +39,12 @@ import org.mailster.gui.utils.LayoutUtils;
  * Web Site</a> <br>
  * ---
  * <p>
- * TreeView.java - A generic tree view.
+ * TreeView.java - A class that abstracts a generic tree view.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class TreeView 
+public abstract class TreeView 
 {
 	protected TreeItem root;    
 	protected Tree tree;
@@ -67,9 +67,7 @@ public class TreeView
         tree.setLayoutData(layoutData);
     }    
     
-    protected  void customizeToolbar(ToolBar toolBar)
-    {    	
-    }
+    protected abstract void customizeToolbar(ToolBar toolBar);
     
     protected void createTreeToolBar(Composite parent, boolean enableToolbar)
     {
@@ -117,26 +115,26 @@ public class TreeView
         SelectionAdapter selectionAdapter = new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e)
             {
-            	boolean treeHasASelectedNode = tree.getSelection() != null 
-            		&& tree.getSelection().length == 1 && tree.getSelection()[0] != null;
-            	
-            	boolean hasNodes = tree.getItems() != null && tree.getItems().length > 0;
-            	
-            	navigateUpItem.setEnabled(treeHasASelectedNode && tree.getSelection()[0] != root);
-                collapseAllItem.setEnabled(hasNodes);
-                expandAllItem.setEnabled(hasNodes);
-                
             	if (e.widget == navigateUpItem)
 	            {
-                		TreeItem parentItem = tree.getSelection()[0].getParentItem();
-                		if (parentItem != null)
-                			tree.setSelection(parentItem);
+            		TreeItem parentItem = tree.getSelection()[0].getParentItem();
+            		if (parentItem != null)
+            			tree.setSelection(parentItem);
             	}
             	
                 if (e.widget == collapseAllItem)
                 	SWTHelper.collapseAll(tree);
                 else if (e.widget == expandAllItem)
                 	SWTHelper.expandAll(tree);
+
+            	boolean treeHasASelectedNode = tree.getSelection() != null 
+        		&& tree.getSelection().length == 1 && tree.getSelection()[0] != null;
+        	
+	        	boolean hasNodes = tree.getItems() != null && tree.getItems().length > 0;
+	        	
+	        	navigateUpItem.setEnabled(treeHasASelectedNode && tree.getSelection()[0] != root);
+	            collapseAllItem.setEnabled(hasNodes);
+	            expandAllItem.setEnabled(hasNodes);                
             }
         };
         
