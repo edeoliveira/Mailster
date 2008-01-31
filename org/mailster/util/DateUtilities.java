@@ -69,7 +69,7 @@ public class DateUtilities
     	new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy", Locale.US);
 
     /**
-     * Format date as 24 chars wide ANSI C's asctime()
+     * Format date as 24 chars wide ANSI C's asctime().
      * 
      * @param d the date to format
      * @return the formatted date
@@ -86,5 +86,21 @@ public class DateUtilities
             return s.substring(0, 8) + " " + s.substring(8);
 
         return s;
+    }
+    
+    /**
+     * Return true if <code>d</code> represents a time value on the current
+     * day.
+     *  
+     * @param d the date to compare with today
+     * @return
+     */
+    public static boolean isCurrentDay(Date d)
+    {
+    	int offset = TimeZone.getDefault().getRawOffset();
+    	long current = System.currentTimeMillis() + offset;
+    	long compared = d.getTime() + offset;
+    	
+    	return ((int) (compared / 8.64E7)) == ((int) (current / 8.64E7));
     }
 }
