@@ -59,7 +59,7 @@ public class Pop3DigestMD5Test extends TestCase
     private MailsterPop3Service service;
     private Socket socket;
     
-    private String encoding = "utf8";
+    private String encoding = "UTF-8";
     private byte[] A1;
     
     private boolean integrityModeEnabled;
@@ -302,6 +302,7 @@ public class Pop3DigestMD5Test extends TestCase
         String response = readLine();
         assertTrue(response, response.startsWith("+OK "));
         integrityModeEnabled = false;
+        privacyModeEnabled = false;
     }
     
 	/**	
@@ -490,6 +491,8 @@ public class Pop3DigestMD5Test extends TestCase
     		while (true)
     		{
     			b = in.read();
+    			if (b == -1)
+    				throw new Exception("Session closed by peer");
     			if (last == '\r')
     			{
     				if (b == '\n')
