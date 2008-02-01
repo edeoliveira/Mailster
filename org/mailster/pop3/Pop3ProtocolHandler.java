@@ -155,14 +155,15 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
     	
         String request = (String) message;
         log.info("C: {}", request);
+
+        MinaPop3Connection conn = (MinaPop3Connection) session.getAttribute(CONNECTION);        
         
         if (request == null)
         {
-            session.close();
+            conn.println("-ERR Command not recognized");
             return;
         }
         
-        MinaPop3Connection conn = (MinaPop3Connection) session.getAttribute(CONNECTION);        
         Pop3CommandState state = (Pop3CommandState) session.getAttribute(LAST_INCOMPLETE_COMMAND);
         Pop3Command command = null;
         
