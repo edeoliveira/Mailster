@@ -174,7 +174,7 @@ public class SWTHelper
      */
     public static ImageDescriptor getImageDescriptor(String fileName)
     {
-        URL url = ClassLoader.getSystemResource(DESC_IMAGES_DIRECTORY + fileName);
+        URL url = Thread.currentThread().getContextClassLoader().getResource(DESC_IMAGES_DIRECTORY + fileName);
         if (url == null)
         	return ImageDescriptor.getMissingImageDescriptor();
         else
