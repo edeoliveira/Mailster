@@ -93,7 +93,7 @@ public class DateUtilities
      * day.
      *  
      * @param d the date to compare with today
-     * @return
+     * @return boolean true if <code>d</code> is bounded in the current day
      */
     public static boolean isCurrentDay(Date d)
     {
