@@ -2,9 +2,127 @@
 <head>
 	<title>Mailster Changelog</title>
 	<link type="text/css" rel="stylesheet" href="changelog.css">
+	<style type="text/css">
+		/* MAIN ELEMENTS */
+		body {
+			font-family: verdana, arial, hevetica, sans-serif;
+			font-size: 10px;
+			margin: 0 0 0 0;
+			padding: 0 0 0 0;
+		}
+		
+		.bdx
+		{
+			color: #7b2e00;
+			text-decoration: underline;
+		}
+		
+		.rbdc
+		{
+			background: #F5F3F1;
+			padding: 2px 2px 2px 2px;
+			text-align:left;
+		}
+		
+		.changes dt
+		{
+			width: 60px;
+			float: left;
+			clear: left;
+			color: #7b2e00;
+			font-weight: bold;
+			text-align: right;
+			font-family: Georgia, "Times New Roman", Times, serif;
+		}
+		
+		.changes dd
+		{
+			margin-left: 70px;
+			margin-bottom: 16px;
+			padding-left: 10px;
+			border-left: 1px solid #C3CBDF;
+			color: #F8A23A;
+		}
+		
+		.changes ul 
+		{
+			font-family: Tahoma, Arial, Helvetica, sans-serif;
+			list-style-type: square;
+			margin: 5px;
+			margin-left: 20px;
+			font-size: 11px;
+			color: #777;	
+		}
+ 	</style>
 </head>
 <body style="background-color:#F5F3F1" ><div id="changelog" class="rbdc">
 		<dl class="changes">
+			<dt>ver.0.8.4</dt>
+            <dd><strong class="bdx">Released on 2008-02-10 / Codename Havoc</strong></dd>
+			<dd>
+                <strong>Notes</strong>
+                <ul>
+                    <li>UPGRADED to MINA 1.1.6.</li>
+                    <li>Updated GlazedLists library.</li>
+                    <li>Updated starting scripts.</li>
+                </ul>
+            </dd>
+			<dd>
+                <strong>GUI</strong>
+                <ul>
+                	<li>Added a memory occupation progress bar in the status bar.</li>
+                	<li>Made strong improvements in data memory management to prevent OOM errors.</li>
+                	<li>Tray item image is changed when server is started.</li>
+                	<li>Fixed treeview to only create case insensitive hosts filters.</li>
+                	<li>Fixed enabled state of buttons in the tree view toolbar.</li>
+                	<li>Added a new branch in the treeview that contains the flagged mails.
+  						It allows the user to do a custom filtering on the mail list</li>
+                	<li>Many improvement to GlazedLists code to provide more flexible UI
+  						and fix some bugs.</li>
+                	<li>Now uses a temporary directory to store previewed attached files.</li>
+                    <li>Added the SHIFT+F4 shortcut that enables to close all opened tabs 
+					  at one time.</li>
+					<li>Added a button to show the complete changelog in prettyfied HTML 
+					  format.</li>
+					<li>Fixed minimum cryptographic strength to comply with the algorithm
+					  needs.</li>
+					<li>Fixed SWTHelper#getImageDescriptor(String fileName). Properties page
+					  now correctly show icons when Mailster is packed in a JAR file or when
+  					  using JavaWebStart.</li>
+                </ul>
+            </dd>
+            <dd>
+				<strong>POP3</strong>
+				<ul>
+					<li>Fixed a nasty threading issue in DIGEST-MD5 authentication.</li>
+					<li>POP3's threads name are now meaningfull.</li>
+					<li>Fixed a line delimiter bug handling.</li>
+					
+				</ul>
+			</dd>
+            <dd>
+				<strong>Core</strong>
+				<ul>
+					<li>Drastically reduced SmtpMessage memory size by removing some storing
+  						redundancy and compressing buffer size of data after parsing completion.<br>
+  						Method SmtpMessage#getRawMessage() was removed.</li>
+					<li>Fixed wrong bcc list computing.</li>
+				</ul>
+			</dd>
+            <dd>
+				<strong>Dumbster</strong>
+				<ul>
+					<li>Now avoids unnecessary characters conversions.</li>
+					<li>Fixed watchdog which wrongly timed out.</li>
+					<li>Added stream cleaning code on connections closing.</li>
+				</ul>
+			</dd>
+            <dd>
+				<strong>Translations</strong>
+				<ul>
+					<li>Minor typo's fixed in french translation.</li>
+				</ul>
+			</dd>			
 			<dt>ver.0.8.3</dt>
             <dd><strong class="bdx">Released on 2007-12-03 / Codename Harfang</strong></dd>
             <dd>

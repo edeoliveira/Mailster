@@ -10,6 +10,13 @@ use a lower crypto strength (minimum required strength is 512).
 - Correctly set the JAVA_HOME variable in the batch launch file (named
 Mailster.bat for Windows systems and Mailster.sh for Linux).
 
+- If you do get a 'No server JVM at ...' error at startup please install
+a full JDK or remove the -server command line option in the startup script.
+
+- If you get an OutOfMemory exception please change the value (256) in the 
+startup script with a value compatible with your available memory for the 
+following parameters : -Xms256m -Xmx256m
+
 INSTALLATION NOTES for Linux
 
 You will need to install xulrunner which is downloadable 

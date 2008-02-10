@@ -1,4 +1,53 @@
 #####
+Version 0.8.4 (2008-02-10) - Codename Havoc
+
+NOTES :
+- UPGRADED to MINA 1.1.6.
+- Updated GlazedLists library.
+- Updated starting scripts.
+
+GUI:
+- Added a memory occupation progress bar in the status bar.
+- Made strong improvements in data memory management to prevent 
+  OOM errors.
+- Tray item image is changed when server is started.
+- Fixed treeview to only create case insensitive hosts filters.
+- Fixed enabled state of buttons in the tree view toolbar.
+- Added a new branch in the treeview that contains the flagged mails.
+  It allows the user to do a custom filtering on the mail list.
+- Many improvement to GlazedLists code to provide more flexible UI
+  and fix some bugs.
+- Now uses a temporary directory to store previewed attached files.
+- Added the SHIFT+F4 shortcut that enables to close all opened tabs 
+  at one time.
+- Added a button to show the complete changelog in prettyfied HTML 
+  format.
+- Fixed minimum cryptographic strength to comply with the algorithm
+  needs.
+- Fixed SWTHelper#getImageDescriptor(String fileName). Properties page
+  now correctly show icons when Mailster is packed in a JAR file or when
+  using JavaWebStart.
+
+POP3 :
+- Fixed a nasty threading issue in DIGEST-MD5 authentication.
+- POP3's threads name are now meaningfull.
+- Fixed a line delimiter bug handling.
+
+Core :
+- Drastically reduced SmtpMessage memory size by removing some storing
+  redundancy and compressing buffer size of data after parsing completion.
+  Method SmtpMessage#getRawMessage() was removed.   
+- Fixed wrong bcc list computing.
+
+DUMBSTER :
+- Now avoids unnecessary characters conversions.
+- Fixed watchdog which wrongly timed out.
+- Added stream cleaning code on connections closing.
+
+TRANSLATIONS :
+- Minor typo's fixed in french translation.
+
+#####
 Version 0.8.3 (2007-12-03) - Codename Harfang
 
 NOTES :
@@ -140,7 +189,7 @@ GUI :
 - Internationalized mail header view.
 - Fix to prevent loosing messages while UI is updating received messages queue.
 - Added a UI button to expose CTRL+SHIFT+F4 shortcut that enables to close
-  all opened tabs at one time.
+  all opened mail tabs at one time.
 - Refresh queue timeout modifications are now applied live. In previous versions
   you had to restart the server to apply the new timeout value.
 - CTRL+A now selects all table elements.
