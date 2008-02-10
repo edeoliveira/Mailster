@@ -116,8 +116,7 @@ public class MailBox
     }
     
     /**
-     * Stores a mail in the mailbox. This method automatically acquires the
-     * mailbox reentrant lock to prevent threading issues.
+     * Stores a mail in the mailbox.
      * 
      * @param message the message to be stored
      * @return the stored object
@@ -126,14 +125,14 @@ public class MailBox
     {
     	StoredSmtpMessage stored = null;
     	
-    	synchronized (mails)
-        {
-    		Long id = new Long(counter);
-    		stored = new StoredSmtpMessage(message, id);
-            stored.setMailBox(this);
-        	mails.put(id, stored);
-        	counter++;
-        }
+    	synchronized (mails) 
+    	{
+			Long id = new Long(counter);
+			stored = new StoredSmtpMessage(message, id);
+	        stored.setMailBox(this);
+	    	mails.put(id, stored);
+	    	counter++;
+    	}
     	
         return stored;
     }
@@ -166,12 +165,12 @@ public class MailBox
     }
 
     /**
-     * Returns mailsize by its ID
+     * Returns mail size by its ID
      */
     public long getMessageSize(Long id)
     {
         if (mails.containsKey(id))
-            return mails.get(id).getMessage().getSize();
+            return mails.get(id).getMessageSize();
         else
             return 0;
     }
@@ -224,7 +223,7 @@ public class MailBox
     {
         int total = 0;
         for (StoredSmtpMessage msg : mails.values())
-            total += msg.getMessage().getRawMessage().length();
+            total += msg.getMessage().toString().length();
         
         return total;
     }
