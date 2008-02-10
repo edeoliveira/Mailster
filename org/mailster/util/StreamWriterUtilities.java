@@ -97,7 +97,7 @@ public class StreamWriterUtilities
             PrintWriter out)
     {
         BufferedReader in = new BufferedReader(new StringReader(msg
-                .getMessage().getRawMessage()));
+                .getMessage().toString()));
 
         try
         {
