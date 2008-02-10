@@ -1,8 +1,8 @@
 package org.mailster.gui.glazedlists;
 
-import org.eclipse.swt.widgets.TableItem;
-
-import ca.odell.glazedlists.gui.TableFormat;
+import ca.odell.glazedlists.EventList;
+import ca.odell.glazedlists.TransformedList;
+import ca.odell.glazedlists.event.ListEvent;
 
 /**
  * ---<br>
@@ -26,14 +26,36 @@ import ca.odell.glazedlists.gui.TableFormat;
  * Web Site</a> <br>
  * ---
  * <p>
- * ExtendedTableFormat.java - Extends <code>TableFormat</code> adding a new 
- * callback @see setupItem(TableItem item, E value, int realIndex) that 
- * enables to modify the lazily created TableItem.
+ * BatchEventList.java - Allow to do batch changes to a given source list.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public interface ExtendedTableFormat<E> extends TableFormat<E>
+public class BatchEventList<S, E> extends TransformedList<S, E> 
 {
-    public void setupItem(TableItem item, E value, int realIndex);
+	public BatchEventList(EventList<S> source) 
+	{
+		super(source);
+		source.addListEventListener(this);
+	}
+
+	public void listChanged(ListEvent<S> e) 
+	{
+		updates.forwardEvent(e);
+	}
+
+	protected boolean isWritable() 
+	{
+		return true;
+	}
+
+	public void beginBatch() 
+	{
+		updates.beginEvent(true);
+	}
+
+	public void commitBatch() 
+	{
+		updates.commitEvent();
+	}
 }

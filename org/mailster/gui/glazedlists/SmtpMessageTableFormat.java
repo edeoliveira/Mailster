@@ -1,14 +1,12 @@
 package org.mailster.gui.glazedlists;
 
-import java.text.ParseException;
+import java.util.Comparator;
 import java.util.Date;
 
-import org.eclipse.swt.widgets.TableItem;
 import org.mailster.gui.Messages;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
-import org.mailster.smtp.SmtpMessage;
-import org.mailster.util.DateUtilities;
 
+import ca.odell.glazedlists.gui.AdvancedTableFormat;
 import ca.odell.glazedlists.gui.WritableTableFormat;
 
 /**
@@ -39,11 +37,18 @@ import ca.odell.glazedlists.gui.WritableTableFormat;
  * @version $Revision$, $Date$
  */
 public class SmtpMessageTableFormat
-    implements ExtendedTableFormat<StoredSmtpMessage>, WritableTableFormat<StoredSmtpMessage>
+    implements WritableTableFormat<StoredSmtpMessage>, AdvancedTableFormat<StoredSmtpMessage>
 {
     private String toHeader;
     private String subjectHeader;
     private String dateHeader;
+
+	private static Comparator<String> stringComparator = new Comparator<String>() {
+        public int compare(String s0, String s1)
+        {
+        	return s0.compareTo(s1);
+        }
+    };
     
     public final static int ATTACHMENT_COLUMN   = 0;
     public final static int TO_COLUMN           = 1;
@@ -86,47 +91,21 @@ public class SmtpMessageTableFormat
 
     public Object getColumnValue(StoredSmtpMessage stored, int column)
     {
-    	if (stored == null)
-    		return "";
-    	
-    	SmtpMessage msg = stored.getMessage();
-    	
         if (column == ATTACHMENT_COLUMN)
             return ""; //$NON-NLS-1$
         else if (column == TO_COLUMN)
-            return msg.getTo();
+            return stored.getMessageTo();
         else if (column == SUBJECT_COLUMN)
-            return msg.getSubject();
+            return stored.getMessageSubject();
         else if (column == FLAG_COLUMN)
             return stored.isChecked();
         else if (column == DATE_COLUMN)
-        {
-			try 
-			{
-				Date d = DateUtilities.rfc822DateFormatter.parse(stored.getMessage().getDate());
-				
-	            if ((int) (d.getTime() / 8.64E7) == (int) (((new Date())
-	                    .getTime()) / 8.64E7))
-	                // same day
-	            	return DateUtilities.hourDateFormat.format(d);
-	            	
-	            return DateUtilities.df.format(d);
-			} 
-			catch (ParseException e) 
-			{
-				return "-";
-			}
-        }
+        	return stored.getMessageDate();
 
         throw new IllegalStateException();
     }
 
-    public void setupItem(final TableItem item, StoredSmtpMessage msg, final int realIndex)
-    {
-        item.setData(msg);        
-    }
-
-	public boolean isEditable(StoredSmtpMessage msg, int column) 
+    public boolean isEditable(StoredSmtpMessage msg, int column) 
 	{
 		return column == FLAG_COLUMN;
 	}
@@ -137,5 +116,30 @@ public class SmtpMessageTableFormat
 			msg.setChecked(((Boolean) obj).booleanValue());
 		
 		return msg;
+	}
+
+	@SuppressWarnings("unchecked")
+	public Class getColumnClass(int column) 
+	{
+		return String.class;
+	}
+
+	@SuppressWarnings("unchecked")
+	public Comparator getColumnComparator(int column) 
+	{
+		if (column == DATE_COLUMN)
+		{
+			return new Comparator<Date>() {
+	            public int compare(Date d0, Date d1)
+	            {
+	            	return d0.compareTo(d1);
+	            }
+	        };
+		}
+		else
+		if (column == TO_COLUMN || column == SUBJECT_COLUMN)
+			return stringComparator;
+		
+		return null;
 	}
 }
