@@ -332,18 +332,17 @@ public class AuthDigestMD5Command extends AuthAlgorithmCommand
 				else
 				if (state.getNextState() >= GET_CLIENT_ACK_STATE && "".equals(cmd))
 				{
-					tryLockingMailbox(conn);
-
-		            IoSession session = ((MinaPop3Connection) conn).getSession();
+		            IoSession session = ((MinaPop3Connection) conn).getSession();		            
+		            session.getFilterChain().addBefore("codec", "digestMD5Filter", new AuthDigestMD5IoFilter());
 		            
 					if (state.getNextState() == GET_CLIENT_ACK_WITH_INTEGRITY_QOP_STATE)
 						session.setAttribute(INTEGRITY_QOP);
 					else
 					if (state.getNextState() == GET_CLIENT_ACK_WITH_PRIVACY_QOP_STATE)
 						session.setAttribute(PRIVACY_QOP);
-
-					session.getFilterChain().addBefore("codec", "digestMD5Filter", new AuthDigestMD5IoFilter());
 					
+					session.setAttribute(AuthDigestMD5IoFilter.DISABLE_FILTER_ONCE);					
+					tryLockingMailbox(conn);
 					return null;
 				}
 				else

@@ -24,8 +24,8 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.textline.LineDelimiter;
 import org.mailster.mina.CumulativeIoFilter;
-import org.mailster.mina.IoFilterCodec;
 import org.mailster.mina.DataConsumer;
+import org.mailster.mina.IoFilterCodec;
 import org.mailster.mina.TextLineConsumer;
 import org.mailster.pop3.commands.auth.AuthCramMD5Command;
 import org.mailster.pop3.commands.auth.AuthDigestMD5Command;
@@ -72,6 +72,8 @@ public class AuthDigestMD5IoFilter
     
     protected final static String ENCODING_CIPHER 	= AuthDigestMD5IoFilter.class.getName()+".encodingCipher";
     protected final static String DECODING_CIPHER 	= AuthDigestMD5IoFilter.class.getName()+".decodingCipher";
+    
+    public final static String DISABLE_FILTER_ONCE = AuthDigestMD5IoFilter.class.getName() + ".DisableFilterOnce";
     
     private final static LineDelimiter DELIMITER			= new LineDelimiter("\r\n");
     
@@ -538,8 +540,15 @@ public class AuthDigestMD5IoFilter
 				return;
 			}
 			
-			if (session.containsAttribute(AuthDigestMD5Command.INTEGRITY_QOP) ||
-					session.containsAttribute(AuthDigestMD5Command.PRIVACY_QOP))
+			boolean skipOnce = false;
+			if (session.containsAttribute(DISABLE_FILTER_ONCE))
+			{
+				skipOnce = true;
+				session.removeAttribute(DISABLE_FILTER_ONCE);
+			}
+			
+			if (! skipOnce && (session.containsAttribute(AuthDigestMD5Command.INTEGRITY_QOP) ||
+					session.containsAttribute(AuthDigestMD5Command.PRIVACY_QOP)))
 				getDataConsumer(session).getCodec().wrap(nextFilter, writeRequest, (ByteBuffer) message);
 			else
 				nextFilter.filterWrite(session, writeRequest);
