@@ -5,7 +5,7 @@ SET JAVA_OPTIONS=-server -Xms256m -Xmx256m
 
 SET JAVA_HOME=C:\Program Files\Java\jdk1.6.0_01
 
-SET CP=mailster.jar;lib\swt.jar;lib\swt-win.jar;lib\mailapi.jar;lib\glazedlists-1.7.0_java15.jar;%CLASSPATH%
+SET CP=mailster.jar;lib\swt.jar;lib\swt-win.jar;lib\mailapi.jar;lib\glazedlists_java15.jar;%CLASSPATH%
 SET CP=lib\bcprov-jdk15-137.jar;lib\bcmail-jdk15-137.jar;%CP%
 SET CP=lib\mina-core-1.1.6.jar;lib\mina-filter-ssl-1.1.6.jar;%CP%
 SET CP=lib\slf4j-api-1.4.3.jar;lib\slf4j-simple-1.4.3.jar;%CP%
