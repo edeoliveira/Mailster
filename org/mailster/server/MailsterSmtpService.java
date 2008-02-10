@@ -23,8 +23,6 @@ import org.mailster.smtp.events.SMTPServerEvent;
 import org.mailster.smtp.events.SMTPServerListener;
 import org.mailster.util.DateUtilities;
 
-import ca.odell.glazedlists.util.concurrent.Lock;
-
 /**
  * ---<br>
  * Mailster (C) 2007 De Oliveira Edouard
@@ -119,7 +117,7 @@ public class MailsterSmtpService
     {
         public void run()
         {
-            if (main.getMailView().getTable().isDisposed())
+            if (main.getMailView().isTableDisposed())
                 return;
             if (server == null || server.isStopped())
                 main.log(Messages
@@ -130,10 +128,15 @@ public class MailsterSmtpService
                 
                 synchronized(receivedMessages)
                 {
-                    Lock writeLock = main.getMailView().getDataList().getReadWriteLock().writeLock();
-                    writeLock.lock();
-                    main.getMailView().getDataList().addAll(receivedMessages);
-                    writeLock.unlock(); 
+                    main.getMailView().getDataList().getReadWriteLock().writeLock().lock();
+                    try
+                    {
+                    	main.getMailView().getDataList().addAll(receivedMessages);
+                    }
+                    finally
+                    {
+                    	main.getMailView().getDataList().getReadWriteLock().writeLock().unlock();
+                    }
                     
 	                nb = receivedMessages.size();
 	                receivedMessages.clear();
@@ -143,7 +146,6 @@ public class MailsterSmtpService
                         Messages.getString("MailsterSWT.log.server.updated.emailQueue"), //$NON-NLS-1$
                         new Object[] { new Integer(nb) }));
                 
-                main.getMailView().refreshTable();                
                 if (nb>0 && ConfigurationManager.CONFIG_STORE.
                 		getBoolean(ConfigurationManager.NOTIFY_ON_NEW_MESSAGES_RECEIVED_KEY))
                 	main.showTrayItemTooltipMessage(Messages.getString("MailView.trayTooltip.title") //$NON-NLS-1$
@@ -269,7 +271,7 @@ public class MailsterSmtpService
 
                 if (!force)
                 {
-                	refreshEmailQueue(true);
+                	refreshEmailQueue(true && !force);
                 	pop3Service.stopService();
                 }
                 else
