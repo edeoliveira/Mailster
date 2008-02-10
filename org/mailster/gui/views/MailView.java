@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
@@ -34,8 +33,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -332,7 +329,7 @@ public class MailView
 
             if (event.item.getData() != null)
                 openedMailsIds.remove(((StoredSmtpMessage) event.item.getData())
-                        .getMessage().getMessageID());
+                        .getMessageId());
             else
             if (event.item != logTabItem)
                 restore(event);
@@ -406,6 +403,11 @@ public class MailView
         createLogConsole(false);
     }
 
+    protected TableView getTableView()
+    {
+    	return tableView;
+    }
+    
     protected CTabFolder getCTabFolder()
     {
     	return folder;
@@ -427,7 +429,7 @@ public class MailView
         divider = new SashForm(parent, SWT.NONE);
         divider.setOrientation(SWT.VERTICAL);
         divider.setLayoutData(gridData);
-        tableView = new TableView(divider, this, treeView, filterTextField);        
+        tableView = new TableView(divider, this, treeView, filterTextField);
         createTabFolder(divider);
         divider.setWeights(new int[] { 30, 70 });
     }
@@ -597,10 +599,11 @@ public class MailView
         if (stored == null)
             return;
         
-        SmtpMessage msg = stored.getMessage();
-        String id = msg.getMessageID();
+        String id = stored.getMessageId();
         if (!openedMailsIds.contains(id))
         {
+        	SmtpMessage msg = stored.getMessage();
+        	
             final CTabItem item = new CTabItem(folder, SWT.CLOSE);
             item.setText(msg.getSubject());
             item.setImage(mailImage);
@@ -622,7 +625,7 @@ public class MailView
                 g.verticalSpacing = 0;
                 browserComposite.setLayout(g);
 
-                HeadersView h = new HeadersView(browserComposite, msg);
+                HeadersView h = new HeadersView(browserComposite, stored);
                 GridData data = new GridData();
                 data.grabExcessHorizontalSpace = true;
                 data.horizontalAlignment = GridData.FILL;
@@ -661,7 +664,7 @@ public class MailView
 		                                "document.getElementsByTagName('head')[0].appendChild(script);");
                 }
             });
-            rawView.setText(msg.getRawMessage());
+            rawView.setText(msg.toString());
             
             item.setData(stored);
             openedMailsIds.add(id);
@@ -682,20 +685,19 @@ public class MailView
         }
     }
 
-    protected void selectMailTab(SmtpMessage msg)
+    protected void selectMailTab(StoredSmtpMessage stored)
     {
-        if (msg == null)
-            return;
-        String id = msg.getMessageID();
+        String id = stored.getMessageId();
         if (openedMailsIds.contains(id))
         {
             for (int i = 0, max = folder.getItemCount(); i < max; i++)
             {
                 if (folder.getItems()[i].getData() != null
                         && id.equals(((StoredSmtpMessage) folder.getItems()[i]
-                                .getData()).getMessage().getMessageID()))
+                                .getData()).getMessageId()))
                 {
                     folder.setSelection(folder.getItems()[i]);
+                    SmtpMessage msg = stored.getMessage();
                     main.getOutlineView().setMessage(msg);
                     updateAttachedFilesButton(msg.getInternalParts());
                     viewModeListener.updateMailViewMode();
@@ -846,30 +848,8 @@ public class MailView
             public void widgetSelected(SelectionEvent event)
             {
                 update(event);
-                if (isSynced())
-                {
-	                TableItem[] items = tableView.getTable().getSelection();
-	                if (items != null && items.length == 1 && event.item.getData() != null)
-	                {
-	                	SmtpMessage msg = ((StoredSmtpMessage) event.item.getData()).getMessage();
-	                	MailsterSWT.getInstance().getOutlineView().setMessage(msg);
-	                	String id = msg.getMessageID();
-	                	String selectedId = ((StoredSmtpMessage) items[0].getData()).getMessage().getMessageID();
-	                	if (!id.equals(selectedId))
-	                	{
-	                		int i=0;
-	                		for (TableItem item : tableView.getTable().getItems())
-	                		{
-	                			if (id.equals(((StoredSmtpMessage) item.getData()).getMessage().getMessageID()))
-	                			{
-	                				tableView.setSelection(new StructuredSelection((StoredSmtpMessage) item.getData()));                				
-	                				break;
-	                			}
-	                			i++;
-	                		}
-	                	}                	
-	                }
-                }
+                if (isSynced() && event.item.getData() != null)
+                	tableView.setSelection((StoredSmtpMessage) event.item.getData());
             }
 
             public void update(SelectionEvent event)
@@ -990,24 +970,19 @@ public class MailView
         }
     }
 
-    public Table getTable()
+    public boolean isTableDisposed()
     {
-        return tableView.getTable();
+        return tableView.isTableDisposed();
     }
     
-    public void refreshTable()
-    {
-        tableView.refreshTable();
-    }    
-
     public AbstractEventList<StoredSmtpMessage> getDataList()
     {
-        return tableView.getDataList();
+        return tableView.getEventList();
     }
     
     public void clearDataList()
     {
-        tableView.clearDataList();
+    	tableView.clearQueue(main.getFilterTreeView());    	
         closeTabs(true);
     }
     
@@ -1019,7 +994,7 @@ public class MailView
 
             if (item.getData() != null)
                 openedMailsIds.remove(((StoredSmtpMessage) item.getData())
-                        .getMessage().getMessageID());
+                        .getMessageId());
 
             if (item.getData() != null || !onlyMailTabs)
             	item.dispose();
@@ -1029,18 +1004,15 @@ public class MailView
         	dropdownListener.clear();
     }    
     
-    public void closeTab(SmtpMessage msg)
+    public void closeTab(String id)
     {
-    	if (msg == null)
-            return;
-        String id = msg.getMessageID();
         if (openedMailsIds.contains(id))
         {
             for (int i = 0, max = folder.getItemCount(); i < max; i++)
             {
                 if (folder.getItems()[i].getData() != null
                         && id.equals(((StoredSmtpMessage) folder.getItems()[i]
-                                .getData()).getMessage().getMessageID()))
+                                .getData()).getMessageId()))
                 {
                     folder.getItems()[i].dispose();
                     if (folder.getSelectionIndex() == i)
