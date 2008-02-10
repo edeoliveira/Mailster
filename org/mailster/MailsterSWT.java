@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
 import org.mailster.gui.AboutDialog;
+import org.mailster.gui.MemoryProgressBar;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationDialog;
@@ -101,6 +102,7 @@ public class MailsterSWT
     private static final Logger LOG = LoggerFactory.getLogger(MailsterSWT.class);
     
     private final static Image trayImage = SWTHelper.loadImage("mail_earth.gif"); //$NON-NLS-1$
+    private final static Image trayRunningImage = SWTHelper.loadImage("mail_earth_running.gif"); //$NON-NLS-1$
     private final static Image stopImage = SWTHelper.loadImage("stop.gif"); //$NON-NLS-1$
     private final static Image startImage = SWTHelper.loadImage("start.gif"); //$NON-NLS-1$
     private final static Image debugImage = SWTHelper.loadImage("startdebug.gif"); //$NON-NLS-1$
@@ -110,6 +112,7 @@ public class MailsterSWT
     private TrayItem trayItem;
     private MailView mailView;
     private OutLineView outlineView;
+    private FilterTreeView treeView;
     
     private SashForm filterViewDivider;
 
@@ -157,7 +160,7 @@ public class MailsterSWT
         treeItem.setImage(SWTHelper.loadImage("filter.gif")); //$NON-NLS-1$
         treeItem.getBody().setLayout(LayoutUtils.createGridLayout(1, false, 1, 1, 1, 1, 0, 0, 0, 0));
         
-        FilterTreeView treeView = new FilterTreeView(treeItem.getBody(), true);
+        treeView = new FilterTreeView(treeItem.getBody(), true);
         treeView.setLayoutData(LayoutUtils.createGridData(
                 GridData.FILL, GridData.FILL, true, true, 1, 1));
         
@@ -633,7 +636,9 @@ public class MailsterSWT
                 display.sleep();
         }
 
-        display.dispose();
+        if (display != null)
+        	display.dispose();
+        
         System.exit(0);
     }
 
@@ -644,7 +649,7 @@ public class MailsterSWT
     {
         GridLayout gridLayout = new GridLayout();
         gridLayout.numColumns = 1;
-        gridLayout.marginHeight = 2;
+        gridLayout.marginHeight = 1;
         gridLayout.marginWidth = 2;
         sShell = new Shell();
         sShell.setText(ConfigurationManager.MAILSTER_VERSION);
@@ -661,10 +666,21 @@ public class MailsterSWT
 
         createPShelfAndMailView(sShell);
         
-        CLabel statusBar = new CLabel(sShell, SWT.BORDER);
+        Composite statusBar = new Composite(sShell, SWT.BORDER);
+        statusBar.setLayout(LayoutUtils.createGridLayout(2, false, 0, 1, 0, 0, 1, 1, 0, 0));
         statusBar.setLayoutData(LayoutUtils.createGridData(GridData.FILL, 
-        		GridData.CENTER, true, false, 1, 1, SWT.DEFAULT, 16));
-        statusBar.setText(" "+ConfigurationManager.MAILSTER_COPYRIGHT);
+        		GridData.CENTER, true, false, 1, 1, SWT.DEFAULT, 18));
+        
+        CLabel statusLabel = new CLabel(statusBar, SWT.NONE);
+        statusLabel.setLayoutData(LayoutUtils.createGridData(GridData.FILL, 
+        		GridData.CENTER, true, false, 1, 1, SWT.DEFAULT, SWT.DEFAULT));        
+        statusLabel.setText(" "+ConfigurationManager.MAILSTER_COPYRIGHT);
+        
+        MemoryProgressBar bar = new MemoryProgressBar(statusBar, SWT.SMOOTH | SWT.FLAT);
+        bar.setLayoutData(LayoutUtils.createGridData(GridData.END, 
+        		GridData.CENTER, false, false, 1, 1, 80, SWT.DEFAULT));
+        bar.setMinimum(0);
+        bar.setMaximum(100);
         
         sShell.setSize(new Point(800, 600));
         DialogUtils.centerShellOnScreen(sShell);
@@ -681,6 +697,11 @@ public class MailsterSWT
                 serverStartToolItem.setEnabled(stopped);
                 serverDebugToolItem.setEnabled(stopped);
                 serverStopToolItem.setEnabled(!stopped);
+                
+                if (stopped)
+                	trayItem.setImage(trayImage);
+                else
+                	trayItem.setImage(trayRunningImage);
             }
 
             public void stopped(SMTPServerEvent event)
@@ -921,4 +942,9 @@ public class MailsterSWT
     {
     	return outlineView;
     }
+    
+    public FilterTreeView getFilterTreeView()
+    {
+    	return treeView;
+    }    
 }
