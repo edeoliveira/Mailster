@@ -1,6 +1,5 @@
 package org.mailster.gui.views;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +29,7 @@ import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.StyledLabel;
 import org.mailster.gui.utils.LayoutUtils;
+import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.smtp.SmtpHeadersInterface;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.util.DateUtilities;
@@ -94,11 +94,14 @@ public class HeadersView
         FontData fontData = SWTHelper.SYSTEM_FONT.getFontData()[0];
         headerFont = new Font(Display.getDefault(), new FontData(
                 fontData.getName(), 7, fontData.getStyle()));
+        
+        // Preload KeyFactory to avoid latency.
+        MailsterKeyStoreFactory.getInstance();
     }
     
-    public HeadersView(Composite parent, SmtpMessage msg)
+    public HeadersView(Composite parent, StoredSmtpMessage stored)
     {
-        createView(parent, msg);
+        createView(parent, stored);
     }    
     
     private static String formatEmailList(SmtpHeadersInterface headers,
@@ -191,18 +194,12 @@ public class HeadersView
     	composite.setLayoutData(layoutData);
     }
     
-    private void computeTextStrings(SmtpMessage msg)
+    private void computeTextStrings(StoredSmtpMessage stored)
     {
     	StringBuilder sb = new StringBuilder();
-        SmtpHeadersInterface headers = msg.getHeaders();
-        
-        String date = "-";
-        
-        try
-        {
-            date = DateUtilities.df.format(DateUtilities.rfc822DateFormatter.parse(msg.getDate()));
-        }
-        catch (ParseException pex) {}
+    	SmtpMessage msg = stored.getMessage();
+        SmtpHeadersInterface headers = msg.getHeaders();        
+        String date = DateUtilities.df.format(stored.getMessageDate());
         
         sb.append("<b>").append(Messages.getString("MailView.column.subject")).append(" : ");
         sb.append(MailUtilities.getNonNullHeaderValue(headers, SmtpHeadersInterface.SUBJECT));
@@ -234,7 +231,7 @@ public class HeadersView
         fullText = sb.toString();        
     }
     
-    public final void createView(Composite parent, SmtpMessage msg)
+    public final void createView(Composite parent, StoredSmtpMessage stored)
     {
         composite = new Composite(parent, SWT.BORDER);
         composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
@@ -249,9 +246,9 @@ public class HeadersView
         data.grabExcessVerticalSpace = true;
         image.setLayoutData(data);
         
-        computeTextStrings(msg);
+        computeTextStrings(stored);
 
-        headersLabel = new StyledLabel(composite, SWT.NONE);
+        headersLabel = new StyledLabel(composite, SWT.WRAP);
         headersLabel.setText(fullText);
         
         headersLabel.setFont(headerFont);
@@ -269,6 +266,7 @@ public class HeadersView
         data.grabExcessVerticalSpace = true;
         smime.setLayoutData(data);
         
+        SmtpMessage msg = stored.getMessage();        
     	isSigned = SmimeUtilities.isSignedMessage(msg);
     	
     	if (isSigned)
