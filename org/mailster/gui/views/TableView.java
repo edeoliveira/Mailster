@@ -1,6 +1,5 @@
 package org.mailster.gui.views;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -8,21 +7,14 @@ import java.util.List;
 import javax.mail.Flags;
 
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.CheckboxCellEditor;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
-import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Region;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -35,25 +27,25 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
+import org.mailster.gui.glazedlists.BatchEventList;
 import org.mailster.gui.glazedlists.SmtpMessageTableFormat;
-import org.mailster.gui.glazedlists.SmtpMessageTableLabelProvider;
-import org.mailster.gui.glazedlists.swt.TableComparatorChooser;
-import org.mailster.gui.glazedlists.swt.TableViewerManager;
+import org.mailster.gui.glazedlists.SmtpMessageTableItemConfigurer;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
-import org.mailster.smtp.SmtpHeadersInterface;
-import org.mailster.smtp.SmtpMessage;
-import org.mailster.util.DateUtilities;
 
 import ca.odell.glazedlists.AbstractEventList;
 import ca.odell.glazedlists.BasicEventList;
+import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.FilterList;
 import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.SortedList;
 import ca.odell.glazedlists.TextFilterator;
 import ca.odell.glazedlists.event.ListEvent;
 import ca.odell.glazedlists.event.ListEventListener;
+import ca.odell.glazedlists.swt.EventTableViewer;
+import ca.odell.glazedlists.swt.GlazedListsSWT;
+import ca.odell.glazedlists.swt.TableComparatorChooser;
 import ca.odell.glazedlists.swt.TextWidgetMatcherEditor;
 
 /**
@@ -85,86 +77,58 @@ import ca.odell.glazedlists.swt.TextWidgetMatcherEditor;
  */
 public class TableView
 {
-    private TableViewerManager msgTableViewer;
-    private TableViewer viewer;
+	private final static int SWT_BACKSPACE_KEYCODE = 8;
+	
+    private EventTableViewer<StoredSmtpMessage> msgTableViewer;
     private Table table;
     
     private TableColumn to;
     private TableColumn subject;
     private TableColumn date;
     
-    private BasicEventList<StoredSmtpMessage> eventList;
+    private AbstractEventList<StoredSmtpMessage> eventList;
     private SortedList<StoredSmtpMessage> dataList;
 
     public TableView(Composite parent, MailView mailView, FilterTreeView treeView, Text filterTextField)
     {
         createTable(parent, mailView, treeView, filterTextField);
+        treeView.installListeners(this);
     }
     
-    public Table getTable()
+    public boolean isTableDisposed()
     {
-        return table;
-    }
-    
-    public void refreshTable()
-    {
-        if (viewer != null)
-        	viewer.refresh();
-    }
-    
-    public void setSelection(ISelection sel)
-    {
-    	if (viewer != null)
-    		viewer.setSelection(sel, true);
-    }
-    
-    public AbstractEventList<StoredSmtpMessage> getDataList()
-    {
-        return dataList;
-    }
-    
-    public void clearDataList()
-    {
-        eventList.clear();
-    }
-    
-    @SuppressWarnings("unchecked")
-	private Comparable getFieldValue(SmtpMessage msg, TableColumn selected)
-    {
-        if (selected == to)
-            return msg.getHeaderValue(SmtpHeadersInterface.TO).toLowerCase();
-        else if (selected == subject)
-            return msg.getSubject().toLowerCase();
-        else if (selected == date)
-        {
-            try
-            {
-                return DateUtilities.rfc822DateFormatter.parse(msg.getDate());
-            }
-            catch (ParseException e)
-            {
-                e.printStackTrace();
-                return null;
-            }
-        }
-        else
-            return new Boolean(
-                    msg.getInternalParts().getAttachedFiles().length > 0);
+    	return table == null || table.isDisposed();
     }
 
-    @SuppressWarnings("unchecked")
-    private int compareTo(SmtpMessage row0, SmtpMessage row1,
-            TableColumn selected)
+    public EventList<StoredSmtpMessage> getSelection()
     {
-        if (row0 == null && row1 == null)
-            return 0;
-        else if (row0 == null)
-            return -1;
-        else if (row1 == null)
-            return 1;
-        else
-            return getFieldValue(row0, selected).compareTo(
-                    getFieldValue(row1, selected));
+    	return msgTableViewer.getSelected();
+    }
+    
+	public void setSelection(StoredSmtpMessage stored)
+    {
+		msgTableViewer.getTogglingSelected().clear();
+		msgTableViewer.getTogglingSelected().add(stored);
+		table.showSelection();
+    }
+    
+    protected AbstractEventList<StoredSmtpMessage> getEventList()
+    {
+        return eventList;
+    }
+    
+    protected void clearQueue(FilterTreeView treeView)
+    {
+    	eventList.getReadWriteLock().writeLock().lock();
+    	try
+    	{
+    		eventList.clear();
+    		treeView.updateMessagesCounts(eventList);
+    	}
+    	finally
+    	{
+    		eventList.getReadWriteLock().writeLock().unlock();
+    	}
     }
     
     private void createTable(Composite parent, final MailView mailView, 
@@ -173,35 +137,40 @@ public class TableView
         final Composite tableComposite = new Composite(parent, SWT.NONE);
         tableComposite.setLayout(
                 LayoutUtils.createGridLayout(1, false, 0, 0, 0, 0, 0, 0, 0, 2));
-
-        eventList = new BasicEventList<StoredSmtpMessage>();        
+        
+        /*DebugList<StoredSmtpMessage> tmp = new DebugList<StoredSmtpMessage>();
+        tmp.setLockCheckingEnabled(true);*/
+        
+        eventList = new BasicEventList<StoredSmtpMessage>();
+        eventList.getReadWriteLock().readLock().lock();
+        final BatchEventList<StoredSmtpMessage, StoredSmtpMessage> batchList;
+        try
+        {
+        	batchList = new BatchEventList<StoredSmtpMessage, StoredSmtpMessage>(GlazedListsSWT.swtThreadProxyList(eventList, Display.getDefault()));        	
+        }
+        finally
+        {
+        	eventList.getReadWriteLock().readLock().unlock();
+        }
+        
         table = new Table(tableComposite, SWT.VIRTUAL | SWT.BORDER
                 | SWT.FULL_SELECTION | SWT.MULTI);
         
-        final FilterList<StoredSmtpMessage> treeFilteredList = treeView.getFilterList(eventList, table);
+        final FilterList<StoredSmtpMessage> treeFilteredList = treeView.getFilterList(batchList);
         
         String[] filterProperties = new String[] { "message.to", "message.subject" };  //$NON-NLS-1$  //$NON-NLS-2$
         TextFilterator<StoredSmtpMessage> filterator = GlazedLists
                 .textFilterator(filterProperties);
-        TextWidgetMatcherEditor matcher = new TextWidgetMatcherEditor(
+        TextWidgetMatcherEditor<StoredSmtpMessage> matcher = new TextWidgetMatcherEditor<StoredSmtpMessage>(
                 filterTextField, filterator);
         
-        @SuppressWarnings("unchecked") //$NON-NLS-1$
         final FilterList<StoredSmtpMessage> filterList = new FilterList<StoredSmtpMessage>(
                 treeFilteredList, matcher);
         
         dataList = new SortedList<StoredSmtpMessage>(filterList, new Comparator<StoredSmtpMessage>() {
             public int compare(StoredSmtpMessage row0, StoredSmtpMessage row1)
             {
-                try
-                {
-                    return compareTo(row0.getMessage(), row1.getMessage(), table.getSortColumn());
-                }
-                catch (Exception ex)
-                {
-                    ex.printStackTrace();
-                    return 0;
-                }
+                return 0;
             }
         });
         
@@ -209,12 +178,48 @@ public class TableView
         
         SmtpMessageTableFormat tf = new SmtpMessageTableFormat();
         
-        viewer = new TableViewer(table);        
-        viewer.setCellEditors(
-                new CellEditor[] {null, null, null, new CheckboxCellEditor(), null});
+        msgTableViewer = new EventTableViewer<StoredSmtpMessage>(dataList, table, tf);
+        msgTableViewer.setTableItemConfigurer(new SmtpMessageTableItemConfigurer());
 
-        msgTableViewer = new TableViewerManager(viewer, dataList, 
-                new SmtpMessageTableLabelProvider(dataList, tf));
+        table.addListener(SWT.MouseDown, new Listener() 
+        {
+			public void handleEvent(Event event) 
+			{
+				Rectangle clientArea = table.getClientArea();
+				Point pt = new Point(event.x, event.y);
+				int index = table.getTopIndex();
+				while (index < table.getItemCount()) 
+				{
+					boolean visible = false;
+					final TableItem item = table.getItem(index);
+					for (int i = 0; i < table.getColumnCount(); i++) 
+					{
+						Rectangle rect = item.getBounds(i);
+						if (rect.contains(pt) && i == 3) 
+						{
+					        StoredSmtpMessage stored = (StoredSmtpMessage) item.getData() ;
+					        stored.setChecked(!stored.isChecked());
+					        eventList.getReadWriteLock().writeLock().lock();
+					        try
+					        {
+					        	eventList.set(eventList.indexOf(stored), stored);
+					        }
+					        finally
+					        {
+					        	eventList.getReadWriteLock().writeLock().unlock();
+					        }
+					        treeView.updateMessagesCounts(eventList);
+							return;
+						}
+						if (!visible && rect.intersects(clientArea)) 
+							visible = true;
+					}
+					if (!visible)
+						return;
+					index++;
+				}
+			}
+		});
         
         TableComparatorChooser.install(msgTableViewer, dataList, false);
 
@@ -227,7 +232,7 @@ public class TableView
         attachments.setMoveable(true);
         attachments.setWidth(28);
         attachments.setImage(SWTHelper.loadImage("attach.gif")); //$NON-NLS-1$
-        attachments.setAlignment(SWT.LEFT);
+        attachments.setAlignment(SWT.RIGHT);        
         
         to = table.getColumn(1);
         to.setResizable(true);
@@ -243,9 +248,8 @@ public class TableView
         flagColumn.setResizable(false);
         flagColumn.setMoveable(true);
         flagColumn.setWidth(18);
-        flagColumn.setAlignment(SWT.CENTER);
-        flagColumn.setText(" ");
-        //flagColumn.setImage(SWTHelper.loadImage("public_co.gif")); //$NON-NLS-1$
+        flagColumn.setAlignment(SWT.RIGHT);        
+        //flagColumn.setImage(SWTHelper.loadGrayImage("flag16.png")); //$NON-NLS-1$
         
         date = table.getColumn(4);
         date.setResizable(true);
@@ -253,8 +257,27 @@ public class TableView
         date.setWidth(100);
         date.setAlignment(SWT.RIGHT);
 
-        final Color selectionForeground = SWTHelper.createColor(12, 97, 232);
-        final Color selectionBackground = SWTHelper.createColor(32, 119, 240);
+        table.addListener(SWT.MeasureItem, new Listener() {
+            public void handleEvent(Event event)
+            {
+            	/*
+                 * If you wish to paint the selection beyond the end of a
+                 * column, you must change the clipping region.
+                 */
+                Rectangle area = table.getClientArea();
+                int columnCount = table.getColumnCount();
+                if (event.index == columnCount - 1 || event.index == 0)
+                {
+                	int width = area.x + area.width - event.x;
+                    if (width > 0)
+                        event.width = width;
+                }
+            }
+        });
+        
+        final Color selectionBackground = SWTHelper.createColor(144, 187, 248);
+        final Color selectionForeground = SWTHelper.createColor(12, 97, 232);        
+        final Color tableRowColor = SWTHelper.createColor(243, 245, 248);
         
         table.addListener(SWT.EraseItem, new Listener() {
             public void handleEvent(Event event)
@@ -262,43 +285,26 @@ public class TableView
                 boolean selected = (event.detail & SWT.SELECTED) != 0;
                 GC gc = event.gc;
                 Rectangle area = table.getClientArea();
-                /*
-                 * If you wish to paint the selection beyond the end of last
-                 * column, you must change the clipping region.
-                 */
-                int columnCount = table.getColumnCount();
-                if (event.index == columnCount - 1 || columnCount == 0)
-                {
-                    int width = area.x + area.width - event.x;
-                    if (width > 0)
-                    {
-                        Region region = new Region();
-                        gc.getClipping(region);
-                        region.add(event.x, event.y, width, event.height);
-                        gc.setClipping(region);
-                        region.dispose();
-                    }
-                }
-                if (selected)
-                {
-                    gc.setAdvanced(true);
-                    if (gc.getAdvanced())
-                        gc.setAlpha(127);
-                }
-                Rectangle rect = event.getBounds();
+                
                 Color foreground = gc.getForeground();
                 Color background = gc.getBackground();
                 if (selected)
                 {
                 	gc.setForeground(selectionForeground);
                 	gc.setBackground(selectionBackground);
-                    gc.fillGradientRectangle(0, rect.y, area.width+100, rect.height, false);
+                    gc.fillRectangle(0, event.y, area.width, event.height);
                 }
                 else
                 {
-                    gc.setForeground(((TableItem) event.item).getForeground());
-                    gc.setBackground(((TableItem) event.item).getBackground());
-                    gc.fillRectangle(0, rect.y, area.width+100, rect.height);
+                	TableItem item = (TableItem) event.item;
+                    gc.setForeground(item.getForeground());
+                    
+                    if (table.indexOf(item) % 2 == 1)
+                    	gc.setBackground(tableRowColor);
+                    else
+                    	gc.setBackground(table.getBackground());
+                    
+                    gc.fillRectangle(0, event.y, area.width, event.height);
                 }
                 gc.setForeground(foreground);
                 gc.setBackground(background);
@@ -315,18 +321,27 @@ public class TableView
                     if (e.type == SWT.Selection && e.detail == SWT.CHECK)
                         return;
                     
-                    for (TableItem item : table.getSelection())
+                    if (msgTableViewer.getSelected().size() == 1)
                     {
-                        StoredSmtpMessage stored = (StoredSmtpMessage) item.getData();
+                    	StoredSmtpMessage stored = msgTableViewer.getSelected().get(0);
                         if (e.type == SWT.DefaultSelection)
                         {
-                            stored.setSeen();
-                            msgTableViewer.getTableViewer().update(stored, null);
+                        	stored.setSeen();
+                        	eventList.getReadWriteLock().writeLock().lock();
+                        	try
+                        	{
+                        		eventList.set(eventList.indexOf(stored), stored);
+                        	}
+                        	finally
+                        	{
+                        		eventList.getReadWriteLock().writeLock().unlock();
+                        	}
+                            
                             mailView.createMailTab(stored);
                             treeView.updateMessagesCounts(eventList);
                         }
                         else if (e.type == SWT.Selection && mailView.isSynced())
-                            mailView.selectMailTab(stored.getMessage());
+                            mailView.selectMailTab(stored);
                     }
                 }
                 catch (SWTError ex)
@@ -339,11 +354,10 @@ public class TableView
         table.addListener(SWT.Selection, tableListener);
         table.addListener(SWT.DefaultSelection, tableListener);
 
-        parent.addControlListener(new ControlAdapter() {
+        table.addControlListener(new ControlAdapter() {
             public void controlResized(ControlEvent e)
             {
-                if (e.getSource() instanceof SashForm)
-                    updateTableColumnsWidth();
+            	updateTableColumnsWidth();
             }
         });
 
@@ -375,22 +389,30 @@ public class TableView
             {
             	if (((e.stateMask & SWT.CTRL) != 0) && e.keyCode == 'a')
             	{
-                    viewer.setSelection(new StructuredSelection(getDataList()));
+            		msgTableViewer.getTogglingDeselected().clear();
                     return;
             	}
             	
-                if (e.keyCode == ' ')
-                {                    
-                	for (TableItem item : table.getSelection())
-                    {
-                		StoredSmtpMessage msg = ((StoredSmtpMessage)item.getData());
-                        if ((e.stateMask & SWT.SHIFT) == 0)
-                            msg.setChecked(true);
-                        else
-                            msg.setChecked(!msg.isChecked());
-                        msgTableViewer.getTableViewer().update(msg, null);
-                    }
-                    return;
+                if (e.keyCode == ' ' || e.keyCode == SWT_BACKSPACE_KEYCODE)
+                {   
+                	boolean checked = e.keyCode == ' ';
+                	batchList.getReadWriteLock().writeLock().lock();                	
+                	try
+                	{
+                		batchList.beginBatch();
+	                	for (StoredSmtpMessage stored : msgTableViewer.getSelected())
+	                	{
+	                       	stored.setChecked(checked);                        
+	                       	batchList.set(batchList.indexOf(stored), stored);
+	                    }	                	
+	                	batchList.commitBatch();
+                	}
+                	finally
+                	{                		
+                		batchList.getReadWriteLock().writeLock().unlock();
+                	}
+                	treeView.updateMessagesCounts(eventList);
+                	return;
                 }
                 
                 if (e.keyCode == SWT.DEL)
@@ -405,17 +427,23 @@ public class TableView
                         {
                         	try
                         	{
-    	                    	List<StoredSmtpMessage> l = new ArrayList<StoredSmtpMessage>(table.getSelection().length);
-    	                    	for (TableItem item : table.getSelection())
+    	                    	List<StoredSmtpMessage> l = new ArrayList<StoredSmtpMessage>(msgTableViewer.getSelected().size());
+    	                    	for (StoredSmtpMessage stored : msgTableViewer.getSelected())
     	                    	{
-    	                    		StoredSmtpMessage stored = (StoredSmtpMessage)item.getData();
     	                    		l.add(stored);
     	                    		mailView.getSMTPService().getPop3Service().removeMessage(stored);
     	                    		if (mailView.isSynced())
-    	                    			mailView.closeTab(stored.getMessage());
+    	                    			mailView.closeTab(stored.getMessageId());
     	                    	}
-                                table.deselectAll();
-    	                    	dataList.removeAll(l);                                
+    	                    	dataList.getReadWriteLock().writeLock().lock();
+    	                    	try
+    	                    	{
+    	                    		dataList.removeAll(l);
+    	                    	}
+    	                    	finally
+    	                    	{
+    	                    		dataList.getReadWriteLock().writeLock().unlock();
+    	                    	}
                         	}
                         	catch (Exception ex)
                         	{
@@ -425,14 +453,26 @@ public class TableView
                     }
                     else
                     {
-                        for (TableItem item : table.getSelection())
-                        {
-                            StoredSmtpMessage msg = ((StoredSmtpMessage)item.getData());
-                            if (!msg.getFlags().contains(Flags.Flag.FLAGGED))
-                                msg.getFlags().add(Flags.Flag.FLAGGED);
-                        }
+                    	batchList.getReadWriteLock().writeLock().lock();                	
+                    	try
+                    	{
+                    		batchList.beginBatch();                    		
+                    		for (StoredSmtpMessage stored : msgTableViewer.getSelected())
+	                        {
+	                            if (!stored.getFlags().contains(Flags.Flag.FLAGGED))
+	                            {
+	                            	stored.getFlags().add(Flags.Flag.FLAGGED);
+	                            	batchList.set(batchList.indexOf(stored), stored);
+	                            }
+	                        }
+    	                	batchList.commitBatch();
+    	                	treeView.filter();
+                    	}
+                    	finally
+                    	{                		
+                    		batchList.getReadWriteLock().writeLock().unlock();
+                    	}
                     }
-                    treeView.filter();
                     treeView.updateMessagesCounts(eventList);
                     return;
                 }
@@ -477,7 +517,7 @@ public class TableView
         countLabel.setLayoutData(gd);
     }
     
-    private void updateTableColumnsWidth()
+    protected void updateTableColumnsWidth()
     {
         Rectangle area = table.getClientArea();
         Point size = table.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -485,14 +525,23 @@ public class TableView
                 && table.getVerticalBar() != null ? table.getVerticalBar()
                 .getSize().x : 0;
 
-        int w = (table.getSize().x
-                - (table.getBorderWidth() * (table.getColumnCount() - 1))
+        int w = (area.width
                 - table.getColumn(0).getWidth() - table.getColumn(3).getWidth() - scroll)
                 / (table.getColumnCount() - 2);
 
         for (int i = 1, max = table.getColumnCount(); i < max; i++)
-            if (i != 3)
-                table.getColumn(i).setWidth(
-                    i < max - 1 ? (int) (w * 1.2) : (int) (w * 0.6));
+        {
+            if (i != 3 && i < max - 1)
+                table.getColumn(i).setWidth((int) (w * 1.2));
+            if (i == max - 1)
+            {
+            	int width = area.width - 1;
+            	
+            	for (int j = 0, jmax = table.getColumnCount()-1; j < jmax; j++)
+            		width -= table.getColumn(j).getWidth();
+            	
+            	table.getColumn(max-1).setWidth(width);
+            }
+        }
     }
 }
