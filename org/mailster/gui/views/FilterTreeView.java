@@ -11,7 +11,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
@@ -64,11 +63,17 @@ public class FilterTreeView extends TreeView
     private final static Logger log = LoggerFactory.getLogger(FilterTreeView.class);
     
     private TreeItem deletedMailsTreeItem;
-    
-    private HostMatcherEditor editor;
+    private TreeItem checkedMailsTreeItem;
+
+    private ToolItem clearQueueToolItem;
     
     private static String deletedTreeItemLabel = 
     	Messages.getString("MailsterSWT.treeView.trash.label"); //$NON-NLS-1$
+
+    private static String checkedTreeItemLabel = 
+    	Messages.getString("MailsterSWT.treeView.flaggedMail.label"); //$NON-NLS-1$
+
+    private HostMatcherEditor editor;
     
     /**
      * The count of messages last time a event occured. Prevents from multiple
@@ -81,28 +86,36 @@ public class FilterTreeView extends TreeView
     {
         private class HostMatcher implements Matcher<StoredSmtpMessage> 
         {
-            private final TreeItem selectedItem;
+            private TreeItem selectedItem;
     
-            public HostMatcher(TreeItem selectedItem) 
-            {
-                this.selectedItem = selectedItem;
+            public HostMatcher() 
+            {                
             }
     
-            public boolean matches(StoredSmtpMessage msg) 
+            public void setSelectedItem(TreeItem selectedItem)
             {
+            	this.selectedItem = selectedItem;
+            }
+            
+            public boolean matches(StoredSmtpMessage msg) 
+            {            	
             	if (selectedItem == root)
                     return !msg.getFlags().contains(Flags.Flag.FLAGGED);
             	else
                 if (selectedItem == deletedMailsTreeItem)
                     return msg.getFlags().contains(Flags.Flag.FLAGGED);
                 else
-                    return !msg.getFlags().contains(Flags.Flag.FLAGGED) &&
-				                ((String)selectedItem.getData()).
-				                	equals(getEmailHost(msg.getMessage().getTo()));
+                if (selectedItem == checkedMailsTreeItem)
+                    return msg.isChecked();
+                else
+                    return !msg.getFlags().contains(Flags.Flag.FLAGGED)
+				                && ((String)selectedItem.getData()).
+				                	equals(getEmailHost(msg.getMessageTo()));
             }
         }
         
         private Tree mailBoxTree;
+        private HostMatcher matcher = new HostMatcher();
     
         public HostMatcherEditor(Tree mailBoxTree) 
         {
@@ -114,9 +127,14 @@ public class FilterTreeView extends TreeView
         {
             final TreeItem[] selected = mailBoxTree.getSelection();
             if (selected == null || selected.length == 0)
-                this.fireMatchAll();
+            {
+            	this.mailBoxTree.setSelection(root);
+            	matcher.setSelectedItem(root);
+            }
             else
-                this.fireChanged(new HostMatcher(selected[0]));
+            	matcher.setSelectedItem(selected[0]);
+            
+            this.fireChanged(matcher);
         }
     
         public void widgetDefaultSelected(SelectionEvent event)
@@ -133,6 +151,10 @@ public class FilterTreeView extends TreeView
     private static class FilterGroupFunction 
         implements FunctionList.Function<StoredSmtpMessage, String> 
     {
+    	public FilterGroupFunction()
+    	{
+    	}
+    	
         public String evaluate(StoredSmtpMessage msg) 
         {
             // We only count unread messages
@@ -142,9 +164,13 @@ public class FilterTreeView extends TreeView
             if (msg.getFlags().contains(Flags.Flag.FLAGGED))
                 return deletedTreeItemLabel;
             else
-                return getEmailHost(msg.getMessage().getTo());
+                return getEmailHost(msg.getMessageTo());
         }
     }
+    
+	private Map<String, List<StoredSmtpMessage>> messageTreeMap;
+	
+	private FilterList<StoredSmtpMessage> checkedList;    
     
     public FilterTreeView(Composite parent, boolean enableToolbar)
     {
@@ -157,12 +183,20 @@ public class FilterTreeView extends TreeView
         root.setImage(SWTHelper.loadImage("forum16.png")); //$NON-NLS-1$
         root.setText(Messages.getString("MailsterSWT.treeView.root.label")); //$NON-NLS-1$
         
+        checkedMailsTreeItem = new TreeItem(root, SWT.NONE);
+        checkedMailsTreeItem.setImage(SWTHelper.loadImage("flag16.png")); //$NON-NLS-1$
+        checkedMailsTreeItem.setText(checkedTreeItemLabel);
+        checkedMailsTreeItem.setForeground(SWTHelper.createColor(12, 97, 232));
+        checkedMailsTreeItem.setData(checkedTreeItemLabel);
+        
         deletedMailsTreeItem = new TreeItem(root, SWT.NONE);
         deletedMailsTreeItem.setImage(SWTHelper.loadImage("clearArchive16.png")); //$NON-NLS-1$
         deletedMailsTreeItem.setText(deletedTreeItemLabel);
         deletedMailsTreeItem.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
         deletedMailsTreeItem.setData(deletedTreeItemLabel);
+        
         root.setExpanded(true);
+        tree.setSelection(root);
     }
     
     protected  void customizeToolbar(ToolBar toolBar)
@@ -172,10 +206,11 @@ public class FilterTreeView extends TreeView
         refreshToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.refreshQueue.tooltip")); //$NON-NLS-1$   
         
-        final ToolItem clearQueueToolItem = new ToolItem(toolBar, SWT.PUSH);
+        clearQueueToolItem = new ToolItem(toolBar, SWT.PUSH);
         clearQueueToolItem.setImage(SWTHelper.loadImage("closeall.gif")); //$NON-NLS-1$
         clearQueueToolItem.setToolTipText(Messages
-                .getString("MailsterSWT.clearQueue.tooltip")); //$NON-NLS-1$   
+                .getString("MailsterSWT.clearQueue.tooltip")); //$NON-NLS-1$
+        clearQueueToolItem.setEnabled(false);
         
         new ToolItem(toolBar, SWT.SEPARATOR);
         
@@ -195,6 +230,7 @@ public class FilterTreeView extends TreeView
     
     public static String getEmailHost(String email)
     {
+    	email = email.toLowerCase();
     	int pos = email.lastIndexOf("@"); //$NON-NLS-1$
     	if (pos>=0)
     	{
@@ -210,17 +246,34 @@ public class FilterTreeView extends TreeView
     {
     	lastCallCount = eventList.size();
     	log.debug("Call to updateMessagesCounts()");
-    	Map<Comparable<String>, List<StoredSmtpMessage>> messageMap = 
-        	GlazedLists.syncEventListToMultiMap(eventList, new FilterGroupFunction());
         
+    	String filterHost;
+    	List<StoredSmtpMessage> l;
+    	
         for (TreeItem child : root.getItems())
         {
-        	String filterHost = (String)child.getData();
-        	List<StoredSmtpMessage> l = messageMap.get(filterHost);
-        	long count = l == null ? 0 : l.size();
+        	if (child == checkedMailsTreeItem)
+        	{
+        		filterHost = checkedTreeItemLabel;
+        		l = checkedList;
+        	}
+        	else
+        	{
+	        	filterHost = (String)child.getData();
+	        	l = messageTreeMap == null ? null : messageTreeMap.get(filterHost);	        	
+        	}
         	
-        	String countLabel = count == 0 ? "" : " ("+count+")";
-        	child.setText(filterHost+countLabel);
+        	long count = l == null ? 0 : l.size();
+        	StringBuilder countLabel = new StringBuilder(filterHost);
+	        if (count > 0)
+	        {
+	        	countLabel.append(" (").append(count);
+		        if (child == checkedMailsTreeItem)
+		        	countLabel.append('/').append(lastCallCount);
+		        countLabel.append(')');
+	        }
+	        
+	        child.setText(countLabel.toString());
         }
     }
 	
@@ -230,17 +283,39 @@ public class FilterTreeView extends TreeView
 		eventList.addListEventListener(new ListEventListener<StoredSmtpMessage>() {
             public void listChanged(ListEvent<StoredSmtpMessage> listChanges)
             {
-            	synchronized(baseList)
-            	{
-            		if (!listChanges.isReordering() && lastCallCount != baseList.size())
-            			updateMessagesCounts(baseList);
-            	}
+            	baseList.getReadWriteLock().readLock().lock();
+				try
+				{
+					if (!listChanges.isReordering() && lastCallCount != baseList.size())
+						updateMessagesCounts(baseList);
+				}
+				finally
+				{
+					baseList.getReadWriteLock().readLock().unlock();
+				}					
             }
         });
+		
+		baseList.getReadWriteLock().writeLock().lock();
+        try
+        {
+        	messageTreeMap = GlazedLists.syncEventListToMultiMap(baseList, new FilterGroupFunction());
+        	
+        	checkedList = new FilterList<StoredSmtpMessage>(baseList, new Matcher<StoredSmtpMessage>() {
+    			public boolean matches(StoredSmtpMessage stored) 
+    			{
+   					return stored.isChecked();
+    			}
+    		});
+        }
+        finally
+        {
+        	baseList.getReadWriteLock().writeLock().unlock();
+        }        	
 	}
 	
     public FilterList<StoredSmtpMessage> getFilterList(
-    		final AbstractEventList<StoredSmtpMessage> eventList, Table table)
+    		final AbstractEventList<StoredSmtpMessage> eventList)
     {
         eventList.addListEventListener(new ListEventListener<StoredSmtpMessage>() {
             public void listChanged(ListEvent<StoredSmtpMessage> listChanges)
@@ -250,7 +325,7 @@ public class FilterTreeView extends TreeView
                     if (listChanges.getType() != ListEvent.INSERT)
                         continue;
                     
-                    String host = getEmailHost(eventList.get(listChanges.getIndex()).getMessage().getTo());
+                    String host = getEmailHost(eventList.get(listChanges.getIndex()).getMessageTo());
                     boolean found = false;
                     for (TreeItem child : root.getItems())
                     {
@@ -265,7 +340,7 @@ public class FilterTreeView extends TreeView
                     {                        
                         try
                         {
-                            TreeItem item = new TreeItem(root, 0, SWT.NONE);
+                            TreeItem item = new TreeItem(root, SWT.NONE, 0);
                             item.setImage(SWTHelper.loadImage("folder.gif")); //$NON-NLS-1$
                             item.setText(host);
                             item.setData(host);
@@ -281,8 +356,16 @@ public class FilterTreeView extends TreeView
             }
         });
         
-        editor = new HostMatcherEditor(tree);
-        return new FilterList<StoredSmtpMessage>(eventList, editor);
+        eventList.getReadWriteLock().readLock().lock();
+        try
+        {
+        	editor = new HostMatcherEditor(tree);
+        	return new FilterList<StoredSmtpMessage>(eventList, editor);
+        }
+        finally
+        {
+        	eventList.getReadWriteLock().readLock().unlock();
+        }
     }
 
     public void filter()
@@ -295,5 +378,15 @@ public class FilterTreeView extends TreeView
     {
         TreeItem[] sel = tree.getSelection();
         return sel != null && sel.length>0 && sel[0] == deletedMailsTreeItem;
+    }
+    
+    protected void installListeners(final TableView view)
+    {
+        view.getEventList().addListEventListener(new ListEventListener<StoredSmtpMessage>() {
+        		public void listChanged(ListEvent<StoredSmtpMessage> evt) 
+        		{
+        			clearQueueToolItem.setEnabled(!view.getEventList().isEmpty());
+        		}
+		});
     }
 }
