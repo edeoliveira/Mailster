@@ -41,30 +41,105 @@ public class StoredSmtpMessage
 {
     private MailBox mailBox;
     
-    private SmtpMessage message;
-    private Date internalDate = new Date();
-    private Date messageDate;
+    private SoftSmtpMessageReference message;
+    private Date internalDate = new Date();    
     private Flags flags = new Flags();
     private Long id;
-    
     private boolean checked;
+    
+    // Cached data to prevent from parsing the date multiple times.
+    private Date messageDate;
+    
+    // Cached data, allows to gc the message.
+    private String _msgId;
+    private String _msgTo;
+    private String _msgSubject;
+    private int _msgSize;
+    private int _msgAttachedFilesCount;
+
+    public StoredSmtpMessage(SmtpMessage msg, Long id)
+    {
+    	updateCache(msg);
+	    
+		this.message = new SoftSmtpMessageReference(id, msg);
+        this.id = id;
+    }
+
+    protected void updateCache(SmtpMessage msg)
+    {
+    	try 
+		{
+    		synchronized(DateUtilities.rfc822DateFormatter)
+    		{
+    			messageDate = DateUtilities.rfc822DateFormatter.parse(msg.getDate());
+    		}
+		} 
+		catch (ParseException e) 
+		{
+			messageDate = new Date();
+		}
+		
+		_msgId = msg.getMessageID();
+	    _msgTo = msg.getTo();
+	    _msgSubject = msg.getSubject();
+	    _msgSize = msg.getSize();
+	    _msgAttachedFilesCount = msg.getInternalParts().getAttachedFiles().length; 
+    }
     
     public Date getMessageDate()
     {
-    	if (messageDate == null)
-    	{
-    		try 
-			{
-				messageDate = DateUtilities.rfc822DateFormatter.parse(message.getDate());
-			} 
-			catch (ParseException e) 
-			{
-				return null;
-			}
-    	}
-    	
     	return messageDate;
     }
+    
+    public boolean isPassivated()
+    {
+    	return message.get() == null;
+    }
+    
+    public String getMessageId()
+    {
+    	SmtpMessage msg = message.get();
+    	if (msg != null)
+    		return msg.getMessageID();
+    	else
+    		return _msgId;
+    }
+
+    public String getMessageTo()
+    {
+    	SmtpMessage msg = message.get();
+    	if (msg != null)
+    		return msg.getTo();
+    	else
+    		return _msgTo;
+    }
+    
+    public String getMessageSubject()
+    {
+    	SmtpMessage msg = message.get();
+    	if (msg != null)
+    		return msg.getSubject();
+    	else
+    		return _msgSubject;
+    }
+    
+    public int getMessageSize()
+    {
+    	SmtpMessage msg = message.get();
+    	if (msg != null)
+    		return msg.getSize();
+    	else
+    		return _msgSize;
+    }
+    
+    public int getAttachedFilesCount()
+    {
+    	SmtpMessage msg = message.get();
+    	if (msg != null)
+    		return msg.getInternalParts().getAttachedFiles().length;
+    	else
+    		return _msgAttachedFilesCount;
+    }    
     
     public boolean isChecked()
     {
@@ -74,12 +149,6 @@ public class StoredSmtpMessage
     public void setChecked(boolean checked)
     {
         this.checked = checked;
-    }
-
-    public StoredSmtpMessage(SmtpMessage message, Long id)
-    {
-        this.message = message;
-        this.id = id;
     }
 
     public Long getId()
@@ -94,7 +163,7 @@ public class StoredSmtpMessage
 
     public SmtpMessage getMessage()
     {
-        return message;
+        return message.getReference();
     }
 
     public Date getInternalDate()
@@ -121,4 +190,10 @@ public class StoredSmtpMessage
     {
         this.mailBox = mailBox;
     }
+
+	protected void finalize() throws Throwable 
+	{
+		super.finalize();
+		message.delete();
+	}
 }
