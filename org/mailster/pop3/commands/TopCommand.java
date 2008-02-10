@@ -80,7 +80,7 @@ public class TopCommand extends Pop3Command
             }
 
             conn.println("+OK");
-            StreamWriterUtilities.write(msg.getMessage().getRawMessage(), conn,
+            StreamWriterUtilities.write(msg.getMessage().toString(), conn,
                     numLines);
             conn.println(".");
         }

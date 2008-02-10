@@ -71,14 +71,14 @@ public class ListCommand extends Pop3Command
                     return;
                 }
 
-                conn.println("+OK " + id + " " + msg.getMessage().getSize());
+                conn.println("+OK " + id + " " + msg.getMessageSize());
             }
             else
             {
                 List<StoredSmtpMessage> messages = inbox.getNonDeletedMessages();
                 conn.println("+OK scan listing follows");
                 for (StoredSmtpMessage msg : messages)
-                    conn.println(msg.getId() + " " + msg.getMessage().getSize());
+                    conn.println(msg.getId() + " " + msg.getMessageSize());
 
                 conn.println(".");
             }

@@ -53,7 +53,7 @@ public class StatCommand extends Pop3Command
             long size = 0;
             
             for (StoredSmtpMessage msg : messages)
-                size += msg.getMessage().getSize();
+                size += msg.getMessageSize();
             
             conn.println("+OK " + messages.size() + " " + size);
         }
