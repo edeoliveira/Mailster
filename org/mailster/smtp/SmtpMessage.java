@@ -18,6 +18,7 @@
 package org.mailster.smtp;
 
 import java.io.ByteArrayInputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -33,12 +34,14 @@ import org.mailster.util.MailUtilities;
 /**
  * Container for a complete SMTP message - headers and message body.
  */
-public class SmtpMessage
+public class SmtpMessage implements Serializable
 {
+	private static final long serialVersionUID = -6813322065075326931L;
+
 	/**
 	 * Variable used for MimeMessage conversion.
 	 */
-    private final static Session MAIL_SESSION = Session.getDefaultInstance(System.getProperties(), null);
+    private transient final static Session MAIL_SESSION = Session.getDefaultInstance(System.getProperties(), null);
 
     /** 
      * Headers. 
@@ -56,7 +59,6 @@ public class SmtpMessage
     private List<String> recipients;
 
     private SmtpMessagePart internalParts;
-    private StringBuilder rawMessage;
 
     private String content;
     private String oldPreferredContentType;
@@ -80,10 +82,9 @@ public class SmtpMessage
     {
         headers = new SmtpHeaders();
         body = new StringBuilder();
-        rawMessage = new StringBuilder();
         recipients = new ArrayList<String>();
     }
-
+    
     /**
      * Update the headers or body depending on the SmtpResponse object and line
      * of input.
@@ -93,8 +94,6 @@ public class SmtpMessage
      */
     public void store(SmtpResponse response, String params)
     {
-        boolean log = response.getNextState() == SmtpState.DATA_HDR
-                || response.getNextState() == SmtpState.DATA_BODY;
         if (params != null)
         {
             if (SmtpState.DATA_HDR == response.getNextState())
@@ -124,16 +123,7 @@ public class SmtpMessage
                 }
                 body.append(params);
             }
-
-            if (log)
-            {
-                rawMessage.append(params);
-                if (response.getNextState() != SmtpState.DATA_BODY)
-                    rawMessage.append('\n');
-            }
         }
-        else if (response.getNextState() == SmtpState.DATA_BODY)
-            rawMessage.append('\n');
     }
 
     /**
@@ -208,7 +198,14 @@ public class SmtpMessage
      */
     public String getBody()
     {
-        return body.toString();
+    	body.trimToSize();
+        return body.toString(); //getInternalParts().toString(false);
+    }
+    
+    public String getStringToParse()
+    {
+    	body.trimToSize();
+    	return body.toString();
     }
     
     /**
@@ -225,13 +222,8 @@ public class SmtpMessage
         	charset = SimpleSmtpServer.DEFAULT_CHARSET;
         
         return new MimeMessage(MAIL_SESSION, 
-        		new ByteArrayInputStream(getRawMessage().getBytes(charset)));
+        		new ByteArrayInputStream(toString().getBytes(charset)));
     }        
-    
-    public String getRawMessage()
-    {
-        return rawMessage.toString();
-    }
 
     /**
      * String representation of the SmtpMessage.
@@ -240,9 +232,7 @@ public class SmtpMessage
      */
     public String toString()
     {
-        StringBuilder msg = new StringBuilder(headers.toString());
-        msg.append('\n').append(body).append('\n');
-        return msg.toString();
+    	return getInternalParts().toString();
     }
 
     public SmtpHeadersInterface getHeaders()
@@ -285,7 +275,11 @@ public class SmtpMessage
     public SmtpMessagePart getInternalParts()
     {
         if (internalParts == null)
+        {
             internalParts = MailUtilities.parseInternalParts(this);
+            internalParts.compress();
+            //body = null;
+        }
 
         return internalParts;
     }
@@ -356,14 +350,14 @@ public class SmtpMessage
     }
 
     /**
-     * Return the size of the content of this message in bytes. Return -1 if the
+     * Return the size of the content of this message in bytes. Return 0 if the
      * size cannot be determined.
      * <p>
      * Note that this number may not be an exact measure of the content size and
      * may or may not account for any transfer encoding of the content.
      * <p>
      * This implementation returns the size of the message body (if not null),
-     * otherwise, it returns -1.
+     * otherwise, it returns 0.
      * 
      * @return size of content in bytes
      */
@@ -373,6 +367,6 @@ public class SmtpMessage
         if (s != null)
             return s.length();
 
-        return -1;
+        return 0;
     }
 }

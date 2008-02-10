@@ -101,7 +101,12 @@ public class MailUtilities
         if (s == null)
         {
             if (SmtpHeadersInterface.DATE.equals(headerName))
-                return DateUtilities.rfc822DateFormatter.format(new Date());
+            {
+            	synchronized(DateUtilities.rfc822DateFormatter)
+            	{
+            		return DateUtilities.rfc822DateFormatter.format(new Date());
+            	}
+            }
             else if (SmtpHeadersInterface.SUBJECT.equals(headerName))
                 return "{No subject}";
 
@@ -610,16 +615,16 @@ public class MailUtilities
     public static SmtpMessagePart parseInternalParts(SmtpMessage msg)
     {
         LOG.debug("[DEBUG] --- MAIL ---");
+        String body = msg.getStringToParse();
         if (LOG.isDebugEnabled())
-        	LOG.debug(msg.getBody());
+        	LOG.debug(body);
         LOG.debug("[DEBUG] --- END MAIL ---\n\n");
 
         SmtpMessagePart mPart = null;
 
         try
         {
-            BufferedReader reader = new BufferedReader(new StringReader(msg
-                    .getBody()));
+            BufferedReader reader = new BufferedReader(new StringReader(body));
             LOG.debug("[DEBUG] --- MAIL BODY PARSING START ---");
 
             if (isMultiPart(msg.getHeaders()))
@@ -636,10 +641,10 @@ public class MailUtilities
         }
         catch (Exception ex)
         {
-            ex.printStackTrace();
+        	LOG.debug("[EXCEPTION] --- !!! PARSING FAILED EXCEPTION !!! ---", ex);
             mPart = new SmtpMessagePart();
             mPart.setHeaders(msg.getHeaders());
-            mPart.setBody(msg.getBody());
+            mPart.setBody(body);
         }
         LOG.debug("*************************************************************");
         if (LOG.isDebugEnabled())

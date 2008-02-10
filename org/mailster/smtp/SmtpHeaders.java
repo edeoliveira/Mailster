@@ -1,13 +1,13 @@
 package org.mailster.smtp;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.mailster.util.MailUtilities;
+import org.mailster.util.OrderedHashMap;
 
 /**
  * ---<br>
@@ -36,22 +36,27 @@ import org.mailster.util.MailUtilities;
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class SmtpHeaders implements SmtpHeadersInterface
+public class SmtpHeaders 
+	implements SmtpHeadersInterface, Serializable
 {
-    /** 
+	private static final long serialVersionUID = -7375329552875800307L;
+
+	/** 
      * Headers: Map of List of String hashed on header name. 
      */
-    private Map<String, SmtpHeader> headers = new HashMap<String, SmtpHeader>(
-            10);
-    private String lastHeaderName;
+    private OrderedHashMap<String, SmtpHeader> headers = new OrderedHashMap<String, SmtpHeader>(10);
+    private transient String lastHeaderName;
 
-    public class SmtpHeader
+    public class SmtpHeader implements Serializable
     {
-        private String name;
+		private static final long serialVersionUID = 7734729823787943541L;
+
+		private String name;
 
         private List<String> values;
 
-        public SmtpHeader(String name, List<String> values) {
+        public SmtpHeader(String name, List<String> values) 
+        {
             this.name = name;
             this.values = values;
         }
@@ -66,7 +71,7 @@ public class SmtpHeaders implements SmtpHeadersInterface
             this.name = name;
         }
 
-        public List<String> getValues()
+        protected List<String> getValues()
         {
             return values;
         }
@@ -83,7 +88,13 @@ public class SmtpHeaders implements SmtpHeadersInterface
             Iterator<String> it = values.iterator();
             while (it.hasNext())
             {
-                sb.append(it.next());
+            	String value = it.next();
+            	
+            	if (value.charAt(0) == '\t')
+            		sb.append('\n');
+            	
+            	sb.append(value);
+        	
                 if (it.hasNext())
                     sb.append("; ");
             }
@@ -92,22 +103,50 @@ public class SmtpHeaders implements SmtpHeadersInterface
         }
     }
 
-    public SmtpHeaders() {
+    public SmtpHeaders() 
+    {
     }
 
     /**
-     * Get the value(s) associated with the given header name.
+     * Get the value(s) associated with the given header name. 
+     * Header values are trimed.
      * 
      * @param name header name
      * @return value(s) associated with the header name
      */
     public String[] getHeaderValues(String name)
     {
+    	return getHeaderValues(name, (name == null || !name.startsWith("X-")));
+    }
+    
+    /**
+     * Get the value(s) associated with the given header name.
+     * 
+     * @param name header name
+     * @param trimed if <code>true</code> the header value is trimed.
+     * @return value(s) associated with the header name
+     */
+    public String[] getHeaderValues(String name, boolean trimed)    
+    {
         SmtpHeader h = headers.get(name);
         if (h == null || h.getValues() == null)
             return new String[0];
         else
-            return h.getValues().toArray(new String[h.getValues().size()]);
+        {
+        	if (trimed)
+        	{
+	        	String[] vals = new String[h.getValues().size()];
+	        	int i=0;
+	        	for (String s : h.getValues())
+	        	{
+	        		vals[i] = s.trim();
+	        		i+=1;
+	        	}
+	            return vals;
+        	}
+        	else
+        		return h.getValues().toArray(new String[h.getValues().size()]);
+        }
     }
 
     /**
@@ -122,7 +161,7 @@ public class SmtpHeaders implements SmtpHeadersInterface
         if (h == null || h.getValues() == null || h.getValues().get(0) == null)
             return null;
         else
-            return h.getValues().get(0);
+            return h.getValues().get(0).trim();
     }
 
     /**
@@ -151,6 +190,7 @@ public class SmtpHeaders implements SmtpHeadersInterface
 
             if (pos >= 0 && (termPos == -1 || pos < termPos))
             {
+            	line = line.trim();
                 String name = line.substring(0, pos);
                 lastHeaderName = name;
                 List<String> vals = null;
@@ -183,12 +223,10 @@ public class SmtpHeaders implements SmtpHeadersInterface
                 if (lastHeaderName.startsWith("X-"))
                     h.getValues().add(line);
                 else if (SmtpHeadersInterface.SUBJECT.equals(lastHeaderName))
-                    h.getValues().set(
-                            0,
-                            h.getValues().get(0)
-                                    + MailUtilities.decodeHeaderValue(line.trim()));
+                    h.getValues().set(0,
+                            h.getValues().get(0) + MailUtilities.decodeHeaderValue(line.trim()));
                 else
-                    h.getValues().add(line.trim());
+                    h.getValues().add(line);
             }
         }
     }
@@ -196,9 +234,9 @@ public class SmtpHeaders implements SmtpHeadersInterface
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
-        for (Iterator<String> i = headers.keySet().iterator(); i.hasNext();)
+        for (Iterator<SmtpHeader> i = headers.values().iterator(); i.hasNext();)
         {
-            SmtpHeader hdr = headers.get(i.next());
+            SmtpHeader hdr = i.next();
             sb.append(hdr);
             if (i.hasNext())
                 sb.append('\n');

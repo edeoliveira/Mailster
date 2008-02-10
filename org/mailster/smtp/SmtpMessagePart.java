@@ -3,6 +3,7 @@ package org.mailster.smtp;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -36,14 +37,16 @@ import org.mailster.util.MailUtilities;
  * Web Site</a> <br>
  * ---
  * <p>
- * SmtpMessagePart.java - Enter your Comment HERE.
+ * SmtpMessagePart.java - This represents a part of a {@link SmtpMessage}.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class SmtpMessagePart
+public class SmtpMessagePart implements Serializable
 {
-    private SmtpHeadersInterface headers = new SmtpHeaders();
+	private static final long serialVersionUID = 2640294731907150123L;
+	
+	private SmtpHeadersInterface headers = new SmtpHeaders();
     private List<SmtpMessagePart> parts = new ArrayList<SmtpMessagePart>(1);
     private Map<String, String> cids;
     private StringBuilder body = new StringBuilder();
@@ -87,6 +90,18 @@ public class SmtpMessagePart
             part.setParentPart(this);
     }
 
+    /**
+     * Recursive method that compress internal used memory to 
+     * save heap space.
+     */
+    protected void compress()
+    {
+    	body.trimToSize();
+    	
+    	for (SmtpMessagePart part : parts)
+            part.compress();
+    }
+    
     public String getContentType()
     {
         return headers.getHeaderValue(SmtpHeadersInterface.CONTENT_TYPE);
@@ -161,6 +176,8 @@ public class SmtpMessagePart
             }
             if (!"".equals(boundary))
                 partOutput.append("--").append(boundary).append("--\n");
+            if (parentPart != null)
+            	partOutput.append('\n');
         }
         else
             partOutput.append(body);
