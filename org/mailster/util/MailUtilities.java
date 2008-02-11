@@ -451,12 +451,14 @@ public class MailUtilities
             throws IOException
     {
         boolean isHeader = readHeader;
+        int lineNum = 0;
         SmtpHeadersInterface headers = new SmtpHeaders();
         SmtpMessagePart mPart = new SmtpMessagePart();
 
         LOG.debug("[DEBUG] --- BODY PART START ---");
         if (isHeader)
             LOG.debug("[DEBUG] --- Header start ---");
+
         while (reader.ready())
         {
             reader.mark(MAX_LINE_LENGTH);
@@ -497,8 +499,18 @@ public class MailUtilities
             }
             else
             {
-                mPart.appendToBody(line);
-                mPart.appendToBody("\n");
+            	if (lineNum == 1)
+            	{
+                	lineNum++;
+                	mPart.appendToBody("\n");
+            	}
+
+            	mPart.appendToBody(line);
+            	
+            	if (lineNum == 0)
+            		lineNum++;
+            	else
+            		mPart.appendToBody("\n");
             }
         }
 
