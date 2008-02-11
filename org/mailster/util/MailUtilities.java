@@ -622,12 +622,12 @@ public class MailUtilities
      * contents of the message.
      * 
      * @param msg the message to be parsed
+     * @param body the body of the message
      * @return the object representation of the message's body
      */
-    public static SmtpMessagePart parseInternalParts(SmtpMessage msg)
+    public static SmtpMessagePart parseInternalParts(SmtpMessage msg, String body)
     {
         LOG.debug("[DEBUG] --- MAIL ---");
-        String body = msg.getStringToParse();
         if (LOG.isDebugEnabled())
         	LOG.debug(body);
         LOG.debug("[DEBUG] --- END MAIL ---\n\n");

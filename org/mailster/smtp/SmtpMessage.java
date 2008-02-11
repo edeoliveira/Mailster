@@ -41,7 +41,7 @@ public class SmtpMessage implements Serializable
 	/**
 	 * Variable used for MimeMessage conversion.
 	 */
-    private transient final static Session MAIL_SESSION = Session.getDefaultInstance(System.getProperties(), null);
+    private transient final static Session MAIL_SESSION = Session.getInstance(System.getProperties());
 
     /** 
      * Headers. 
@@ -198,14 +198,7 @@ public class SmtpMessage implements Serializable
      */
     public String getBody()
     {
-    	body.trimToSize();
-        return body.toString(); //getInternalParts().toString(false);
-    }
-    
-    public String getStringToParse()
-    {
-    	body.trimToSize();
-    	return body.toString();
+        return getInternalParts().toString(false);
     }
     
     /**
@@ -276,9 +269,10 @@ public class SmtpMessage implements Serializable
     {
         if (internalParts == null)
         {
-            internalParts = MailUtilities.parseInternalParts(this);
+        	body.trimToSize();
+            internalParts = MailUtilities.parseInternalParts(this, body.toString());
             internalParts.compress();
-            //body = null;
+            body = null;
         }
 
         return internalParts;
