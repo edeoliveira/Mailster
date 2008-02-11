@@ -113,7 +113,7 @@ public class SendEncryptedMail extends TestCase
 		// create the base for our message
 		Properties props = new Properties();
 		props.setProperty("mail.smtp.host", "localhost");
-		props.setProperty("mail.smtp.port", String.valueOf(SMTP_PORT));		
+		props.setProperty("mail.smtp.port", String.valueOf(port));		
 		Session session = Session.getInstance(props);
 
 		MimeMessage baseMsg = new MimeMessage(session);
