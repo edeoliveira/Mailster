@@ -1,5 +1,5 @@
 #####
-Version 0.8.4 (2008-02-10) - Codename Havoc
+Version 0.8.4 (2008-02-11) - Codename Havoc
 
 NOTES :
 - UPGRADED to MINA 1.1.6.
