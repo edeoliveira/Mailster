@@ -66,11 +66,11 @@ public class SimpleSmtpServerTest extends TestCase
       try 
       {
         sendMessageWithCharset(SMTP_PORT, 
-											        		"sender@hereagain.com", 
-											        		"EncodedMessage", 
-											        		body, 
-											        		"receivingagain@there.com", 
-											        		charset);
+				        		"sender@hereagain.com", 
+				        		"EncodedMessage", 
+				        		body, 
+				        		"receivingagain@there.com", 
+				        		charset);
       } 
       catch (Exception e) 
       {
@@ -78,7 +78,7 @@ public class SimpleSmtpServerTest extends TestCase
         fail("Unexpected exception: " + e);
       }
 
-      assertTrue(server.getReceivedEmailSize() == 1);
+      assertEquals(1, server.getReceivedEmailSize());
       Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
       SmtpMessage email = (SmtpMessage) emailIter.next();
       assertEquals(body, email.getBody());
@@ -127,11 +127,11 @@ public class SimpleSmtpServerTest extends TestCase
       fail("Unexpected exception: " + e);
     }
 
-    assertTrue(server.getReceivedEmailSize() == 1);
+    assertEquals(1, server.getReceivedEmailSize());
     Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
     SmtpMessage email = (SmtpMessage) emailIter.next();
-    assertTrue(email.getHeaderValue("Subject").equals("Test"));
-    assertTrue(email.getBody().equals("Test Body"));
+    assertEquals("Test", email.getHeaderValue("Subject"));
+    assertEquals("Test Body", email.getBody());
     assertEquals("Wrong number of recipients", 1, email.getRecipients().size());
     assertEquals("Wrong recipient", "<receiver@there.com>", email.getRecipients().get(0));    
   }
@@ -149,10 +149,10 @@ public class SimpleSmtpServerTest extends TestCase
       fail("Unexpected exception: " + e);
     }
 
-    assertTrue(server.getReceivedEmailSize() == 1);
+    assertEquals(1, server.getReceivedEmailSize());
     Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
     SmtpMessage email = (SmtpMessage) emailIter.next();
-    assertTrue(email.getBody().equals(bodyWithCR));
+    assertEquals(bodyWithCR, email.getBody());
   }
   
   public void testSendMessageWithCarriageReturnV2() 
@@ -168,10 +168,10 @@ public class SimpleSmtpServerTest extends TestCase
         fail("Unexpected exception: " + e);
       }
 
-      assertTrue(server.getReceivedEmailSize() == 1);
+      assertEquals(1, server.getReceivedEmailSize());
       Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
       SmtpMessage email = (SmtpMessage) emailIter.next();
-      assertTrue(email.getBody().equals(bodyWithCR));
+      assertEquals(bodyWithCR, email.getBody());
     }
 
   protected String headerLinesToString(String[] header)
@@ -257,7 +257,7 @@ public class SimpleSmtpServerTest extends TestCase
       if (Server != null)
         props.put("mail.smtp.host", Server);
 
-      Session session = Session.getDefaultInstance(props, null);
+      Session session = Session.getInstance(props);
       Message msg = new MimeMessage(session);
 
       if (From != null) 
@@ -303,11 +303,11 @@ public class SimpleSmtpServerTest extends TestCase
       e.printStackTrace();
     }
 
-    assertTrue(server.getReceivedEmailSize() == 2);
+    assertEquals(2, server.getReceivedEmailSize());
     Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
     SmtpMessage email = (SmtpMessage) emailIter.next();
-    assertTrue(email.getHeaderValue("Subject").equals("Test"));
-    assertTrue(email.getBody().equals("Test Body"));
+    assertEquals("Test", email.getHeaderValue("Subject"));
+    assertEquals("Test Body", email.getBody());
   }
 
   private Properties getMailProperties(int port) 

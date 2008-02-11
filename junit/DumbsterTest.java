@@ -52,7 +52,7 @@ public class DumbsterTest extends TestCase
         Properties props = new Properties();
         props.put("mail.smtp.host", HOST);
         props.put("mail.smtp.port", String.valueOf(PORT));
-        Session session = Session.getDefaultInstance(props, null);
+        Session session = Session.getInstance(props);
         Transport transport = session.getTransport("smtp");
         transport.connect(HOST, PORT, null, null);
         MimeMessage message = new MimeMessage(session);

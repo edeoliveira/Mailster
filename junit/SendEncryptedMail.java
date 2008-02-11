@@ -74,7 +74,7 @@ public class SendEncryptedMail extends TestCase
 		try 
 		{
 			sendMail(SMTP_PORT);			
-			assertTrue(server.getReceivedEmailSize() == 2);
+			assertEquals(2, server.getReceivedEmailSize());
 		} 
 		catch (Exception e) 
 		{
@@ -111,10 +111,10 @@ public class SendEncryptedMail extends TestCase
 		// Generate the encrypted bodyparts
 		// CHANGES FROM HERE
 		// create the base for our message
-		Properties props = System.getProperties();
+		Properties props = new Properties();
 		props.setProperty("mail.smtp.host", "localhost");
-		props.setProperty("mail.smtp.port", SMTP_PORT+"");		
-		Session session = Session.getDefaultInstance(props, null);
+		props.setProperty("mail.smtp.port", String.valueOf(SMTP_PORT));		
+		Session session = Session.getInstance(props);
 
 		MimeMessage baseMsg = new MimeMessage(session);
 		MimeBodyPart bp1 = new MimeBodyPart();
@@ -149,7 +149,8 @@ public class SendEncryptedMail extends TestCase
         baseMsg.setRecipient(Message.RecipientType.TO, new InternetAddress(
 		"Mickael Fake <mickael.fake@gmail.com>"));
         baseMsg.setHeader("Content-Type", null);
-        baseMsg.setSubject("Example Encrypted Message II with very big subject line included in the header to test text wrapping method.");
+        baseMsg.setSubject("Example Encrypted Message II with very big subject line included " +
+        		"in the header to test text wrapping method.");
 		baseMsg.setContent(cryptMessage(finalPart));
 		baseMsg.setHeader("Date", DateUtilities.rfc822DateFormatter.format(getRandomDate()));
         baseMsg.saveChanges();
