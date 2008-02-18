@@ -50,6 +50,7 @@ public class SimpleSmtpServer implements Runnable
 			super(Watchdog.class.getName());
 			this.server = server;
 			setPriority(Thread.MAX_PRIORITY / 3);
+			setDaemon(true);
 		}
 
 		public void quit()

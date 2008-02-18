@@ -53,8 +53,6 @@ public class MemoryProgressBar
 	{
 		super(parent, style);
 		
-		//final String size = Math.round((Runtime.getRuntime().maxMemory() / (1024 * 1024))*100) / 100 + " Mo";
-		
 		addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent evt) 
 			{
@@ -88,11 +86,11 @@ public class MemoryProgressBar
 
 	private void startRefreshThread(final long timeout)
 	{
-		new Thread("Memory data collector") 
+		Thread t = new Thread("Memory data collector") 
 		{
 			public void run() 
 			{
-				while (true)
+				while (!getDisplay().isDisposed())
 				{
 					try 
 					{
@@ -100,9 +98,6 @@ public class MemoryProgressBar
 					} 
 					catch (Throwable th) {}
 				
-					if (getDisplay().isDisposed()) 
-						return;
-					
 					getDisplay().asyncExec(new Runnable() {
 						public void run() 
 						{
@@ -118,7 +113,9 @@ public class MemoryProgressBar
 					});
 				}
 			}
-		}.start();		
+		};
+		t.setDaemon(true);
+		t.start();		
 	}
 	
     protected void checkSubclass()
