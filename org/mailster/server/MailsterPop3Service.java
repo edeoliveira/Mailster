@@ -89,8 +89,16 @@ public class MailsterPop3Service
         ByteBuffer.setUseDirectBuffers(false);
         ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
 
-        acceptor = new SocketAcceptor(Runtime.getRuntime()
-                .availableProcessors() + 1, Executors.newCachedThreadPool());
+        acceptor = new SocketAcceptor(Runtime.getRuntime().availableProcessors() + 1, 
+        		Executors.newCachedThreadPool(new ThreadFactory() {
+        			int sequence;
+        			
+        			public Thread newThread(Runnable r) 
+        			{					
+        				sequence += 1;
+        				return new Thread(r, "POP3 SocketAcceptor Thread "+sequence);
+        			}			
+        		}));
         config = new SocketAcceptorConfig();
         config.setThreadModel(ThreadModel.MANUAL);
         ((SocketAcceptorConfig) config).setReuseAddress(true);
