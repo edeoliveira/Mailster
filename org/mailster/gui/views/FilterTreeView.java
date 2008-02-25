@@ -228,9 +228,15 @@ public class FilterTreeView extends TreeView
         clearQueueToolItem.addSelectionListener(selectionAdapter);
     }
     
+    /**
+     * Retrieves the host of the first email in the TO header.
+     */
     public static String getEmailHost(String email)
     {
     	email = email.toLowerCase();
+    	if (email.indexOf(',')>=0)
+    		email = email.substring(0, email.indexOf(','));
+    	
     	int pos = email.lastIndexOf("@"); //$NON-NLS-1$
     	if (pos>=0)
     	{
@@ -314,6 +320,34 @@ public class FilterTreeView extends TreeView
         }        	
 	}
 	
+	private void addNodeIfNewHost(String host)
+	{
+		boolean found = false;
+        for (TreeItem child : root.getItems())
+        {
+        	if (((String)child.getData()).equals(host))
+        	{
+        		found = true;
+            	break;
+            }
+        }
+        
+        if (!found)
+        {                        
+            try
+            {
+                TreeItem item = new TreeItem(root, SWT.NONE, 0);
+                item.setImage(SWTHelper.loadImage("folder.gif")); //$NON-NLS-1$
+                item.setText(host);
+                item.setData(host);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();                        
+            }
+        }
+	}
+	
     public FilterList<StoredSmtpMessage> getFilterList(
     		final AbstractEventList<StoredSmtpMessage> eventList)
     {
@@ -326,30 +360,7 @@ public class FilterTreeView extends TreeView
                         continue;
                     
                     String host = getEmailHost(eventList.get(listChanges.getIndex()).getMessageTo());
-                    boolean found = false;
-                    for (TreeItem child : root.getItems())
-                    {
-                    	if (((String)child.getData()).equals(host))
-                    	{
-                    		found = true;
-                        	break;
-                        }
-                    }
-                    
-                    if (!found)
-                    {                        
-                        try
-                        {
-                            TreeItem item = new TreeItem(root, SWT.NONE, 0);
-                            item.setImage(SWTHelper.loadImage("folder.gif")); //$NON-NLS-1$
-                            item.setText(host);
-                            item.setData(host);
-                        }
-                        catch (Exception e)
-                        {
-                            e.printStackTrace();                        
-                        }
-                    }
+                   	addNodeIfNewHost(host);
                 }
                 
                 root.setExpanded(true);

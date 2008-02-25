@@ -3,6 +3,7 @@ package org.mailster.gui.views;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.mail.internet.MimeMultipart;
 
@@ -118,8 +119,23 @@ public class HeadersView
         {
             if (sb.length()>0)
                 sb.append(';');
+
             if (s != null)
-                sb.append("<a>").append(s.trim()).append("</a>");
+            {
+            	if (s.indexOf(',')>=0)
+            	{
+                    StringTokenizer tk = new StringTokenizer(s, ",");
+    
+                    while (tk.hasMoreTokens())
+                    {
+                    	sb.append("<a>").append(tk.nextToken().trim()).append("</a>");
+                    	if (tk.hasMoreTokens())
+                    		sb.append(';');
+                    }
+            	}
+            	else
+            		sb.append("<a>").append(s.trim()).append("</a>");
+            }
         }
         
         return sb.toString();
