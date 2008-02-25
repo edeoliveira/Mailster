@@ -653,17 +653,24 @@ public class MailView
             Text rawView = createRawMailView(itemComposite);
             
             _browser.setText(msg.getPreferredContent(preferredContentType));
+
             final Browser b = _browser;
-        	_browser.addProgressListener(new ProgressAdapter() {
-                public void completed(ProgressEvent event)
-                {
-                	// Dynamically add the javascript highlighting code
-                    executeJavaScript(b, "var script = document.createElement('script');\r\n" +
-		                                "script.type = 'text/javascript';\r\n" +
-		                                "script.src = 'file:///"+StreamWriterUtilities.USER_DIR+"/js/highlight_mailster.js';\r\n" +
-		                                "document.getElementsByTagName('head')[0].appendChild(script);");
-                }
-            });
+            b.getDisplay().asyncExec(new Runnable() {
+				public void run() 
+				{
+					b.addProgressListener(new ProgressAdapter() {
+		                public void completed(ProgressEvent event)
+		                {
+		                	// Dynamically add the javascript highlighting code
+		                    executeJavaScript(b, "var script = document.createElement('script');\r\n" +
+				                                "script.type = 'text/javascript';\r\n" +
+				                                "script.src = 'file:///"+StreamWriterUtilities.USER_DIR+"/js/highlight_mailster.js';\r\n" +
+				                                "document.getElementsByTagName('head')[0].appendChild(script);");
+		                }
+		            });
+				}
+			});
+        	
             rawView.setText(msg.toString());
             
             item.setData(stored);
@@ -986,7 +993,7 @@ public class MailView
         closeTabs(true);
     }
     
-    private void closeTabs(boolean onlyMailTabs)
+    public void closeTabs(boolean onlyMailTabs)
     {
         for (int i = folder.getItemCount() - 1; i >= 0; i--)
         {
