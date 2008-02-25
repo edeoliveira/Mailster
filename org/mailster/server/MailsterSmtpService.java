@@ -210,6 +210,7 @@ public class MailsterSmtpService
                     Messages.getString("MailView.dialog.confirm.deleteMails"), 
                     Messages.getString("MailView.dialog.confirm.clear")))
         {
+        	main.getMailView().closeTabs(true);
 	        receivedMessages.clear();
 	        main.getMailView().clearDataList();
 	        main.getSMTPService().getPop3Service().getUserManager().
