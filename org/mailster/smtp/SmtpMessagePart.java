@@ -159,6 +159,15 @@ public class SmtpMessagePart implements Serializable
         return toString(true);
     }
 
+    public int getSize()
+    {
+        String s = toString(true);
+        if (s != null)
+            return s.length();
+
+        return 0;
+    }
+    
     public String toString(boolean includeHeaders)
     {
         StringBuilder partOutput = new StringBuilder();
