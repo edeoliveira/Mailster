@@ -2,6 +2,7 @@ package org.mailster.gui.views;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -89,9 +90,40 @@ public class MailView
      */
     class AttachedFilesDropdownListener extends DropDownListener
     {
+    	public DecimalFormat dcFormat;
+    	
         public AttachedFilesDropdownListener(ToolItem dropdown)
         {
             super(dropdown);
+
+        	dcFormat = new DecimalFormat("#,##0");
+        	dcFormat.setGroupingSize(3);
+        }
+        
+        private void getFormattedPartSize(StringBuilder sb, SmtpMessagePart part)
+        {
+        	int size = part.getSize();
+        	String unit = Messages.getString("MailView.fileSizeUnit.bytes");
+        	
+        	if (size > 1E9)
+        	{
+        		size = (int) (size / 1E9);
+        		unit = Messages.getString("MailView.fileSizeUnit.gigabytes");;
+        	}
+        	else
+        	if (size > 1E6)
+        	{
+        		size = (int) (size / 1E6);
+        		unit = Messages.getString("MailView.fileSizeUnit.megabytes");;
+        	}
+        	else        		
+        	if (size > 1E4)
+        	{
+        		size = (int) (size / 1E4);
+        		unit = Messages.getString("MailView.fileSizeUnit.kilobytes");;
+        	}
+        	
+        	sb.append(dcFormat.format(size)).append(' ').append(unit);
         }
         
         /**
@@ -104,7 +136,11 @@ public class MailView
             dropdown.setEnabled(true);
             MenuItem menuItem = new MenuItem(menu, SWT.NONE);
             String fileName = part.getFileName();
-            menuItem.setText(fileName);
+            StringBuilder sb = new StringBuilder(fileName);
+            sb.append(" (");
+            getFormattedPartSize(sb, part);
+            sb.append(')');
+            menuItem.setText(sb.toString());
 
             if (part.getContentType().contains("pkcs")) //$NON-NLS-1$
                 menuItem.setImage(SWTHelper.loadImage("smime.gif")); //$NON-NLS-1$
