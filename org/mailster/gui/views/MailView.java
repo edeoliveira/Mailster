@@ -119,7 +119,7 @@ public class MailView
         	else        		
         	if (size > 1E4)
         	{
-        		size = (int) (size / 1E4);
+        		size = (int) (size / 1E3);
         		unit = Messages.getString("MailView.fileSizeUnit.kilobytes");;
         	}
         	
