@@ -6,7 +6,6 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.DefaultIoFilterChainBuilder;
@@ -26,6 +25,7 @@ import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.pop3.mailbox.UserManager;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.util.StringUtilities;
+import org.mailster.util.ThreadFactoryUtilitity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +68,7 @@ public class MailsterPop3Service
     
     private SocketAcceptor acceptor;
     private ExecutorService executor;
+    private ExecutorService acceptorThreadPool;
     private InetSocketAddress iSocketAddr;
     private IoAcceptorConfig config;
     private Pop3ProtocolHandler handler;
@@ -89,16 +90,10 @@ public class MailsterPop3Service
         ByteBuffer.setUseDirectBuffers(false);
         ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
 
-        acceptor = new SocketAcceptor(Runtime.getRuntime().availableProcessors() + 1, 
-        		Executors.newCachedThreadPool(new ThreadFactory() {
-        			int sequence;
-        			
-        			public Thread newThread(Runnable r) 
-        			{					
-        				sequence += 1;
-        				return new Thread(r, "POP3 SocketAcceptor Thread "+sequence);
-        			}			
-        		}));
+        acceptorThreadPool =Executors.newCachedThreadPool(
+        		ThreadFactoryUtilitity.createFactory("POP3 SocketAcceptor Thread")); 
+        acceptor = new SocketAcceptor(
+        		Runtime.getRuntime().availableProcessors() + 1, acceptorThreadPool);
         config = new SocketAcceptorConfig();
         config.setThreadModel(ThreadModel.MANUAL);
         ((SocketAcceptorConfig) config).setReuseAddress(true);
@@ -107,15 +102,8 @@ public class MailsterPop3Service
         chain.addLast("codec", new ProtocolCodecFilter(
                 new InetTextCodecFactory(Charset.forName(CHARSET_NAME))));
 
-		executor = Executors.newCachedThreadPool(new ThreadFactory() {
-			int sequence;
-			
-			public Thread newThread(Runnable r) 
-			{					
-				sequence += 1;
-				return new Thread(r, "POP3 Thread "+sequence);
-			}			
-		});
+		executor = Executors.newCachedThreadPool(
+				ThreadFactoryUtilitity.createFactory("POP3 Thread"));
 		chain.addLast("threadPool", new ExecutorFilter(executor));
 		
         handler = new Pop3ProtocolHandler(userManager);
@@ -157,6 +145,8 @@ public class MailsterPop3Service
     		config.getFilterChain().remove("logger");
     	
         acceptor.unbindAll();
+        executor.shutdown();
+        acceptorThreadPool.shutdown();
     }
 
     public void shutdownService() throws IOException
