@@ -107,9 +107,12 @@ public class TableView
     
 	public void setSelection(StoredSmtpMessage stored)
     {
-		msgTableViewer.getTogglingSelected().clear();
-		msgTableViewer.getTogglingSelected().add(stored);
-		table.showSelection();
+		if (msgTableViewer.getSourceList().contains(stored))
+		{
+			msgTableViewer.getTogglingSelected().clear();
+			msgTableViewer.getTogglingSelected().add(stored);
+			table.showSelection();
+		}
     }
     
     protected AbstractEventList<StoredSmtpMessage> getEventList()
