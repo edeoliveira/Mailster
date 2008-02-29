@@ -587,10 +587,12 @@ public class MailsterSWT
         }    	
     	
         final MailsterSWT _main = main;
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+        Thread.UncaughtExceptionHandler exHandler  = new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(final Thread t,
                     final Throwable ex)
             {
+            	System.out.println(ex.getCause());
+            	ex.printStackTrace();
                 Display.getDefault().asyncExec(new Runnable() {
                     public void run()
                     {
@@ -598,13 +600,15 @@ public class MailsterSWT
                             .getString("MailsterSWT.exception.log1") + t.getName() //$NON-NLS-1$
                             + Messages
                                     .getString("MailsterSWT.exception.log2") //$NON-NLS-1$
-                            + ex.getCause().toString());
-                        System.out.println(ex.getCause());
+                            + ex.getCause().toString());                        
                     }
                 });
                 _main.smtpService.shutdownServer(false);
             }
-        });
+        };
+        Thread.setDefaultUncaughtExceptionHandler(exHandler);
+        Thread.currentThread().setUncaughtExceptionHandler(exHandler);
+        
         main.createSShell();
         main.applyPreferences();
         
