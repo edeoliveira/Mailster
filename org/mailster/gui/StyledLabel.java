@@ -47,7 +47,7 @@ public class StyledLabel extends StyledText
     {
         super(c, flags);
         setEditable(false);
-        getCaret().setVisible (false);
+        getCaret().setVisible(false);
     }
 
     public void setText(String s)
