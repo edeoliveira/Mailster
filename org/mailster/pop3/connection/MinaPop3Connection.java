@@ -2,9 +2,8 @@ package org.mailster.pop3.connection;
 
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.SSLFilter;
-import org.mailster.crypto.X509SecureSocketFactory;
+import org.mailster.crypto.SSLFilterFactory;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
-import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
 import org.mailster.pop3.mailbox.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,36 +45,15 @@ public class MinaPop3Connection implements AbstractPop3Connection
     private IoSession session;
     private Pop3State state;
     
+    public static void setupSSLParameters(SSLProtocol protocol)
+	{
+    	setupSSLParameters(protocol, false);
+	}
+    
     public static void setupSSLParameters(SSLProtocol protocol, 
                                           boolean clientAuthNeeded)
     {
-        try
-        {
-            getSSLFilter(protocol).setNeedClientAuth(clientAuthNeeded);
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    public static boolean isClientAuthNeeded()
-    {
-        return sslFilter != null 
-            && sslFilter.isNeedClientAuth();
-    }
-    
-    private synchronized static SSLFilter getSSLFilter(SSLProtocol protocol) 
-        throws Exception
-    {
-        if (sslFilter == null)
-        {
-            X509SecureSocketFactory ssf = X509SecureSocketFactory.getInstance(protocol, 
-            		new SWTCertificateTrustCallBackHandler());
-            sslFilter = new SSLFilter(ssf.getContext());
-        }
-            
-        return sslFilter;
+        sslFilter = SSLFilterFactory.createFilter(protocol, clientAuthNeeded);
     }
     
     public MinaPop3Connection(IoSession session, UserManager userManager)
@@ -107,10 +85,19 @@ public class MinaPop3Connection implements AbstractPop3Connection
         session.write(line);
     }
 
+    public static boolean isClientAuthNeeded()
+    {
+        return sslFilter != null 
+            && sslFilter.isNeedClientAuth();
+    }
+        
     public void startTLS(String response) throws Exception
     {
+    	if (sslFilter == null)
+    		setupSSLParameters(null);
+    	
         // Insert SSLFilter to get ready for handshaking
-        session.getFilterChain().addFirst("SSLfilter", getSSLFilter(null));
+        session.getFilterChain().addFirst("SSLfilter", sslFilter);
 
         // Disable encryption temporarily.
         // This attribute will be removed by SSLFilter
