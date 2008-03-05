@@ -505,7 +505,8 @@ public class MailUtilities
                 	mPart.appendToBody("\n");
             	}
 
-            	mPart.appendToBody(line);
+            	if (!"".equals(line))
+            		mPart.appendToBody(line);
             	
             	if (!readHeader && lineNum == 0)
             		lineNum++;
