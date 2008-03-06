@@ -233,6 +233,9 @@ public class FilterTreeView extends TreeView
      */
     public static String getEmailHost(String email)
     {
+    	if (email == null)
+    		return Messages.getString("MailsterSWT.treeView.localNetwork.label");
+    	
     	email = email.toLowerCase();
     	if (email.indexOf(',')>=0)
     		email = email.substring(0, email.indexOf(','));
