@@ -119,6 +119,11 @@ public class TableView
     {
         return eventList;
     }
+
+    protected AbstractEventList<StoredSmtpMessage> getTableList()
+    {
+        return dataList;
+    }
     
     protected void clearQueue(FilterTreeView treeView)
     {
