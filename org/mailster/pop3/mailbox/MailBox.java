@@ -12,7 +12,7 @@ import javax.mail.Flags.Flag;
 
 import org.mailster.server.Pop3Service;
 import org.mailster.smtp.SmtpMessage;
-import org.mailster.util.StreamWriterUtilities;
+import org.mailster.util.StreamUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -242,7 +242,7 @@ public class MailBox
             for (StoredSmtpMessage msg : mails.values())
             {
                 if (!msg.getFlags().contains(Flag.DELETED))
-                    StreamWriterUtilities.writeMessageToMBoxRDFormat(msg, out);
+                    StreamUtilities.writeMessageToMBoxRDFormat(msg, out);
             }
             out.close();
         }

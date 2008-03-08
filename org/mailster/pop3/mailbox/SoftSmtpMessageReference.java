@@ -13,7 +13,7 @@ import java.util.zip.ZipOutputStream;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.util.AbstractReloadableSoftReference;
 import org.mailster.util.FileUtilities;
-import org.mailster.util.StreamWriterUtilities;
+import org.mailster.util.StreamUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ public class SoftSmtpMessageReference
 {
 	private static final Logger log = LoggerFactory.getLogger(SoftSmtpMessageReference.class);
 
-	private final static String TEMP_DIRECTORY = StreamWriterUtilities.USER_DIR+File.separator+"tmp"+File.separator;
+	private final static String TEMP_DIRECTORY = StreamUtilities.USER_DIR+File.separator+"tmp"+File.separator;
 	private String tmpFileName;
     
 	static
