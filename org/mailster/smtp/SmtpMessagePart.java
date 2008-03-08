@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
+import org.mailster.server.MailsterConstants;
 import org.mailster.util.MailUtilities;
 
 /**
@@ -317,7 +318,7 @@ public class SmtpMessagePart implements Serializable
     	throws MessagingException, UnsupportedEncodingException
     {
         if (charset == null)
-        	charset = SimpleSmtpServer.DEFAULT_CHARSET;
+        	charset = MailsterConstants.DEFAULT_CHARSET_NAME;
         
         return new MimeBodyPart(new ByteArrayInputStream(toString(true).getBytes(charset)));
     } 

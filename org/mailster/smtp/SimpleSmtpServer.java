@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.mailster.server.MailsterConstants;
 import org.mailster.smtp.events.SMTPServerEvent;
 import org.mailster.smtp.events.SMTPServerListener;
 import org.mailster.util.StringUtilities;
@@ -169,11 +170,6 @@ public class SimpleSmtpServer implements Runnable
      * Blocks listening on server socket for 500 ms.
      */
     private static final int SOCKET_SO_TIMEOUT = 500;
-
-    /**
-     * Charset used when reading input on sockets.
-     */
-    public static final String DEFAULT_CHARSET = "ISO-8859-1";
 
     /**
      * The listeners list.
@@ -369,7 +365,7 @@ public class SimpleSmtpServer implements Runnable
                     // Get the input and output streams
                     BufferedReader input = new BufferedReader(
                             new InputStreamReader(socket.getInputStream(),
-                                    DEFAULT_CHARSET));
+                                    MailsterConstants.DEFAULT_CHARSET));
                     PrintWriter out = new PrintWriter(socket.getOutputStream());
     
                     synchronized (this)

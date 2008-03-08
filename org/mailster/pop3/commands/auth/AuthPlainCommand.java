@@ -9,7 +9,7 @@ import org.mailster.pop3.commands.Pop3CommandState;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.Pop3State;
-import org.mailster.server.Pop3Service;
+import org.mailster.server.MailsterConstants;
 import org.mailster.util.StringUtilities;
 
 /**
@@ -44,7 +44,7 @@ public class AuthPlainCommand extends AuthAlgorithmCommand
     private String[] parse(String encodedString) 
     	throws IOException
     {
-    	byte[] decoded = Base64.decode(encodedString.getBytes(Pop3Service.CHARSET_NAME));
+    	byte[] decoded = Base64.decode(encodedString.getBytes(MailsterConstants.DEFAULT_CHARSET_NAME));
     	List<String> l = new ArrayList<String>();
 
     	int pos=0;

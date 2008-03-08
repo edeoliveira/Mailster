@@ -1,5 +1,8 @@
 package org.mailster.server;
 
+import java.io.File;
+import java.nio.charset.Charset;
+
 /**
  * ---<br>
  * Mailster (C) 2007 De Oliveira Edouard
@@ -22,13 +25,18 @@ package org.mailster.server;
  * Web Site</a> <br>
  * ---
  * <p>
- * Pop3Service.java - Interface purpose is to decouple pop3 base code from 
- * Mailster code.
+ * MailsterConstants.java - Interface purpose is to group all server constants.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public interface Pop3Service
+public interface MailsterConstants 
 {
-    public String getOutputDirectory();
+	public static final String DEFAULT_CHARSET_NAME = "ISO-8859-1"; //$NON-NLS-1$
+	
+	public static final Charset DEFAULT_CHARSET = 
+		Charset.forName(DEFAULT_CHARSET_NAME); //$NON-NLS-1$
+	
+    public final static String USER_DIR = 
+    	System.getProperty("user.dir").replace(File.separatorChar, '/'); //$NON-NLS-1$ //$NON-NLS-2$
 }

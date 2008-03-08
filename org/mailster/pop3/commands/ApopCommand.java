@@ -7,7 +7,7 @@ import java.net.UnknownHostException;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.Pop3State;
-import org.mailster.server.Pop3Service;
+import org.mailster.server.MailsterConstants;
 import org.mailster.util.StringUtilities;
 import org.mailster.util.md5.MD5;
 
@@ -104,7 +104,7 @@ public class ApopCommand extends Pop3Command
                 state.setUser(state.getUser(username));
 
                 byte[] uniqueKey = (state.getGeneratedAPOPBanner() + state
-                        .getUser().getPassword()).getBytes(Pop3Service.CHARSET_NAME);
+                        .getUser().getPassword()).getBytes(MailsterConstants.DEFAULT_CHARSET_NAME);
 
                 String hash = null;
                 

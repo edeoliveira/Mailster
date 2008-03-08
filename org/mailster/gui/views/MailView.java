@@ -44,11 +44,11 @@ import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
+import org.mailster.server.MailsterConstants;
 import org.mailster.server.MailsterSmtpService;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.smtp.SmtpMessagePart;
 import org.mailster.util.DateUtilities;
-import org.mailster.util.StreamUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -700,7 +700,7 @@ public class MailView
 		                	// Dynamically add the javascript highlighting code
 		                    executeJavaScript(b, "var script = document.createElement('script');\r\n" +
 				                                "script.type = 'text/javascript';\r\n" +
-				                                "script.src = 'file:///"+StreamUtilities.USER_DIR+"/js/highlight_mailster.js';\r\n" +
+				                                "script.src = 'file:///"+MailsterConstants.USER_DIR+"/js/highlight_mailster.js';\r\n" +
 				                                "document.getElementsByTagName('head')[0].appendChild(script);");
 		                }
 		            });

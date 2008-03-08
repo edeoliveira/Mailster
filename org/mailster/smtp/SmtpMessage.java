@@ -29,6 +29,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
+import org.mailster.server.MailsterConstants;
 import org.mailster.util.MailUtilities;
 
 /**
@@ -103,7 +104,7 @@ public class SmtpMessage implements Serializable
             	if (needsConversion == null)
             	{
             		charset = getBodyCharset();
-            		needsConversion = charset  != null && !SimpleSmtpServer.DEFAULT_CHARSET.equals(charset);
+            		needsConversion = charset  != null && !MailsterConstants.DEFAULT_CHARSET_NAME.equals(charset);
             		/*if (charset  != null && SimpleSmtpServer.DEFAULT_CHARSET.equals(charset))
             			serverCharset = Charset.forName(SimpleSmtpServer.DEFAULT_CHARSET);*/
             	}
@@ -112,7 +113,7 @@ public class SmtpMessage implements Serializable
                 {
                     try
                     {                        
-                        params = new String(params.getBytes(SimpleSmtpServer.DEFAULT_CHARSET), charset);
+                        params = new String(params.getBytes(MailsterConstants.DEFAULT_CHARSET_NAME), charset);
                         // Since 1.6
                         //params = new String(params.getBytes(serverCharset), charset);
                     }
@@ -212,7 +213,7 @@ public class SmtpMessage implements Serializable
     {
     	String charset = getBodyCharset();
         if (charset == null)
-        	charset = SimpleSmtpServer.DEFAULT_CHARSET;
+        	charset = MailsterConstants.DEFAULT_CHARSET_NAME;
         
         return new MimeMessage(MAIL_SESSION, 
         		new ByteArrayInputStream(toString().getBytes(charset)));

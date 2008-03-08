@@ -2,7 +2,6 @@ package org.mailster.util;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -46,8 +45,6 @@ import org.mailster.subethasmtp.SmtpMessageFactory;
  */
 public class StreamUtilities
 {
-    public final static String USER_DIR = System.getProperty("user.dir").replace(File.separatorChar, '/'); //$NON-NLS-1$
-
     private final static String From_ = "From ";
     private final static LineDelimiter lineDelimiter = new LineDelimiter("\n");
 

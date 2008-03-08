@@ -32,7 +32,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.prefs.store.MailsterPrefStore;
-import org.mailster.util.StreamUtilities;
+import org.mailster.server.MailsterConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +123,7 @@ public class MailsterKeyStoreFactory
 	
 	private static String getFullPath(String fileName)
 	{
-		return StreamUtilities.USER_DIR+"/"+fileName;
+		return MailsterConstants.USER_DIR+"/"+fileName;
 	}
 	
 	public static void regenerate()

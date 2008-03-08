@@ -7,7 +7,7 @@ import org.mailster.pop3.commands.Pop3CommandState;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.Pop3State;
-import org.mailster.server.Pop3Service;
+import org.mailster.server.MailsterConstants;
 
 /**
  * ---<br>
@@ -49,7 +49,8 @@ public class AuthLoginCommand extends AuthAlgorithmCommand
     	throws IOException
     {
     	String pwd = new String(Base64.decode(
-    			encodedPassword.getBytes(Pop3Service.CHARSET_NAME)), Pop3Service.CHARSET_NAME);
+    			encodedPassword.getBytes(MailsterConstants.DEFAULT_CHARSET_NAME)), 
+    			MailsterConstants.DEFAULT_CHARSET_NAME);
     	
         Pop3State state = conn.getState();
 
@@ -90,7 +91,8 @@ public class AuthLoginCommand extends AuthAlgorithmCommand
 				if (state.getNextState() == ASK_PASSWORD_STATE)
 				{
 					String username = new String(Base64.decode(
-							cmd.getBytes(Pop3Service.CHARSET_NAME)), Pop3Service.CHARSET_NAME);
+							cmd.getBytes(MailsterConstants.DEFAULT_CHARSET_NAME)), 
+							MailsterConstants.DEFAULT_CHARSET_NAME);
 					Pop3State pop3State = conn.getState();
 					pop3State.setUser(pop3State.getUser(username));
 					

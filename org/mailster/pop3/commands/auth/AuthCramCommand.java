@@ -7,7 +7,7 @@ import org.mailster.pop3.commands.Pop3CommandState;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.Pop3State;
-import org.mailster.server.Pop3Service;
+import org.mailster.server.MailsterConstants;
 import org.mailster.util.StringUtilities;
 
 /**
@@ -49,7 +49,8 @@ public abstract class AuthCramCommand extends AuthAlgorithmCommand
     {
         conn.println("+ "+
         		new String(Base64.encode(conn.getState().getGeneratedAPOPBanner().
-        							getBytes(Pop3Service.CHARSET_NAME)), Pop3Service.CHARSET_NAME));
+        							getBytes(MailsterConstants.DEFAULT_CHARSET_NAME)), 
+        							MailsterConstants.DEFAULT_CHARSET_NAME));
         
         return new Pop3CommandState(this, CHECK_RESPONSE_TO_CHALLENGE_STATE);
     }
@@ -59,14 +60,15 @@ public abstract class AuthCramCommand extends AuthAlgorithmCommand
 									            String cmd) 
     	throws Exception
     {
-    	String[] cmdLine = StringUtilities.split(new String(Base64.decode(cmd), Pop3Service.CHARSET_NAME));
+    	String[] cmdLine = StringUtilities.split(new String(Base64.decode(cmd), 
+    			MailsterConstants.DEFAULT_CHARSET_NAME));
         String username = cmdLine[0];
         String hmac = cmdLine[1];
         Pop3State state = conn.getState();
         state.setUser(state.getUser(username));
 
-        if (hmacHash(state.getGeneratedAPOPBanner().getBytes(Pop3Service.CHARSET_NAME), 
-        		state.getUser().getPassword().getBytes(Pop3Service.CHARSET_NAME)).equals(hmac))
+        if (hmacHash(state.getGeneratedAPOPBanner().getBytes(MailsterConstants.DEFAULT_CHARSET_NAME), 
+        		state.getUser().getPassword().getBytes(MailsterConstants.DEFAULT_CHARSET_NAME)).equals(hmac))
         	tryLockingMailbox(conn);
         else
             conn.println("-ERR permission denied");

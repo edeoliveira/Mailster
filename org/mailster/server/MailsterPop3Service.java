@@ -3,7 +3,6 @@ package org.mailster.server;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -100,7 +99,7 @@ public class MailsterPop3Service
         DefaultIoFilterChainBuilder chain = config.getFilterChain();
 
         chain.addLast("codec", new ProtocolCodecFilter(
-                new InetTextCodecFactory(Charset.forName(CHARSET_NAME))));
+                new InetTextCodecFactory(MailsterConstants.DEFAULT_CHARSET)));
 
 		executor = Executors.newCachedThreadPool(
 				ThreadFactoryUtilitity.createFactory("POP3 Thread"));
