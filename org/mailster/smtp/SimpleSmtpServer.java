@@ -173,7 +173,7 @@ public class SimpleSmtpServer implements Runnable
     /**
      * Charset used when reading input on sockets.
      */
-    protected static final String DEFAULT_CHARSET = "ISO-8859-1";
+    public static final String DEFAULT_CHARSET = "ISO-8859-1";
 
     /**
      * The listeners list.
