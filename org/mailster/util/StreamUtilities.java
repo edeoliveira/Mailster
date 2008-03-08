@@ -1,14 +1,21 @@
 package org.mailster.util;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.mina.filter.codec.textline.LineDelimiter;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.smtp.SmtpHeadersInterface;
+import org.mailster.smtp.SmtpMessage;
+import org.mailster.subethasmtp.SmtpMessageFactory;
 
 /**
  * ---<br>
@@ -32,16 +39,17 @@ import org.mailster.smtp.SmtpHeadersInterface;
  * Web Site</a> <br>
  * ---
  * <p>
- * StreamWriterUtilities.java - Various methods to help writing to streams.
+ * StreamUtilities.java - Various methods to help reading and writing to streams.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class StreamWriterUtilities
+public class StreamUtilities
 {
     public final static String USER_DIR = System.getProperty("user.dir").replace(File.separatorChar, '/'); //$NON-NLS-1$
 
     private final static String From_ = "From ";
+    private final static LineDelimiter lineDelimiter = new LineDelimiter("\n");
 
     public static void write(String s, AbstractPop3Connection conn)
     {
@@ -93,6 +101,100 @@ public class StreamWriterUtilities
         }
     }
 
+    /**
+     * A reader scans through a mbox file looking for From_ lines.
+ 	 * Any From_ line marks the beginning of a message.  The reader
+     * should not attempt to take advantage of the fact that  every
+     * From_ line (past the beginning of the file) is preceded by a
+     * blank line.
+	 *
+     * Once the reader finds a message,  it  extracts  a  (possibly
+     * corrupted)  envelope  sender  and  delivery  date out of the
+     * From_ line.  It then reads until the next From_ line or  end
+     * of  file,  whichever  comes  first.  It strips off the final
+     * blank line and deletes  the  quoting  of  >From_  lines  and
+     * >>From_ lines and so on.  The result is an RFC 822 message.
+     * 
+     * http://www.qmail.org/qmail-manual-html/man5/mbox.html
+     */    
+    public static List<SmtpMessage> readMessageFromMBoxRDFormat(BufferedReader in, Charset charset)
+    {
+    	SmtpMessageFactory factory = new SmtpMessageFactory(charset, lineDelimiter);
+    	List<SmtpMessage> mails = new ArrayList<SmtpMessage>();
+    	
+    	try 
+    	{
+    		String line = null;
+    		StringBuilder msg = null;
+    		boolean skip = true;
+    		
+			while ((line = in.readLine()) != null)
+			{
+				if (line.startsWith(From_))
+				{
+					 if (skip)
+						 skip = false;
+					 else
+					 {
+						 msg.deleteCharAt(msg.length()-1);
+						 mails.add(factory.asSmtpMessage(
+							new ByteArrayInputStream(msg.toString().getBytes(charset))));
+					 }
+					 
+					 msg = new StringBuilder();
+				}
+				else
+				if (skip == true)
+					continue;
+				else
+				{
+					if (line.matches(">*From.*"))
+					{
+						int i=0;
+						while(line.charAt(i) == '>')
+							i+=1;
+						
+						line = line.substring(i);
+					}
+					
+					msg.append(line).append('\n');
+				}
+			}
+			
+			// Add last message
+			msg.deleteCharAt(msg.length()-1);
+			mails.add(factory.asSmtpMessage(
+					new ByteArrayInputStream(msg.toString().getBytes(charset))));
+		} 
+    	catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+    	
+    	return mails;
+    }
+    
+    /**
+     * Here is how a program appends a message to an mbox file.
+	 * 
+     * It first creates a From_ line given the  message's  envelope
+     * sender  and  the  current  date.   If the envelope sender is
+     * empty (i.e., if this is a bounce message), the program  uses
+     * MAILER-DAEMON  instead.   If  the  envelope  sender contains
+     * spaces, tabs, or newlines, the program  replaces  them  with
+     * hyphens.
+	 *
+     * The program then copies the message, applying >From  quoting
+     * to  each  line.   >From  quoting  ensures that the resulting
+     * lines are not From_ lines:  the program prepends a > to  any
+     * From_ line, >From_ line, >>From_ line, >>>From_ line, etc.
+	 *  
+     * Finally the program appends a blank line to the message.  If
+     * the  last  line of the message was a partial line, it writes
+     * two newlines; otherwise it writes one.
+     * 
+     * http://www.qmail.org/qmail-manual-html/man5/mbox.html
+     */
     public static void writeMessageToMBoxRDFormat(StoredSmtpMessage msg,
             PrintWriter out)
     {
@@ -103,7 +205,7 @@ public class StreamWriterUtilities
         {
             String envSender = msg.getMessage().getHeaders().getHeaderValue(
                     SmtpHeadersInterface.FROM);
-            envSender = envSender == null && "".equals(envSender)
+            envSender = envSender == null || "".equals(envSender)
                     ? "MAILER-DAEMON"
                     : envSender.replaceAll("[ \t\r\n]", "-").trim();
 

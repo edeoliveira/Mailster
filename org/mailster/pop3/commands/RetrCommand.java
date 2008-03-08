@@ -7,7 +7,7 @@ import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.Pop3State;
 import org.mailster.pop3.mailbox.MailBox;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
-import org.mailster.util.StreamWriterUtilities;
+import org.mailster.util.StreamUtilities;
 import org.mailster.util.StringUtilities;
 
 /**
@@ -75,7 +75,7 @@ public class RetrCommand extends Pop3Command
             }
 
             conn.println("+OK");
-            StreamWriterUtilities.write(msg.getMessage().toString(), conn);
+            StreamUtilities.write(msg.getMessage().toString(), conn);
             conn.println(".");            
         }
         catch (Exception e)
