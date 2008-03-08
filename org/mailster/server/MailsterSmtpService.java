@@ -18,6 +18,7 @@ import org.mailster.gui.Messages;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.smtp.SimpleSmtpServer;
+import org.mailster.smtp.SmtpMessage;
 import org.mailster.smtp.events.SMTPServerAdapter;
 import org.mailster.smtp.events.SMTPServerEvent;
 import org.mailster.smtp.events.SMTPServerListener;
@@ -119,39 +120,34 @@ public class MailsterSmtpService
         {
             if (main.getMailView().isTableDisposed())
                 return;
-            if (server == null || server.isStopped())
-                main.log(Messages
-                        .getString("MailsterSWT.log.server.notStarted")); //$NON-NLS-1$
-            else
-            {
-            	int nb = 0;
-                
-                synchronized(receivedMessages)
-                {
-                    main.getMailView().getDataList().getReadWriteLock().writeLock().lock();
-                    try
-                    {
-                    	main.getMailView().getDataList().addAll(receivedMessages);
-                    }
-                    finally
-                    {
-                    	main.getMailView().getDataList().getReadWriteLock().writeLock().unlock();
-                    }
-                    
-	                nb = receivedMessages.size();
-	                receivedMessages.clear();
-                }
 
-                main.log(MessageFormat.format(
-                        Messages.getString("MailsterSWT.log.server.updated.emailQueue"), //$NON-NLS-1$
-                        new Object[] { new Integer(nb) }));
+            int nb = 0;
+            
+            synchronized(receivedMessages)
+            {
+                main.getMailView().getDataList().getReadWriteLock().writeLock().lock();
+                try
+                {
+                	main.getMailView().getDataList().addAll(receivedMessages);
+                }
+                finally
+                {
+                	main.getMailView().getDataList().getReadWriteLock().writeLock().unlock();
+                }
                 
-                if (nb>0 && ConfigurationManager.CONFIG_STORE.
-                		getBoolean(ConfigurationManager.NOTIFY_ON_NEW_MESSAGES_RECEIVED_KEY))
-                	main.showTrayItemTooltipMessage(Messages.getString("MailView.trayTooltip.title") //$NON-NLS-1$
-                			+DateUtilities.hourDateFormat.format(new Date())+")",  //$NON-NLS-1$
-                			nb+Messages.getString("MailView.trayTooltip.newMessages")); //$NON-NLS-1$                
+                nb = receivedMessages.size();
+                receivedMessages.clear();
             }
+
+            main.log(MessageFormat.format(
+                    Messages.getString("MailsterSWT.log.server.updated.emailQueue"), //$NON-NLS-1$
+                    new Object[] { new Integer(nb) }));
+            
+            if (nb>0 && ConfigurationManager.CONFIG_STORE.
+            		getBoolean(ConfigurationManager.NOTIFY_ON_NEW_MESSAGES_RECEIVED_KEY))
+            	main.showTrayItemTooltipMessage(Messages.getString("MailView.trayTooltip.title") //$NON-NLS-1$
+            			+DateUtilities.hourDateFormat.format(new Date())+")",  //$NON-NLS-1$
+            			nb+Messages.getString("MailView.trayTooltip.newMessages")); //$NON-NLS-1$                
         }
     }
 
@@ -173,15 +169,26 @@ public class MailsterSmtpService
         server.addSMTPServerListener(new SMTPServerAdapter() {
             public void emailReceived(SMTPServerEvent event)
             {
-            	StoredSmtpMessage stored = pop3Service.storeMessage(event.getMessage());
-                synchronized(receivedMessages)
-                {
-                	receivedMessages.add(stored);
-                }
+            	addReceivedEmail(event.getMessage());
             }
         });
     }
 
+    public void addReceivedEmail(List<SmtpMessage> list)
+    {
+    	for (SmtpMessage msg : list)
+    		addReceivedEmail(msg);
+    }
+    
+    public void addReceivedEmail(SmtpMessage msg)
+    {
+    	StoredSmtpMessage stored = pop3Service.storeMessage(msg);
+        synchronized(receivedMessages)
+        {
+        	receivedMessages.add(stored);
+        }    	
+    }
+    
     public void addSMTPServerListener(SMTPServerListener listener)
     {
         if (server != null)
