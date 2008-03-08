@@ -90,7 +90,7 @@ public class MailsterPop3Service
         ByteBuffer.setUseDirectBuffers(false);
         ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
 
-        acceptorThreadPool =Executors.newCachedThreadPool(
+        acceptorThreadPool = Executors.newCachedThreadPool(
         		ThreadFactoryUtilitity.createFactory("POP3 SocketAcceptor Thread")); 
         acceptor = new SocketAcceptor(
         		Runtime.getRuntime().availableProcessors() + 1, acceptorThreadPool);
