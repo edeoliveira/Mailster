@@ -55,7 +55,7 @@ public class ConfigurationManager
     /**
      * Application version number
      */
-    public final static String MAILSTER_VERSION_NB	= "v0.8.4";
+    public final static String MAILSTER_VERSION_NB	= "v0.9.0";
     
     /**
      * Application version string
