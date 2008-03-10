@@ -120,7 +120,7 @@ public class SoftSmtpMessageReference
 		try 
 		{
 			ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(this.tmpFileName));
-			zip.putNextEntry(new ZipEntry(getKey()+".msg"));			
+			zip.putNextEntry(new ZipEntry(getKey()+".eml"));			
 			oOut = new ObjectOutputStream(zip);
 			oOut.writeObject(object);
 			oOut.flush();
