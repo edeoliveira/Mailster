@@ -74,9 +74,16 @@ public class AuthCramMD5Command extends AuthCramCommand
         // Stores key in pads and XOR it with ipad and opad values
         for(int i=0;i<64;i++) 
         {
-            boolean isKeyByte = i<key.length;
-            k_ipad[i] = isKeyByte ? (byte)(key[i] ^ 0x36) : 0x36;
-            k_opad[i] = isKeyByte ? (byte)(key[i] ^ 0x5c) : 0x5c;
+            if (i<key.length) 
+            {
+            	k_ipad[i] = (byte) (key[i] ^ 0x36);
+            	k_opad[i] = (byte)(key[i] ^ 0x5c);
+            }
+            else 
+            {
+            	k_ipad[i] = 0x36;
+            	k_opad[i] = 0x5c;            	
+            }          
         }
 
         synchronized(md5)
