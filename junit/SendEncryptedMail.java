@@ -33,9 +33,9 @@ import org.bouncycastle.asn1.smime.SMIMECapabilityVector;
 import org.bouncycastle.mail.smime.SMIMEEnvelopedGenerator;
 import org.bouncycastle.mail.smime.SMIMESignedGenerator;
 import org.mailster.crypto.MailsterKeyStoreFactory;
+import org.mailster.server.MailsterConstants;
 import org.mailster.smtp.SimpleSmtpServer;
 import org.mailster.util.DateUtilities;
-import org.mailster.util.StreamWriterUtilities;
 
 public class SendEncryptedMail extends TestCase 
 {
@@ -122,7 +122,7 @@ public class SendEncryptedMail extends TestCase
 		bp1.setContent("Hello World!!!", "text/plain; charset=\"ISO-8859-1\"");
 		// Attach the file
 		MimeBodyPart bp2 = new MimeBodyPart();
-		FileDataSource fileAttachment = new FileDataSource(StreamWriterUtilities.USER_DIR+"/pom.xml");
+		FileDataSource fileAttachment = new FileDataSource(MailsterConstants.USER_DIR+"/pom.xml");
 		DataHandler dh = new DataHandler(fileAttachment);
 		bp2.setDataHandler(dh);
 		bp2.setFileName(fileAttachment.getName());
