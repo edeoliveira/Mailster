@@ -173,45 +173,6 @@ public class StringUtilities
     }
     
     /**
-     * Parses the directives exchanged between the client and the server during a 
-     * DIGEST-MD5 authentication process.
-     * 
-     * @param message the decoded directives
-     * @return a Map containing the directives and their decoded values
-     * @throws SaslException 
-     */
-	public static HashMap<String, String> parseDigestMD5Directives(String message) 
-		throws SaslException 
-	{
-		HashMap<String, String> map = new HashMap<String, String>();		
-		String[] directives=StringUtilities.split(message,",");
-		for (String d : directives)
-		{
-			int pos = d.indexOf('=');
-			String directive = d.substring(0, pos).trim();
-			
-			if (map.containsKey(directive))
-				throw new SaslException("Duplicate directive in client digest-response");
-			else
-			{
-				String value = d.substring(pos+1);
-				
-                // See TEXT rule at paragraph 7.2 of RFC 2831
-                if ("username".equals(directive) || "cnonce".equals(directive) ||
-                		"authzid".equals(directive))
-                    value.replaceAll("\r\n", " ");
-                
-				if (value.charAt(0) =='\"' && value.charAt(value.length()-1) == '\"')
-                    value = value.substring(1, value.length()-1);
-				
-				map.put(directive, value);
-			}
-		}
-		
-		return map;
-	}
-	
-    /**
      * Parses digest-challenge string, extracting each token
      * and value(s)
      *
@@ -409,5 +370,234 @@ public class StringUtilities
 	    }
 
     	return i;
+    }
+    
+    /**
+     * <p>Replaces all occurrences of a String within another String.</p>
+     *
+     * <p>A <code>null</code> reference passed to this method is a no-op.</p>
+     *
+     * <pre>
+     * StringUtils.replace(null, *, *)        = null
+     * StringUtils.replace("", *, *)          = ""
+     * StringUtils.replace("any", null, *)    = "any"
+     * StringUtils.replace("any", *, null)    = "any"
+     * StringUtils.replace("any", "", *)      = "any"
+     * StringUtils.replace("aba", "a", null)  = "aba"
+     * StringUtils.replace("aba", "a", "")    = "b"
+     * StringUtils.replace("aba", "a", "z")   = "zbz"
+     * </pre>
+     *
+     * @see #replace(String text, String repl, String with, int max)
+     * @param text  text to search and replace in, may be null
+     * @param repl  the String to search for, may be null
+     * @param with  the String to replace with, may be null
+     * @return the text with any replacements processed,
+     *  <code>null</code> if null String input
+     */
+    public static String replace(String text, String repl, String with) {
+        return replace(text, repl, with, -1);
+    }
+
+    /**
+     * <p>Replaces a String with another String inside a larger String,
+     * for the first <code>max</code> values of the search String.</p>
+     *
+     * <p>A <code>null</code> reference passed to this method is a no-op.</p>
+     *
+     * <pre>
+     * StringUtils.replace(null, *, *, *)         = null
+     * StringUtils.replace("", *, *, *)           = ""
+     * StringUtils.replace("any", null, *, *)     = "any"
+     * StringUtils.replace("any", *, null, *)     = "any"
+     * StringUtils.replace("any", "", *, *)       = "any"
+     * StringUtils.replace("any", *, *, 0)        = "any"
+     * StringUtils.replace("abaa", "a", null, -1) = "abaa"
+     * StringUtils.replace("abaa", "a", "", -1)   = "b"
+     * StringUtils.replace("abaa", "a", "z", 0)   = "abaa"
+     * StringUtils.replace("abaa", "a", "z", 1)   = "zbaa"
+     * StringUtils.replace("abaa", "a", "z", 2)   = "zbza"
+     * StringUtils.replace("abaa", "a", "z", -1)  = "zbzz"
+     * </pre>
+     *
+     * @param text  text to search and replace in, may be null
+     * @param repl  the String to search for, may be null
+     * @param with  the String to replace with, may be null
+     * @param max  maximum number of values to replace, or <code>-1</code> if no maximum
+     * @return the text with any replacements processed,
+     *  <code>null</code> if null String input
+     */
+    public static String replace(String text, String repl, String with, int max) {
+        if (isEmpty(text) || isEmpty(repl) || with == null || max == 0) {
+            return text;
+        }
+        int start = 0;
+        int end = text.indexOf(repl, start);
+        if (end == -1) {
+            return text;
+        }
+        int replLength = repl.length();
+        int increase = with.length() - replLength;
+        increase = (increase < 0 ? 0 : increase);
+        increase *= (max < 0 ? 16 : (max > 64 ? 64 : max));
+        StringBuffer buf = new StringBuffer(text.length() + increase);
+        while (end != -1) {
+            buf.append(text.substring(start, end)).append(with);
+            start = end + replLength;
+            if (--max == 0) {
+                break;
+            }
+            end = text.indexOf(repl, start);
+        }
+        buf.append(text.substring(start));
+        return buf.toString();
+    }
+    
+    /**
+     * <p>Strips whitespace from the start and end of a String.</p>
+     *
+     * <p>This is similar to {@link #trim(String)} but removes whitespace.
+     * Whitespace is defined by {@link Character#isWhitespace(char)}.</p>
+     *
+     * <p>A <code>null</code> input String returns <code>null</code>.</p>
+     *
+     * <pre>
+     * StringUtils.strip(null)     = null
+     * StringUtils.strip("")       = ""
+     * StringUtils.strip("   ")    = ""
+     * StringUtils.strip("abc")    = "abc"
+     * StringUtils.strip("  abc")  = "abc"
+     * StringUtils.strip("abc  ")  = "abc"
+     * StringUtils.strip(" abc ")  = "abc"
+     * StringUtils.strip(" ab c ") = "ab c"
+     * </pre>
+     *
+     * @param str  the String to remove whitespace from, may be null
+     * @return the stripped String, <code>null</code> if null String input
+     */
+    public static String strip(String str) {
+        return strip(str, null);
+    }
+    
+    /**
+     * <p>Strips any of a set of characters from the start and end of a String.
+     * This is similar to {@link String#trim()} but allows the characters
+     * to be stripped to be controlled.</p>
+     *
+     * <p>A <code>null</code> input String returns <code>null</code>.
+     * An empty string ("") input returns the empty string.</p>
+     *
+     * <p>If the stripChars String is <code>null</code>, whitespace is
+     * stripped as defined by {@link Character#isWhitespace(char)}.
+     * Alternatively use {@link #strip(String)}.</p>
+     *
+     * <pre>
+     * StringUtils.strip(null, *)          = null
+     * StringUtils.strip("", *)            = ""
+     * StringUtils.strip("abc", null)      = "abc"
+     * StringUtils.strip("  abc", null)    = "abc"
+     * StringUtils.strip("abc  ", null)    = "abc"
+     * StringUtils.strip(" abc ", null)    = "abc"
+     * StringUtils.strip("  abcyx", "xyz") = "  abc"
+     * </pre>
+     *
+     * @param str  the String to remove characters from, may be null
+     * @param stripChars  the characters to remove, null treated as whitespace
+     * @return the stripped String, <code>null</code> if null String input
+     */
+    public static String strip(String str, String stripChars) {
+        if (isEmpty(str)) {
+            return str;
+        }
+        str = stripStart(str, stripChars);
+        return stripEnd(str, stripChars);
+    }
+    
+    /**
+     * <p>Strips any of a set of characters from the start of a String.</p>
+     *
+     * <p>A <code>null</code> input String returns <code>null</code>.
+     * An empty string ("") input returns the empty string.</p>
+     *
+     * <p>If the stripChars String is <code>null</code>, whitespace is
+     * stripped as defined by {@link Character#isWhitespace(char)}.</p>
+     *
+     * <pre>
+     * StringUtils.stripStart(null, *)          = null
+     * StringUtils.stripStart("", *)            = ""
+     * StringUtils.stripStart("abc", "")        = "abc"
+     * StringUtils.stripStart("abc", null)      = "abc"
+     * StringUtils.stripStart("  abc", null)    = "abc"
+     * StringUtils.stripStart("abc  ", null)    = "abc  "
+     * StringUtils.stripStart(" abc ", null)    = "abc "
+     * StringUtils.stripStart("yxabc  ", "xyz") = "abc  "
+     * </pre>
+     *
+     * @param str  the String to remove characters from, may be null
+     * @param stripChars  the characters to remove, null treated as whitespace
+     * @return the stripped String, <code>null</code> if null String input
+     */
+    public static String stripStart(String str, String stripChars) {
+        int strLen;
+        if (str == null || (strLen = str.length()) == 0) {
+            return str;
+        }
+        int start = 0;
+        if (stripChars == null) {
+            while ((start != strLen) && Character.isWhitespace(str.charAt(start))) {
+                start++;
+            }
+        } else if (stripChars.length() == 0) {
+            return str;
+        } else {
+            while ((start != strLen) && (stripChars.indexOf(str.charAt(start)) != -1)) {
+                start++;
+            }
+        }
+        return str.substring(start);
+    }
+
+    /**
+     * <p>Strips any of a set of characters from the end of a String.</p>
+     *
+     * <p>A <code>null</code> input String returns <code>null</code>.
+     * An empty string ("") input returns the empty string.</p>
+     *
+     * <p>If the stripChars String is <code>null</code>, whitespace is
+     * stripped as defined by {@link Character#isWhitespace(char)}.</p>
+     *
+     * <pre>
+     * StringUtils.stripEnd(null, *)          = null
+     * StringUtils.stripEnd("", *)            = ""
+     * StringUtils.stripEnd("abc", "")        = "abc"
+     * StringUtils.stripEnd("abc", null)      = "abc"
+     * StringUtils.stripEnd("  abc", null)    = "  abc"
+     * StringUtils.stripEnd("abc  ", null)    = "abc"
+     * StringUtils.stripEnd(" abc ", null)    = " abc"
+     * StringUtils.stripEnd("  abcyx", "xyz") = "  abc"
+     * </pre>
+     *
+     * @param str  the String to remove characters from, may be null
+     * @param stripChars  the characters to remove, null treated as whitespace
+     * @return the stripped String, <code>null</code> if null String input
+     */
+    public static String stripEnd(String str, String stripChars) {
+        int end;
+        if (str == null || (end = str.length()) == 0) {
+            return str;
+        }
+
+        if (stripChars == null) {
+            while ((end != 0) && Character.isWhitespace(str.charAt(end - 1))) {
+                end--;
+            }
+        } else if (stripChars.length() == 0) {
+            return str;
+        } else {
+            while ((end != 0) && (stripChars.indexOf(str.charAt(end - 1)) != -1)) {
+                end--;
+            }
+        }
+        return str.substring(0, end);
     }
 }
