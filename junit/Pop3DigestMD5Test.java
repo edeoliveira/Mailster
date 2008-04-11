@@ -257,7 +257,7 @@ public class Pop3DigestMD5Test extends TestCase
     	
     	sb.append(",nc=00000001,");
     	sb.append("digest-uri=\"pop3/").append(map.get("realm")).append("\"");
-    	HashMap<String, String> clientMap = StringUtilities.parseDigestMD5Directives(sb.toString());
+    	HashMap<String, String> clientMap = StringUtilities.parseDirectives(sb.toString().getBytes(encoding));
     	sb.append(",response=").append(computeResponseValue(clientMap, PWD, encoding, false));
     	
     	println(new String(Base64.encode(sb.toString().getBytes(encoding)), encoding));

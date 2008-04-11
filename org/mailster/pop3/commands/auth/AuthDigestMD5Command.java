@@ -243,7 +243,7 @@ public class AuthDigestMD5Command extends AuthAlgorithmCommand
     	if (decoded.getBytes("utf8").length > 4096)
 			throw new AuthException("Digest-response size exceeds 4096 bytes");
     	
-    	HashMap<String, String> map = StringUtilities.parseDigestMD5Directives(decoded);
+    	HashMap<String, String> map = StringUtilities.parseDirectives(decoded.getBytes("utf8"));
         
         if (!getDirectiveValue(map, "nc", true).equals("00000001"))
             throw new AuthException("Nonce-count value is wrong");
