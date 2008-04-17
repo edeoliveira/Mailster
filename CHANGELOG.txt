@@ -1,10 +1,28 @@
 #####
+Version 0.9.0 (2008-03-10) - Codename Red Witch
+
+GUI :
+- Fixed TO & CC parsing in HeadersView and FilterTreeView 
+  classes.
+- Delayed Javascript execution on email view to improve
+  responsiveness.
+- Fixed queue clearing when mail tabs are opened.
+- Added import/export functionalities : currently supports
+  EML and MBOX formats.
+  
+Core :
+- Fixed thread management using daemon threads when usefull.
+- Improved exception management on crash events.
+- Fixed thread pools shutdowns. 
+
+#####
 Version 0.8.4 (2008-02-11) - Codename Havoc
 
 NOTES :
 - UPGRADED to MINA 1.1.6.
 - Updated GlazedLists library.
 - Updated starting scripts.
+
 
 GUI:
 - Added a memory occupation progress bar in the status bar.
