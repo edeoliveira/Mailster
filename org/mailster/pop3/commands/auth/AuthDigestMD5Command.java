@@ -84,7 +84,7 @@ public class AuthDigestMD5Command extends AuthAlgorithmCommand
     
     private static MD5 md5 = new MD5();
     
-    private final static String[] supportedQops = new String[] {"auth", "auth-int", "auth-conf"};
+    private final static String[] SUPPORTED_QOPS = new String[] {"auth", "auth-int", "auth-conf"};
     
 	private String getDirectiveValue(HashMap<String, String> directivesMap, 
 			String directive, boolean mandatory) 
@@ -217,7 +217,7 @@ public class AuthDigestMD5Command extends AuthAlgorithmCommand
         HashMap<String, Object> sessionMap = new HashMap<String, Object>();
         sessionMap.put("realm", realm);
         sessionMap.put("nonce", serverNonce);
-        sessionMap.put("qop", supportedQops);
+        sessionMap.put("qop", SUPPORTED_QOPS);
         
         IoSession session = ((MinaPop3Connection) conn).getSession();
         session.setAttribute(DIRECTIVES_MAP, sessionMap);
