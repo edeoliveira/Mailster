@@ -72,7 +72,7 @@ public abstract class CumulativeIoFilter extends IoFilterAdapter
         
         if (consumer == null)
         {
-        	throw new IllegalArgumentException( "cumulator can't be null" );
+        	throw new IllegalArgumentException( "consumer can't be null" );
         }
         
         while (true)
