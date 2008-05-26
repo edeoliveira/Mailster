@@ -148,7 +148,7 @@ public class AuthDigestMD5Command extends AuthAlgorithmCommand
         
         sb.append(':');        
 		sb.append(getDirectiveValue(map, "digest-uri", true));
-		if (qop.equals("auth-int") || qop.equals("auth-conf"))
+		if ("auth-int".equals(qop) || "auth-conf".equals(qop))
 			sb.append(":00000000000000000000000000000000");
 		
 		String A2 = sb.toString();
