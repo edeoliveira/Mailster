@@ -83,7 +83,7 @@ public abstract class CumulativeIoFilter extends IoFilterAdapter
             {
                 if( buf.position() == oldPos )
                     throw new IllegalStateException(
-                            "doDecode() can't return true when buffer is not consumed." );
+                            "cumulateAndConsume() can't return true when buffer is not consumed." );
                 
                 if( !buf.hasRemaining() )
                     break;
