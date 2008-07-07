@@ -96,12 +96,16 @@ public class OutLineView extends TreeView
     	tree.removeAll();
 	    
     	if (msg != null)
-	    {
+    	{
     		String cType = msg.getInternalParts().getContentType();
     		isSigned = SmimeUtilities.isSignedMessage(msg);
 	    	
 	    	root = new TreeItem(tree, SWT.NONE);
-	    	root.setImage(SWTHelper.loadImage("mail.gif")); //$NON-NLS-1$	        
+	    	root.setImage(SWTHelper.loadImage("mail.gif")); //$NON-NLS-1$
+	    	
+	    	if (cType == null) 
+	    	    cType = Messages.getString("OutLineView.contentType.unknown"); //$NON-NLS-1$
+	    	
 	    	root.setText(cType);
 	    	root.setData(msg.getInternalParts());
 	    	
