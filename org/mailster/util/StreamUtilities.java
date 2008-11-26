@@ -118,6 +118,7 @@ public class StreamUtilities
     {
     	SmtpMessageFactory factory = new SmtpMessageFactory(charset, lineDelimiter);
     	List<SmtpMessage> mails = new ArrayList<SmtpMessage>();
+    	String charsetName = charset.displayName();
     	
     	try 
     	{
@@ -135,7 +136,7 @@ public class StreamUtilities
 					 {
 						 msg.deleteCharAt(msg.length()-1);
 						 mails.add(factory.asSmtpMessage(
-							new ByteArrayInputStream(msg.toString().getBytes(charset))));
+							new ByteArrayInputStream(msg.toString().getBytes(charsetName))));
 					 }
 					 
 					 msg = new StringBuilder();
@@ -161,7 +162,7 @@ public class StreamUtilities
 			// Add last message
 			msg.deleteCharAt(msg.length()-1);
 			mails.add(factory.asSmtpMessage(
-					new ByteArrayInputStream(msg.toString().getBytes(charset))));
+					new ByteArrayInputStream(msg.toString().getBytes(charsetName))));
 		} 
     	catch (Exception e) 
 		{
