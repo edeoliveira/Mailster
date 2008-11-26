@@ -284,7 +284,7 @@ public class SubEthaSmtpServer implements MessageListener
 		} 
 		catch (Exception e) 
 		{
-			throw new IOException(e);
+			throw new IOException(e.getLocalizedMessage());
 		}
 	}
     
