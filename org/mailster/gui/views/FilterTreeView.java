@@ -1,28 +1,49 @@
 package org.mailster.gui.views;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
 import javax.mail.Flags;
 
+import org.apache.mina.filter.codec.textline.LineDelimiter;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Dialog;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.mailster.MailsterSWT;
+import org.mailster.gui.DropDownListener;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
+import org.mailster.gui.dialogs.ErrorDialog;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
+import org.mailster.server.MailsterConstants;
+import org.mailster.server.MailsterSmtpService;
+import org.mailster.smtp.SmtpMessage;
+import org.mailster.subethasmtp.SmtpMessageFactory;
+import org.mailster.util.StreamUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.odell.glazedlists.AbstractEventList;
+import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.FilterList;
 import ca.odell.glazedlists.FunctionList;
 import ca.odell.glazedlists.GlazedLists;
@@ -74,6 +95,10 @@ public class FilterTreeView extends TreeView
     	Messages.getString("MailsterSWT.treeView.flaggedMail.label"); //$NON-NLS-1$
 
     private HostMatcherEditor editor;
+    
+    private MenuItem exportAsMailItem;
+
+    private MenuItem exportAsMailBoxItem; 
     
     /**
      * The count of messages last time a event occured. Prevents from multiple
@@ -168,6 +193,240 @@ public class FilterTreeView extends TreeView
         }
     }
     
+    /**
+     * This class provides the "drop down" functionality for the import/export
+     * button.
+     */
+    class ImportExportDropDownMenu extends DropDownListener
+    {
+        public ImportExportDropDownMenu(ToolItem dropdown)
+        {
+            super(dropdown);
+            buildMenu();
+        }
+        
+        public void buildMenu()
+        {
+        	Image importImage = SWTHelper.decorateImage(SWTHelper.loadImage("folder.gif"), SWTHelper.loadImage("incoming.gif"), SWT.BOTTOM | SWT.LEFT);
+        	Image exportImage = SWTHelper.decorateImage(SWTHelper.loadImage("folder_closed.gif"), SWTHelper.loadImage("outgoing.gif"), SWT.BOTTOM | SWT.LEFT);
+        	
+        	dropdown.setEnabled(true);
+        	dropdown.setToolTipText(Messages.getString("FilterTreeview.toggle.importExportTooltip")); //$NON-NLS-1$
+        	
+        	final MenuItem importAsMailItem = new MenuItem(menu, SWT.NONE);
+        	importAsMailItem.setText(Messages.getString("FilterTreeview.toggle.importAsMailTooltip")); //$NON-NLS-1$
+        	importAsMailItem.setImage(importImage);
+
+            final MenuItem importAsMailBoxItem = new MenuItem(menu, SWT.NONE);
+            importAsMailBoxItem.setText(Messages.getString("FilterTreeview.toggle.importAsMailBoxTooltip")); //$NON-NLS-1$
+            importAsMailBoxItem.setImage(importImage);
+                    	
+            exportAsMailItem = new MenuItem(menu, SWT.NONE);
+            exportAsMailItem.setText(Messages.getString("FilterTreeview.toggle.exportAsMailTooltip")); //$NON-NLS-1$
+            exportAsMailItem.setImage(exportImage);
+            exportAsMailItem.setEnabled(false);
+
+            exportAsMailBoxItem = new MenuItem(menu, SWT.NONE);
+            exportAsMailBoxItem.setText(Messages.getString("FilterTreeview.toggle.exportAsMailBoxTooltip")); //$NON-NLS-1$
+            exportAsMailBoxItem.setImage(exportImage);
+            exportAsMailBoxItem.setEnabled(false);
+            
+            SelectionAdapter adapter = new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent evt) 
+				{
+					String fileName = null;
+					
+					if (evt.getSource() == importAsMailItem)
+					{
+						fileName = getPath(true, false, false, SWT.OPEN);
+						importFromEmailFile(fileName);
+					}
+					else
+					if (evt.getSource() == importAsMailBoxItem)
+					{
+						fileName = getPath(true, true, false, SWT.OPEN);
+						importFromMbox(fileName);
+					}
+					else
+					if (evt.getSource() == exportAsMailItem)
+					{
+						fileName = getPath(false, false, true,SWT.SAVE);
+						exportAsEmailFile(fileName);
+					}
+					else
+					if (evt.getSource() == exportAsMailBoxItem)
+					{
+						fileName = getPath(false, true, false, SWT.SAVE);
+						exportAsMbox(fileName);
+					}
+				}
+			};
+			
+			importAsMailItem.addSelectionListener(adapter);
+			importAsMailBoxItem.addSelectionListener(adapter);
+			exportAsMailItem.addSelectionListener(adapter);
+			exportAsMailBoxItem.addSelectionListener(adapter);
+        }
+        
+        private EventList<StoredSmtpMessage> getEmailSelection()
+        {
+    		EventList<StoredSmtpMessage> mails = 
+    			MailsterSWT.getInstance().getMailView().getTableView().getSelection();
+    		
+    		if (mails.size() == 0)
+    			mails = MailsterSWT.getInstance().getMailView().getTableView().getTableList();
+
+    		return mails;
+        }
+
+        private void importFromEmailFile(String fileName)
+        {
+        	if (fileName == null)
+        		return;
+        	
+        	try
+            {        		
+        		FileInputStream in = new FileInputStream(fileName);
+                
+        		SmtpMessageFactory factory = 
+        			new SmtpMessageFactory(MailsterConstants.DEFAULT_CHARSET, 
+        					new LineDelimiter("\n"));
+                
+        		MailsterSmtpService smtp = MailsterSWT.getInstance().getSMTPService();
+        		smtp.addReceivedEmail(factory.asSmtpMessage(in));
+        		smtp.refreshEmailQueue(false);
+                in.close();
+            }
+            catch (Exception e)
+            {
+            	ErrorDialog dlg = new ErrorDialog(MailsterSWT.getInstance().getShell(), 
+            			"Exception occured", "Failed importing email file : "+fileName, new Status(IStatus.ERROR, "Mailster", "Unable to import file", e), IStatus.ERROR);
+            	dlg.open();
+            }
+        }
+        
+        private void importFromMbox(String fileName)
+        {
+        	if (fileName == null)
+        		return;
+        	
+        	try
+            {        		
+        		BufferedReader in = new BufferedReader(new FileReader(fileName));
+                
+                List<SmtpMessage> mails = StreamUtilities.
+                	readMessageFromMBoxRDFormat(in, MailsterConstants.DEFAULT_CHARSET);
+                
+                MailsterSmtpService smtp = MailsterSWT.getInstance().getSMTPService();
+                smtp.addReceivedEmail(mails);
+                smtp.refreshEmailQueue(false);
+                in.close();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+        
+        private void exportAsEmailFile(String path)
+        {
+        	EventList<StoredSmtpMessage> mails = getEmailSelection();
+        	
+        	if (path == null || mails == null || mails.size() == 0)
+        		return;
+        	
+    		for (StoredSmtpMessage msg : mails)
+    		{
+    			PrintWriter out = null;
+    			
+    			try
+                {
+    				out = new PrintWriter(new FileWriter(path+
+    						msg.getMessageId().substring(1,msg.getMessageId().length()-2)+".eml", false));
+    				out.write(msg.getMessage().toString());                
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }        	
+                finally
+                {
+                	if (out != null)
+                		out.close();
+                }
+    		}
+        }
+        
+        private void exportAsMbox(String fileName)
+        {
+        	EventList<StoredSmtpMessage> mails = getEmailSelection();
+        	
+        	if (fileName == null || mails == null || mails.size() == 0)
+        		return;
+        	
+        	try
+            {        		
+                PrintWriter out = new PrintWriter(new FileWriter(fileName, false));
+                for (StoredSmtpMessage msg : mails)
+                	StreamUtilities.writeMessageToMBoxRDFormat(msg, out);
+                
+                out.close();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+        
+        private String getPath(boolean importMode, boolean mboxMode, boolean isDirectoryMode, int dialogMode)
+        {
+        	Dialog d =  null;
+        	
+        	if (isDirectoryMode)
+        		d = new DirectoryDialog(dropdown.getParent().getShell(), dialogMode);
+        	else
+        		d = new FileDialog(dropdown.getParent().getShell(), dialogMode);
+
+	        if (importMode)
+	        	d.setText(Messages.getString("FilterTreeview.import.dialog.title")); //$NON-NLS-1$
+	        else
+	        	d.setText(Messages.getString("FilterTreeview.export.dialog.title")); //$NON-NLS-1$
+	                	
+        	if (isDirectoryMode)
+        		return ((DirectoryDialog) d).open();
+        	else
+        	{
+        		FileDialog dialog = (FileDialog) d;
+        		
+		        if (mboxMode)
+		        {
+			        dialog.setFilterNames(new String[] {
+			                Messages.getString("FilterTreeview.mbox.files.ext"), //$NON-NLS-1$
+			                Messages.getString("MailView.all.files.ext") }); //$NON-NLS-1$
+			        
+			        dialog.setFilterExtensions(new String[] { "*.mbx", "*.*" }); //$NON-NLS-1$ //$NON-NLS-2$
+		        }
+			    else
+			    {
+			        dialog.setFilterNames(new String[] {
+			                Messages.getString("FilterTreeview.mail.files.ext"), //$NON-NLS-1$
+			                Messages.getString("MailView.all.files.ext") }); //$NON-NLS-1$
+		        	
+			        dialog.setFilterExtensions(new String[] { "*.eml", "*.*" }); //$NON-NLS-1$ //$NON-NLS-2$
+			    }
+		        
+		        dialog.setFilterPath(MailsterSWT.getInstance().getSMTPService().getOutputDirectory());
+		        
+		        return dialog.open();
+        	}
+        }
+
+        public void buttonPushed()
+        {
+        	// TODO
+        }
+    }
+    
 	private Map<String, List<StoredSmtpMessage>> messageTreeMap;
 	
 	private FilterList<StoredSmtpMessage> checkedList;    
@@ -211,6 +470,14 @@ public class FilterTreeView extends TreeView
         clearQueueToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.clearQueue.tooltip")); //$NON-NLS-1$
         clearQueueToolItem.setEnabled(false);
+        
+        final ToolItem importExportToolItem = 
+        	SWTHelper.createToolItem(toolBar,
+					                SWT.FLAT | SWT.DROP_DOWN,
+					                "", Messages.getString("MailView.import.export.tooltip"), "importExport.gif", true); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        
+        ImportExportDropDownMenu dd = new ImportExportDropDownMenu(importExportToolItem);
+        importExportToolItem.addSelectionListener(dd);
         
         new ToolItem(toolBar, SWT.SEPARATOR);
         
@@ -399,7 +666,11 @@ public class FilterTreeView extends TreeView
         view.getEventList().addListEventListener(new ListEventListener<StoredSmtpMessage>() {
         		public void listChanged(ListEvent<StoredSmtpMessage> evt) 
         		{
-        			clearQueueToolItem.setEnabled(!view.getEventList().isEmpty());
+        			boolean notEmpty = !view.getEventList().isEmpty();
+        			
+        			clearQueueToolItem.setEnabled(notEmpty);
+        			exportAsMailItem.setEnabled(notEmpty);
+        			exportAsMailBoxItem.setEnabled(notEmpty);
         		}
 		});
     }
