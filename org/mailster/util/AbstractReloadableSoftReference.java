@@ -20,7 +20,7 @@ import java.lang.ref.SoftReference;
  * this program; if not, write to the Free Software Foundation, Inc., 675 Mass
  * Ave, Cambridge, MA 02139, USA.
  * <p>
- * See&nbsp; <a href="http://mailster.sourceforge.net" target="_parent">Mailster
+ * See&nbsp; <a href="http://tedorg.free.fr/en/projects.php" target="_parent">Mailster
  * Web Site</a> <br>
  * ---
  * <p>

@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  * this program; if not, write to the Free Software Foundation, Inc., 675 Mass
  * Ave, Cambridge, MA 02139, USA.
  * <p>
- * See&nbsp; <a href="http://mailster.sourceforge.net" target="_parent">Mailster
+ * See&nbsp; <a href="http://tedorg.free.fr/en/projects.php" target="_parent">Mailster
  * Web Site</a> <br>
  * ---
  * <p>
@@ -80,7 +80,7 @@ public class MailsterKeyStoreFactory
 	private final static String CLI_KEYSTORE_FULL_PATH 	= getFullPath(CLI_KEYSTORE_FILENAME);
 	
     private final static String DN_ORGANISATION                = "O=Mailster.org";
-    private final static String DN_ORGANISATION_UNIT     = "OU=http://mailster.sourceforge.net";
+    private final static String DN_ORGANISATION_UNIT     = "OU=http://tedorg.free.fr/en/projects.php";
     private final static String DN_COUNTRY                      		= "C=FR";
     private final static String DN_ROOT                         			= DN_ORGANISATION+", "+
 												                                                                  DN_ORGANISATION_UNIT+", "+
