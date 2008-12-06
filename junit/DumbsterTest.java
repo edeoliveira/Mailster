@@ -13,7 +13,7 @@ import org.mailster.smtp.SimpleSmtpServer;
 import junit.framework.TestCase;
 
 /**
- * Demonstrate possible bug in Dumbster SMTP server 
+ * Check a possible bug in Dumbster SMTP server 
  * when Transport.isConnected() is called.
  */
 public class DumbsterTest extends TestCase
