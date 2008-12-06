@@ -70,7 +70,7 @@ public class ConfigurationManager
     /**
      * Application copyright
      */
-    public final static String MAILSTER_COPYRIGHT = "Copyright (C) De Oliveira Edouard 2007-2008";
+    public final static String MAILSTER_COPYRIGHT = "Copyright (C) De Oliveira Edouard 2007-2009";
 
     /**
      * The url of the application forum

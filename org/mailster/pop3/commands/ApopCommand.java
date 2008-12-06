@@ -13,7 +13,7 @@ import org.mailster.util.md5.MD5;
 
 /**
  * ---<br>
- * Mailster (C) 2007 De Oliveira Edouard
+ * Mailster (C) 2007-2009 De Oliveira Edouard
  * <p>
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software

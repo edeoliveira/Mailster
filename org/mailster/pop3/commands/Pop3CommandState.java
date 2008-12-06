@@ -2,7 +2,7 @@ package org.mailster.pop3.commands;
 
 /**
  * ---<br>
- * Mailster (C) 2007 De Oliveira Edouard
+ * Mailster (C) 2007-2009 De Oliveira Edouard
  * <p>
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -67,13 +67,13 @@ public class Pop3CommandState
         return nextState;
     }
 
-	public void setNextState(int nextState) 
-	{
-		this.nextState = nextState;
-	}
+    public void setNextState(int nextState) 
+    {
+	this.nextState = nextState;
+    }
 	
-	public boolean isInitialState()
-	{
-		return getNextState() == INITIAL_STATE;
-	}
+    public boolean isInitialState()
+    {
+	return getNextState() == INITIAL_STATE;
+    }
 }
