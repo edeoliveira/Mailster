@@ -340,6 +340,25 @@ public class TableFieldEditor extends FieldEditor
     }
 
     /**
+     * Sets the alignment of the column at the specified <code>columnIndex</code>
+     * to the given <code>alignment</code>. If no <code>TableColumn</code>
+     * exists at the specified <code>columnIndex</code> the method does
+     * nothing.
+     * 
+     * @param columnIndex the index of the column to set the alignment for
+     * @param alignment the alignment of the column
+     * @see #getColumnWidth(int)
+     */
+    public void setColumnAlignment(int columnIndex, int alignment)
+    {
+        if (columnIndex >= 0 && columnIndex < this.columnHeaders.length)
+        {
+            TableColumn column = this.table.getColumn(columnIndex);
+            column.setAlignment(alignment);
+        }
+    }
+    
+    /**
      * Gets the width in pixel of the column at the specified
      * <code>columnIndex</code>. If no <code>TableColumn</code> exists at
      * the specified <code>columnIndex</code> the method returns <i>0</i>.
