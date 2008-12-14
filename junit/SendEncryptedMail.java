@@ -40,7 +40,7 @@ import org.mailster.util.DateUtilities;
 public class SendEncryptedMail extends TestCase 
 {
 	  private static GregorianCalendar gc = new GregorianCalendar();
-	  private static final int SMTP_PORT = 1002;
+	  private static final int SMTP_PORT = 1082;
 	  
 	  private SimpleSmtpServer server;
 
