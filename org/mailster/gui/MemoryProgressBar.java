@@ -97,20 +97,19 @@ public class MemoryProgressBar
 						Thread.sleep (timeout);
 					} 
 					catch (Throwable th) {}
-				
-					getDisplay().asyncExec(new Runnable() {
-						public void run() 
-						{
-							if (isDisposed ()) 
-								return;
-							
-							int used = Math.round(((Runtime.getRuntime().maxMemory()-Runtime.getRuntime().freeMemory()) * 100) 
-									/ Runtime.getRuntime().maxMemory());
-							
-							setSelection(used);
-							redraw();
-						}
-					});
+					
+					if (!isDisposed()) {
+						getDisplay().asyncExec(new Runnable() {
+							public void run() 
+							{
+								int used = Math.round(((Runtime.getRuntime().maxMemory()-Runtime.getRuntime().freeMemory()) * 100) 
+										/ Runtime.getRuntime().maxMemory());
+								
+								setSelection(used);
+								redraw();
+							}
+						});
+					}	
 				}
 			}
 		};
