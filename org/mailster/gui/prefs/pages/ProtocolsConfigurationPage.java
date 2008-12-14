@@ -165,7 +165,7 @@ public class ProtocolsConfigurationPage
         cryptoGroup.setText(Messages.getString("cryptoGroupHeader"));
         
         Composite c = new Composite(cryptoGroup, SWT.NONE);
-        c.setLayout(LayoutUtils.createGridLayout(1, false, 0, 0, 5, 5, 0, 0, 0, 0));
+        c.setLayout(LayoutUtils.createGridLayout(2, false, 0, 0, 5, 5, 0, 0, 0, 0));
         c.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         cryptoStrengthEditor = new SpinnerFieldEditor(
