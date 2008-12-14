@@ -90,7 +90,7 @@ public class MemoryProgressBar
 		{
 			public void run() 
 			{
-				while (!getDisplay().isDisposed())
+				while (!isDisposed())
 				{
 					try 
 					{
@@ -105,8 +105,10 @@ public class MemoryProgressBar
 								int used = Math.round(((Runtime.getRuntime().maxMemory()-Runtime.getRuntime().freeMemory()) * 100) 
 										/ Runtime.getRuntime().maxMemory());
 								
-								setSelection(used);
-								redraw();
+								if (!isDisposed()) {
+									setSelection(used);
+									redraw();
+								}
 							}
 						});
 					}	
