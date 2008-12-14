@@ -24,6 +24,7 @@
 package org.mailster.gui.prefs.pages;
 
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.swt.SWT;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
@@ -91,10 +92,10 @@ public class LanguageConfigurationPage
         LanguageTableLabelProvider labelProvider = new LanguageTableLabelProvider();
 
         String[] columns = { Messages.getString("languageHeader"),
-                                Messages.getString("isoCodeHeader"),
-                                Messages.getString("versionHeader"),
-                                Messages.getString("translatorHeader"),
-                                Messages.getString("translationDateHeader") };
+                                //Messages.getString("isoCodeHeader"),
+				        		Messages.getString("translationDateHeader"),                 
+				        		Messages.getString("versionHeader"),
+                                Messages.getString("translatorHeader")};
 
         languageEditor = new TableFieldEditor(
                 ConfigurationManager.LANGUAGE_KEY, 
@@ -104,7 +105,8 @@ public class LanguageConfigurationPage
         languageEditor.setSortingEnabled(true);
         languageEditor.sort(0, true);
         languageEditor.setSelectionColumn(1);
-        languageEditor.setColumnWidth(0, 110);
+        languageEditor.setColumnWidth(0, 120);
+        languageEditor.setColumnAlignment(2, SWT.CENTER);
         addField(languageEditor);
         
         // Disable default and apply buttons

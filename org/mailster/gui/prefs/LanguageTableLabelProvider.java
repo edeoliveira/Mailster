@@ -82,34 +82,33 @@ public class LanguageTableLabelProvider extends LabelProvider
         LanguageResource resource = (LanguageResource) element;
         switch (columnIndex)
         {
-            case 0 :
-            {
-                /* Use english language identifiers by default */
-                return resource
-                        .getLanguage(Messages.getLanguageResource("en"));
-            }
-            case 1 :
-            {
-                return resource.getFullISOLanguage();
-            }
-            case 2 :
-            {
-                return resource.getVersion();
-            }
-            case 3 :
-            {
-                return resource.getTranslator();
-            }
-            case 4 :
-            {
-                return resource.getTranslationDate();
-            }
-            default :
-            {
-                return element != null
-                        ? element.toString()
-                        : StringUtilities.EMPTY_STRING;
-            }
+	        case 0 :
+	        {
+	            /* Use english language identifiers by default */
+	        	StringBuffer sb = new StringBuffer(resource
+	                    .getLanguage(Messages.getLanguageResource("en")));
+	        	sb.append(" (").append(resource.getFullISOLanguage()).append(')');
+	        	
+	        	return sb.toString();
+	        }
+	        case 1 :
+	        {
+	            return resource.getTranslationDate();
+	        }
+	        case 2 :
+	        {
+	            return resource.getVersion();
+	        }
+	        case 3 :
+	        {
+	            return resource.getTranslator();
+	        }
+	        default :
+	        {
+	            return element != null
+	                    ? element.toString()
+	                    : StringUtilities.EMPTY_STRING;
+	        }
         }
     }
 

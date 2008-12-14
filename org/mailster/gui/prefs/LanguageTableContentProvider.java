@@ -58,12 +58,15 @@ public class LanguageTableContentProvider extends ArrayContentProvider
             case 0 :
             {
                 /* Use english language identifiers by default */
-                return resource
-                        .getLanguage(Messages.getLanguageResource("en"));
+            	StringBuffer sb = new StringBuffer(resource
+                        .getLanguage(Messages.getLanguageResource("en")));
+            	sb.append(" (").append(resource.getFullISOLanguage()).append(')');
+            	
+            	return sb.toString();
             }
             case 1 :
             {
-                return resource.getFullISOLanguage();
+                return resource.getTranslationDate();
             }
             case 2 :
             {
@@ -72,10 +75,6 @@ public class LanguageTableContentProvider extends ArrayContentProvider
             case 3 :
             {
                 return resource.getTranslator();
-            }
-            case 4 :
-            {
-                return resource.getTranslationDate();
             }
             default :
             {
