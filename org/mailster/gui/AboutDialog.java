@@ -147,7 +147,8 @@ public class AboutDialog extends Dialog
         Label infoLabel = new Label(dialogArea, SWT.LEFT | SWT.WRAP);
         infoLabel.setText(MessageFormat.format(                
                 Messages.getString("MailsterSWT.dialog.about.info.label"),
-                new Object[] { ConfigurationManager.MAILSTER_VERSION_NB }));
+                new Object[] { ConfigurationManager.MAILSTER_VERSION_NB+
+                	ConfigurationManager.MAILSTER_VERSION_CODENAME }));
         infoLabel.setLayoutData(LayoutUtils.createGridData(
                 GridData.BEGINNING, GridData.CENTER, 
                 true, false, 2, 1));
