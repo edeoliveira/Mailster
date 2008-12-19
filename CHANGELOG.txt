@@ -1,5 +1,11 @@
 #####
-Version 0.9.0 (2008-03-10) - Codename Red Witch
+Version 0.9.0 (2008-12-24) - Codename Santa Claus
+
+NOTES :
+- UPGRADED to MINA 1.1.7.
+- UPGRADED to SLF4J 1.5.6.
+- UPGRADED to Bouncy Castle Provider 1.4.1.
+- Updated starting scripts.
 
 GUI :
 - Fixed TO & CC parsing in HeadersView and FilterTreeView 
@@ -9,11 +15,17 @@ GUI :
 - Fixed queue clearing when mail tabs are opened.
 - Added import/export functionalities : currently supports
   EML and MBOX formats.
-  
+- Simple update to language preferences tab to make informations
+  more readable without scrolling.
+- Fixed a crash on close.
+
 Core :
 - Fixed thread management using daemon threads when usefull.
 - Improved exception management on crash events.
 - Fixed thread pools shutdowns. 
+
+DUMBSTER :
+- Fixed a bug when parsing mails.
 
 #####
 Version 0.8.4 (2008-02-11) - Codename Havoc

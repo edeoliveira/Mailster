@@ -57,6 +57,46 @@
 </head>
 <body style="background-color:#F5F3F1" ><div id="changelog" class="rbdc">
 		<dl class="changes">
+		<dt>ver.0.9.0</dt>
+            <dd><strong class="bdx">Released on 2008-12-24 / Codename Santa Claus</strong></dd>
+			<dd>
+                <strong>Notes</strong>
+                <ul>
+                    <li>UPGRADED to MINA 1.1.7.</li>
+                    <li>UPGRADED to SLF4J 1.5.6.</li>
+                    <li>UPGRADED to Bouncy Castle Provider 1.4.1.</li>
+                    <li>Updated starting scripts.</li>
+                </ul>
+            </dd>
+			<dd>
+                <strong>GUI</strong>
+                <ul>
+                	<li>Fixed TO & CC parsing in HeadersView and FilterTreeView 
+                		classes</li>
+                	<li>Delayed Javascript execution on email view to improve
+  						responsiveness.</li>
+  					<li>Fixed queue clearing when mail tabs are opened.</li>
+  					<li>Added import/export functionalities : currently supports
+  						EML and MBOX formats.</li>
+  					<li>Simple update to language preferences tab to make informations
+  						more readable without scrolling.</li>
+  					<li>Fixed a crash on close.</li>
+  				</ul>
+            </dd>
+            <dd>
+				<strong>Core</strong>
+				<ul>
+					<li>Fixed thread management using daemon threads when usefull.</li>
+					<li>Improved exception management on crash events.</li>
+					<li>Fixed thread pools shutdowns.</li>
+				</ul>
+			</dd>
+			<dd>
+				<strong>DUMBSTER</strong>
+				<ul>
+					<li>Fixed a bug when parsing mails.</li>
+				</ul>
+			</dd>
 			<dt>ver.0.8.4</dt>
             <dd><strong class="bdx">Released on 2008-02-11 / Codename Havoc</strong></dd>
 			<dd>
