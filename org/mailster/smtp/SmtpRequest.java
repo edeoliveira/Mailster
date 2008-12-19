@@ -164,7 +164,7 @@ public class SmtpRequest {
     if (state == SmtpState.DATA_HDR) {
       if (".".equals(s)) {
         action = SmtpActionType.DATA_END;
-      } else if (s.length() < 1) {
+      } else if (s.length() < 1 || "\r".equals(s)) {
         action = SmtpActionType.BLANK_LINE;
       } else {
         action = SmtpActionType.UNRECOG;
