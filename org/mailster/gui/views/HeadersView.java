@@ -97,7 +97,11 @@ public class HeadersView
                 fontData.getName(), 7, fontData.getStyle()));
         
         // Preload KeyFactory to avoid latency.
-        MailsterKeyStoreFactory.getInstance();
+        try {
+        	MailsterKeyStoreFactory.getInstance();
+        } catch (Exception ex) {
+        	//TODO disable encryption code while factory fails to load
+        }
     }
     
     public HeadersView(Composite parent, StoredSmtpMessage stored)
