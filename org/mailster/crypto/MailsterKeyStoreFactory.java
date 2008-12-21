@@ -71,28 +71,28 @@ public class MailsterKeyStoreFactory
 	 */
     private static final Logger LOG = LoggerFactory.getLogger(MailsterKeyStoreFactory.class);
 
-	private final static String KEYSTORE_FILENAME 			= "Mailster.p12";
-	private final static String SSL_CERT_FILENAME 				= "ssl_server.crt";
+	private final static String KEYSTORE_FILENAME 		= "Mailster.p12";
+	private final static String SSL_CERT_FILENAME 		= "ssl_server.crt";
 	private final static String CLI_KEYSTORE_FILENAME 	= "clients.p12";
 
-	private final static String KEYSTORE_FULL_PATH 			= getFullPath(KEYSTORE_FILENAME);
-	private final static String SSL_CERT_FULL_PATH 			= getFullPath(SSL_CERT_FILENAME);
+	private final static String KEYSTORE_FULL_PATH 		= getFullPath(KEYSTORE_FILENAME);
+	private final static String SSL_CERT_FULL_PATH 		= getFullPath(SSL_CERT_FILENAME);
 	private final static String CLI_KEYSTORE_FULL_PATH 	= getFullPath(CLI_KEYSTORE_FILENAME);
 	
-    private final static String DN_ORGANISATION                = "O=Mailster.org";
-    private final static String DN_ORGANISATION_UNIT     = "OU=http://tedorg.free.fr/en/projects.php";
-    private final static String DN_COUNTRY                      		= "C=FR";
-    private final static String DN_ROOT                         			= DN_ORGANISATION+", "+
-												                                                                  DN_ORGANISATION_UNIT+", "+
-												                                                                  DN_COUNTRY;
+    private final static String DN_ORGANISATION         = "O=Mailster.org";
+    private final static String DN_ORGANISATION_UNIT    = "OU=http://tedorg.free.fr/en/projects.php";
+    private final static String DN_COUNTRY              = "C=FR";
+    private final static String DN_ROOT                 = DN_ORGANISATION+", "+
+												          DN_ORGANISATION_UNIT+", "+
+												          DN_COUNTRY;
 	
-    private static final String ROOT_CA_ALIAS 					= "root";
+    private static final String ROOT_CA_ALIAS 			= "root";
     private static final String INTERMEDIATE_CA_ALIAS 	= "intermediate_CA";
-    private static final String MAILSTER_SSL_ALIAS 			= "ssl_cert";
+    private static final String MAILSTER_SSL_ALIAS 		= "ssl_cert";
     private static final String DUMMY_SSL_CLIENT_ALIAS	= "ssl_dummy_client_cert";
     
     //TOSEE
-    public static final String TED_CERT_ALIAS                   	= "ted_cert";
+    public static final String TED_CERT_ALIAS          	= "ted_cert";
 	
 	protected final static char[] KEYSTORE_PASSWORD 	= new char[] {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
 	
@@ -100,6 +100,13 @@ public class MailsterKeyStoreFactory
 	private KeyStore store;
 	private PKIXParameters params;
 	
+	private boolean storeLoaded;
+	private String errorMessage;
+	
+	public boolean isStoreLoaded() {
+		return storeLoaded;
+	}
+
 	private Set<TrustAnchor> sessionAnchors = new HashSet<TrustAnchor>();
 	
 	static 
@@ -126,7 +133,7 @@ public class MailsterKeyStoreFactory
 		return MailsterConstants.USER_DIR+"/"+fileName;
 	}
 	
-	public static void regenerate()
+	public synchronized void regenerate()
 		throws Exception
 	{
 		LOG.info("Regenerating Mailster certificates ...");
@@ -136,7 +143,7 @@ public class MailsterKeyStoreFactory
 		(new File(SSL_CERT_FULL_PATH)).delete();
 		(new File(CLI_KEYSTORE_FULL_PATH)).delete();
 		
-		getInstance().loadDefaultKeyStore();
+		getInstance().createDefaultKeyStore();
 		X509SecureSocketFactory.reload();
 		LOG.info("Certificates created and loaded successfully !");
 	}
@@ -145,7 +152,7 @@ public class MailsterKeyStoreFactory
 	{
 		try 
 		{
-			regenerate();
+			getInstance().regenerate();
 		} 
 		catch (Exception e) 
 		{
@@ -159,30 +166,48 @@ public class MailsterKeyStoreFactory
 	{
 		try
         {
+			storeLoaded = false;
 			store = KeyStore.getInstance("PKCS12", "BC");
             InputStream fis = new FileInputStream(KEYSTORE_FULL_PATH);
             store.load(fis, KEYSTORE_PASSWORD);
             fis.close();
             LOG.debug("Key store "+KEYSTORE_FULL_PATH+" successfuly loaded");
+            storeLoaded = true;
         }
         catch (Exception ex)
         {
-        	createDefaultKeyStore();
+        	if (ex.getMessage().indexOf("java.security.InvalidKeyException") > -1)
+        	{
+        		errorMessage = "Security restrictions on algorithms or key sizes prevented Mailster\n" +
+								"from loading the certificates from the keystore. Please check your VM policy files.";
+        		LOG.debug("ERROR: {}", errorMessage);
+        	}
+        	else
+        	{
+        		errorMessage = ex.getMessage();
+        		LOG.debug("ERROR: {}", errorMessage);
+        		createDefaultKeyStore();
+        	}
         }
         
         return store;
 	}
 	
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
 	private int getCryptoStrength()
 	{
 		return ((MailsterPrefStore) ConfigurationManager.CONFIG_STORE).getInt(
 				ConfigurationManager.CRYPTO_STRENGTH_KEY);
 	}
 	
-	private KeyStore createDefaultKeyStore()
+	private synchronized KeyStore createDefaultKeyStore()
 	{
 		try
-        {               
+        {   
+			storeLoaded = false;
 			LOG.info("Creating main key store ...");
 			int keySize = getCryptoStrength();
             X500PrivateCredential rootCredential = CertificateUtilities.createRootCredential(keySize,
@@ -225,11 +250,13 @@ public class MailsterKeyStoreFactory
             fos = new FileOutputStream(KEYSTORE_FULL_PATH);
             store.store(fos, KEYSTORE_PASSWORD);
             fos.close();
-            
+            storeLoaded = true;
             LOG.debug("Key store {} successfuly created", KEYSTORE_FULL_PATH);
         }
         catch (Exception ex)
         {
+        	errorMessage = ex.getMessage();
+        	ex.printStackTrace(); //TODO
             throw new RuntimeException(ex);
         }
         
@@ -359,13 +386,7 @@ public class MailsterKeyStoreFactory
 		return store;
 	}
 	
-	public InputStream getKeyStoreInputStream() 
-		throws FileNotFoundException
-	{
-		return new FileInputStream(KEYSTORE_FULL_PATH);
-	}
-	
-	public OutputStream getKeyStoreOutputStream() 
+	protected OutputStream getKeyStoreOutputStream() 
 		throws FileNotFoundException
 	{
 		return new FileOutputStream(KEYSTORE_FULL_PATH);
