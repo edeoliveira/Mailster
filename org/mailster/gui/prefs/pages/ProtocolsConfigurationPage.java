@@ -112,41 +112,47 @@ public class ProtocolsConfigurationPage
         // Create general group
         Group generalGroup = new Group(content, SWT.NONE);
         generalGroup.setLayout(
-        		LayoutUtils.createGridLayout(2, false, 5, 5, 0, 0, 0, 0, 5, 5));
+        		LayoutUtils.createGridLayout(2, false, 2, 5, 0, 0, 0, 0, 5, 5));
         generalGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        generalGroup.setText(Messages.getString("protocolsGroupHeader"));
+        generalGroup.setText(Messages.getString("protocolsGroupHeader")); //$NON-NLS-1$
         
     	startSMTPAtStartUpEditor = new Button(generalGroup, SWT.CHECK);
-    	startSMTPAtStartUpEditor.setText(Messages.getString("startSMTPAtStartUpLabel"));
+    	startSMTPAtStartUpEditor.setText(Messages.getString("startSMTPAtStartUpLabel")); //$NON-NLS-1$
     	startSMTPAtStartUpEditor.setLayoutData(
         		LayoutUtils.createGridData(GridData.BEGINNING, 
         		GridData.CENTER, false, false, 2, 1));
         
         startPOP3OnSMTPStartEditor = new Button(generalGroup, SWT.CHECK);
-        startPOP3OnSMTPStartEditor.setText(Messages.getString("startPOP3OnSMTPStartLabel"));
+        startPOP3OnSMTPStartEditor.setText(Messages.getString("startPOP3OnSMTPStartLabel")); //$NON-NLS-1$
         startPOP3OnSMTPStartEditor.setLayoutData(
         		LayoutUtils.createGridData(GridData.BEGINNING, 
                 		GridData.CENTER, false, false, 2, 1));
         
         // Separator
         new Label(content, SWT.NONE);
+        boolean storeLoaded = MailsterKeyStoreFactory.getInstance().isStoreLoaded();
         
         // Create SSL group
         Group sslGroup = new Group(content, SWT.NONE);
-        sslGroup.setLayout(LayoutUtils.createGridLayout(2, false, 0, 0, 5, 5, 5, 5, 5, 5));
+        sslGroup.setLayout(LayoutUtils.createGridLayout(2, false, 0, 0, 2, 2, 5, 5, 5, 5));
         sslGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        sslGroup.setText(Messages.getString("sslGroupHeader"));
+        sslGroup.setText(Messages.getString("sslGroupHeader")); //$NON-NLS-1$
+        
+        if (!storeLoaded)
+        	sslGroup.setForeground(SWTHelper.getDisplay().getSystemColor(SWT.COLOR_RED));
 
         authSSLClientsStartEditor = new Button(sslGroup, SWT.CHECK);
-        authSSLClientsStartEditor.setText(Messages.getString("authSSLClientsStartLabel"));
+        authSSLClientsStartEditor.setText(Messages.getString("authSSLClientsStartLabel")); //$NON-NLS-1$
         authSSLClientsStartEditor.setLayoutData(
-        		LayoutUtils.createGridData(GridData.BEGINNING, 
-                		GridData.CENTER, false, false, 2, 1));
+        		LayoutUtils.createGridData(GridData.FILL_HORIZONTAL, 
+                		GridData.CENTER, true, false, 2, 1));
+        authSSLClientsStartEditor.setEnabled(storeLoaded);
         
         Label protocolLabel = new Label(sslGroup, SWT.LEFT);      
-        protocolLabel.setText(Messages.getString("preferredSSLProtocolLabel"));
+        protocolLabel.setText(Messages.getString("preferredSSLProtocolLabel")); //$NON-NLS-1$
         protocolLabel.setLayoutData(new GridData(GridData.BEGINNING,
                 GridData.CENTER, false, false)); 
+        protocolLabel.setEnabled(storeLoaded);
         
         preferredSSLProtocolViewer = new ComboViewer(sslGroup, SWT.BORDER | SWT.READ_ONLY);
         preferredSSLProtocolViewer.setContentProvider(new ArrayContentProvider());
@@ -155,22 +161,24 @@ public class ProtocolsConfigurationPage
                         SSLProtocol.SSL.toString(),
                         SSLProtocol.TLS.toString(),
                 });
+        preferredSSLProtocolViewer.getCombo().setEnabled(storeLoaded);
         
         // Separator
         new Label(content, SWT.NONE);
         
         // Create crypto group
         Group cryptoGroup = new Group(content, SWT.NONE);
-        cryptoGroup.setLayout(LayoutUtils.createGridLayout(1, false, 0, 0, 5, 5, 5, 5, 5, 5));
+        cryptoGroup.setLayout(LayoutUtils.createGridLayout(1, false, 0, 0, 5, 5, 5, 5, 2, 5));
         cryptoGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        cryptoGroup.setText(Messages.getString("cryptoGroupHeader"));
+        cryptoGroup.setText(Messages.getString("cryptoGroupHeader")); //$NON-NLS-1$
         
         Composite c = new Composite(cryptoGroup, SWT.NONE);
         c.setLayout(LayoutUtils.createGridLayout(2, false, 0, 0, 5, 5, 0, 0, 0, 0));
-        c.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        c.setLayoutData(
+        		LayoutUtils.createGridData(GridData.FILL_HORIZONTAL, GridData.CENTER, true, false, 2, 1));
 
         cryptoStrengthEditor = new SpinnerFieldEditor(
-                ConfigurationManager.CRYPTO_STRENGTH_KEY, Messages.getString("cryptoStrengthLabel"), c, 4);
+                ConfigurationManager.CRYPTO_STRENGTH_KEY, Messages.getString("cryptoStrengthLabel"), c, 4); //$NON-NLS-1$
         cryptoStrengthEditor.setMinimum(512);
         cryptoStrengthEditor.setMaximum(4096);        
         cryptoStrengthEditor.setIncrement(128);
@@ -178,7 +186,7 @@ public class ProtocolsConfigurationPage
         setupEditor(cryptoStrengthEditor);
         
         Button generateButton = new Button(cryptoGroup, SWT.PUSH);
-        generateButton.setText(Messages.getString("generateCryptoKeysAndCerts"));
+        generateButton.setText(Messages.getString("generateCryptoKeysAndCerts")); //$NON-NLS-1$
         generateButton.setLayoutData(
         		LayoutUtils.createGridData(GridData.END, GridData.CENTER, true, false, 2, 1));
         generateButton.addSelectionListener(new SelectionAdapter() {
@@ -195,15 +203,18 @@ public class ProtocolsConfigurationPage
 			}		
 		});
         
-        if (!MailsterKeyStoreFactory.getInstance().isStoreLoaded())
+        if (!storeLoaded)
         {
-        	setErrorMessage(Messages.getString("ProtocolsConfigurationPage.error.keystore")); //$NON-NLS-1$
-        	getContainer().updateMessage();
-        	
-	        CLabel cryptoErrorLabel = new CLabel(cryptoGroup, SWT.NONE);
+        	CLabel fixLabel = new CLabel(cryptoGroup, SWT.NONE);
+        	fixLabel.setText(Messages.getString("ProtocolsConfigurationPage.error.keystore")); //$NON-NLS-1$
+        	fixLabel.setForeground(SWTHelper.getDisplay().getSystemColor(SWT.COLOR_RED));
+	        fixLabel.setImage(SWTHelper.loadImage("quickfix_error.gif")); //$NON-NLS-1$
+	        fixLabel.setLayoutData(
+	        		LayoutUtils.createGridData(GridData.FILL, GridData.BEGINNING, true, false, 2, 1));
+	        
+        	CLabel cryptoErrorLabel = new CLabel(cryptoGroup, SWT.NONE);
 	        cryptoErrorLabel.setForeground(SWTHelper.getDisplay().getSystemColor(SWT.COLOR_RED));
 	        cryptoErrorLabel.setText(MailsterKeyStoreFactory.getInstance().getErrorMessage());
-	        //cryptoErrorLabel.setImage(SWTHelper.loadImage("quickfix_error.gif")); //$NON-NLS-1$
 	        cryptoErrorLabel.setLayoutData(
 	        		LayoutUtils.createGridData(GridData.FILL, GridData.CENTER, true, false, 2, 1));
         }
