@@ -18,11 +18,13 @@ GUI :
 - Simple update to language preferences tab to make informations
   more readable without scrolling.
 - Fixed a crash on close.
+- Added mail raw view updating when selecting item in outline view.
 
 Core :
 - Fixed thread management using daemon threads when usefull.
 - Improved exception management on crash events.
-- Fixed thread pools shutdowns. 
+- Fixed thread pools shutdowns.
+- Handles keystore failures more gracefully at UI and POP3 levels.
 
 DUMBSTER :
 - Fixed a bug when parsing mails.
