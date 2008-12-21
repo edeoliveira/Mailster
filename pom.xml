@@ -3,19 +3,24 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>Mailster</groupId>
   <artifactId>Mailster</artifactId>
-  <version>0.8.4</version>
+  <version>0.9.0</version>
   <description>Mailster is a project aimed at testing software mail capabilities. It provides a mail server container to test emails sent by your apps without rewriting your application code.</description>
   <dependencies>
     <dependency>
       <groupId>bouncycastle</groupId>
       <artifactId>bcprov-jdk15</artifactId>
-      <version>137</version>
+      <version>141</version>
     </dependency>
     <dependency>
       <groupId>javax.mail</groupId>
       <artifactId>mail</artifactId>
       <version>1.4</version>
     </dependency>
+    <dependency>
+	    <groupId>javax.activation</groupId>
+	    <artifactId>activation</artifactId>
+	    <version>1.1</version>
+	</dependency>
     <dependency>
       <groupId>net.java.dev.glazedlists</groupId>
       <artifactId>glazedlists_java15</artifactId>
@@ -24,12 +29,32 @@
     <dependency>
       <groupId>org.apache.mina</groupId>
       <artifactId>mina-core</artifactId>
-      <version>1.1.6</version>
+      <version>1.1.7</version>
     </dependency>
     <dependency>
       <groupId>org.apache.mina</groupId>
       <artifactId>mina-filter-ssl</artifactId>
-      <version>1.1.6</version>
+      <version>1.1.7</version>
     </dependency>
+    <dependency>
+    	<groupId>log4j</groupId>
+    	<artifactId>log4j</artifactId>
+    	<version>1.2.15</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.subethamail</groupId>
+	    <artifactId>subethasmtp</artifactId>
+	    <version>2.1.0</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.slf4j</groupId>
+	    <artifactId>slf4j-api</artifactId>
+	    <version>1.5.6</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.slf4j</groupId>
+	    <artifactId>slf4j-log4j12</artifactId>
+	    <version>1.5.6</version>
+	</dependency>	
   </dependencies>
 </project>
