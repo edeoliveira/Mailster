@@ -1,5 +1,6 @@
 package org.mailster.pop3.commands;
 
+import org.mailster.crypto.MailsterKeyStoreFactory;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.Pop3State;
@@ -51,7 +52,13 @@ public class StartTLSCommand extends Pop3Command
                 conn.println("-ERR Required syntax: STLS");
                 return;
             }
-
+            
+            if (!MailsterKeyStoreFactory.getInstance().isStoreLoaded())
+            {
+                conn.println("-ERR TLS is disabled because of wrong server configuration");
+                return;	
+            }
+            
             if (conn.isTLSConnection())
             {
                 conn.println("-ERR Command not permitted when TLS is already active");
