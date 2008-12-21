@@ -157,7 +157,11 @@ public class SmtpMessageFactory
     	throws Exception
     {
         String line = in.getString(decoder);
-        log.debug("[CONSUME] "+line);
+        
+        if (line.endsWith("\r"))
+        	log.debug("[CONSUME] "+line.substring(0, line.length()-1));
+        else		
+        	log.debug("[CONSUME] "+line);
         
         previous = request;
         request = SmtpRequest.createRequest(line, smtpState, previous);
