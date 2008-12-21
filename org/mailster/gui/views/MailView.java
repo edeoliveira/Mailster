@@ -199,7 +199,7 @@ public class MailView
     {
     	public final static int HTML_MODE 	= 0;
     	public final static int MIXED_MODE 	= 1;
-    	public final static int RAW_MODE 		= 2;
+    	public final static int RAW_MODE 	= 2;
     	
     	private int currentMode = HTML_MODE;
     	
@@ -391,8 +391,8 @@ public class MailView
     private final static Image browserImage = SWTHelper.loadImage("html.gif"); //$NON-NLS-1$
 
     private final static Color[] tabGradient = SWTHelper.getGradientColors(5,
-    																				new Color(SWTHelper.getDisplay(), 0, 84, 227),
-																		            new Color(SWTHelper.getDisplay(), 61, 149, 255));
+   												new Color(SWTHelper.getDisplay(), 0, 84, 227),
+									            new Color(SWTHelper.getDisplay(), 61, 149, 255));
     
     private ArrayList<String> openedMailsIds = new ArrayList<String>();
     private String preferredContentType = DEFAULT_PREFERRED_CONTENT;
