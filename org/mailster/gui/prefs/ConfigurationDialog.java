@@ -727,7 +727,7 @@ public class ConfigurationDialog extends PreferenceDialog
         dlg.create();
         dlg.getShell().setText(Messages.getString("configurationDialogTitle"));
         dlg.getShell().setImage(SWTHelper.loadImage("config.gif"));
-        Point minSize = new Point(670, 465);
+        Point minSize = new Point(690, 480);
         dlg.getShell().setSize(minSize);
         dlg.setMinimumPageSize(minSize);
         dlg.getShell().setMinimumSize(minSize);
