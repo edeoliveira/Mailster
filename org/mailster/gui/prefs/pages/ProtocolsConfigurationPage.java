@@ -4,6 +4,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -76,7 +77,7 @@ public class ProtocolsConfigurationPage
      * <code>ComboViewer</code> to select the preferred SSL protocol
      */
     private ComboViewer preferredSSLProtocolViewer;
-    
+
     /**
      * <code>FieldEditor</code> to select the crypto strength of the automatically 
      * generated certificates.
@@ -185,7 +186,7 @@ public class ProtocolsConfigurationPage
 			{
 				try 
 				{
-					MailsterKeyStoreFactory.regenerate();
+					MailsterKeyStoreFactory.getInstance().regenerate();
 				} 
 				catch (Exception ex) 
 				{
@@ -193,6 +194,19 @@ public class ProtocolsConfigurationPage
 				}
 			}		
 		});
+        
+        if (!MailsterKeyStoreFactory.getInstance().isStoreLoaded())
+        {
+        	setErrorMessage(Messages.getString("ProtocolsConfigurationPage.error.keystore")); //$NON-NLS-1$
+        	getContainer().updateMessage();
+        	
+	        CLabel cryptoErrorLabel = new CLabel(cryptoGroup, SWT.NONE);
+	        cryptoErrorLabel.setForeground(SWTHelper.getDisplay().getSystemColor(SWT.COLOR_RED));
+	        cryptoErrorLabel.setText(MailsterKeyStoreFactory.getInstance().getErrorMessage());
+	        //cryptoErrorLabel.setImage(SWTHelper.loadImage("quickfix_error.gif")); //$NON-NLS-1$
+	        cryptoErrorLabel.setLayoutData(
+	        		LayoutUtils.createGridData(GridData.FILL, GridData.CENTER, true, false, 2, 1));
+        }
         
         load();        
         return content;
