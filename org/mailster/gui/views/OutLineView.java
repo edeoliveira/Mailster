@@ -9,6 +9,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
@@ -20,6 +21,8 @@ import org.mailster.gui.crypto.CertificateDialog;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.smtp.SmtpMessagePart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ---<br>
@@ -50,6 +53,11 @@ import org.mailster.smtp.SmtpMessagePart;
  */
 public class OutLineView extends TreeView
 {
+    /** 
+     * Log object for this class. 
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(OutLineView.class);
+    
 	private ToolItem checkSignatureItem;
 	private boolean isSigned;
 	
@@ -57,6 +65,15 @@ public class OutLineView extends TreeView
     {
     	super(parent, enableToolbar);
         setMessage(null);
+    	
+        tree.addSelectionListener(new SelectionAdapter() {
+  	      public void widgetSelected(SelectionEvent e) {
+  	          TreeItem _item = (TreeItem) e.item;  	          
+  	          Composite c = (Composite) MailsterSWT.getInstance().getMailView().
+						getCTabFolder().getSelection().getControl();
+  	          ((Text) c.getChildren()[1]).setText(((SmtpMessagePart)_item.getData()).toString());    	          
+  	      }
+    	});
     }
 
     protected  void customizeToolbar(ToolBar toolBar)
@@ -127,7 +144,7 @@ public class OutLineView extends TreeView
     }
 
     private void createMailTreeItems(TreeItem currentRoot, SmtpMessagePart part)
-    {
+    {	
         if (part != null && part.getParts() != null)
         {
             Iterator<SmtpMessagePart> it = part.getParts().iterator();
