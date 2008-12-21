@@ -32,7 +32,9 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
+import org.mailster.gui.utils.LayoutUtils;
 
 /**
  * Allows editing of a numeric value in a <code>Spinner</code> component.
@@ -132,7 +134,9 @@ public class SpinnerFieldEditor extends FieldEditor
      */
     protected void doFillIntoGrid(Composite parent, int numColumns)
     {
-        this.getLabelControl(parent);
+        Label lbl = getLabelControl(parent);
+        lbl.setLayoutData(
+        	LayoutUtils.createGridData(GridData.FILL, GridData.CENTER, true, false, 1, 1));
 
         this.spinnerCtrl = new Spinner(parent, SWT.BORDER);
         this.spinnerCtrl.setDigits(this.digits);
@@ -151,7 +155,7 @@ public class SpinnerFieldEditor extends FieldEditor
         this.spinnerCtrl.setDigits(this.digits);
         GridData gd = new GridData();
         gd.horizontalSpan = numColumns - 1;
-        gd.horizontalAlignment = GridData.FILL;
+        gd.horizontalAlignment = GridData.FILL_HORIZONTAL;
         gd.grabExcessHorizontalSpace = true;
         this.spinnerCtrl.setLayoutData(gd);
     }
