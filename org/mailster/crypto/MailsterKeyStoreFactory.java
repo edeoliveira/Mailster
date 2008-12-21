@@ -30,6 +30,7 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.mailster.gui.Messages;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.prefs.store.MailsterPrefStore;
 import org.mailster.server.MailsterConstants;
@@ -178,8 +179,7 @@ public class MailsterKeyStoreFactory
         {
         	if (ex.getMessage().indexOf("java.security.InvalidKeyException") > -1)
         	{
-        		errorMessage = "Security restrictions on algorithms or key sizes prevented Mailster\n" +
-								"from loading the certificates from the keystore. Please check your VM policy files.";
+        		errorMessage = Messages.getString("MailsterKeyStoreFactory.error.vm.crypto.restrictions");
         		LOG.debug("ERROR: {}", errorMessage);
         	}
         	else
@@ -348,7 +348,7 @@ public class MailsterKeyStoreFactory
         catch (Exception ex)
         {
             LOG.debug("JRE CA certificate file not found");
-        }        
+        }
 	}
 	
 	protected synchronized PKIXParameters getPKIXParameters(char[] password) 
