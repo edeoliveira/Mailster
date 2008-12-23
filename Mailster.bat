@@ -11,6 +11,7 @@ SET CP=lib\mina-core-1.1.7.jar;lib\mina-filter-ssl-1.1.7.jar;%CP%
 SET CP=lib\slf4j-api-1.5.6.jar;lib\slf4j-simple-1.5.6.jar;%CP%
 set CP=lib\org.eclipse.core.commands_3.3.0.I20070605-0010.jar;lib\org.eclipse.equinox.common_3.3.0.v20070426.jar;%CP%
 set CP=lib\org.eclipse.jface_3.3.0.I20070606-0010.jar;%CP%
+set CP=lib\commons-lang-2.3.jar;%CP%
 SET CP="%CP%"
 
 java %JAVA_OPTIONS% -cp %CP% org.mailster.MailsterSWT
