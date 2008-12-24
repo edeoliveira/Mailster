@@ -21,8 +21,6 @@ import org.mailster.gui.crypto.CertificateDialog;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.smtp.SmtpMessagePart;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * ---<br>
@@ -52,12 +50,7 @@ import org.slf4j.LoggerFactory;
  * @version $Revision$, $Date$
  */
 public class OutLineView extends TreeView
-{
-    /** 
-     * Log object for this class. 
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(OutLineView.class);
-    
+{    
 	private ToolItem checkSignatureItem;
 	private boolean isSigned;
 	
