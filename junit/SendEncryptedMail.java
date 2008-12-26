@@ -35,7 +35,6 @@ import org.bouncycastle.mail.smime.SMIMESignedGenerator;
 import org.mailster.crypto.MailsterKeyStoreFactory;
 import org.mailster.server.MailsterConstants;
 import org.mailster.smtp.SimpleSmtpServer;
-import org.mailster.util.DateUtilities;
 
 public class SendEncryptedMail extends TestCase 
 {
@@ -141,7 +140,7 @@ public class SendEncryptedMail extends TestCase
 				"John Doe <john.doe@fake.com>"));
 		baseMsg.setSubject("Test Signed Message");
 		baseMsg.setContent(signMessage(finalPart));
-		baseMsg.setHeader("Date", DateUtilities.rfc822DateFormatter.format(getRandomDate()));
+		baseMsg.setSentDate(getRandomDate());
         baseMsg.saveChanges();
         
         Transport.send(baseMsg);
@@ -152,7 +151,7 @@ public class SendEncryptedMail extends TestCase
         baseMsg.setSubject("Example Encrypted Message II with very big subject line included " +
         		"in the header to test text wrapping method.");
 		baseMsg.setContent(cryptMessage(finalPart));
-		baseMsg.setHeader("Date", DateUtilities.rfc822DateFormatter.format(getRandomDate()));
+		baseMsg.setSentDate(getRandomDate());
         baseMsg.saveChanges();
         Transport.send(baseMsg);		
 	}
