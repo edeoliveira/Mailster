@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -42,7 +43,7 @@ public class SmtpMessage implements Serializable
 	/**
 	 * Variable used for MimeMessage conversion.
 	 */
-    private transient final static Session MAIL_SESSION = Session.getInstance(System.getProperties());
+    private transient final static Session MAIL_SESSION = Session.getInstance(new Properties());
 
     /** 
      * Headers. 

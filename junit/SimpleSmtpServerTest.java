@@ -252,7 +252,7 @@ public class SimpleSmtpServerTest extends TestCase
       String Subject = "Test";
       String body = "Test Body";
 
-      Properties props = System.getProperties();
+      Properties props = new Properties();
 
       if (Server != null)
         props.put("mail.smtp.host", Server);
