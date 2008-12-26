@@ -30,6 +30,7 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.prefs.store.MailsterPrefStore;
@@ -181,11 +182,13 @@ public class MailsterKeyStoreFactory
         	{
         		errorMessage = Messages.getString("MailsterKeyStoreFactory.error.vm.crypto.restrictions");
         		LOG.debug("ERROR: {}", errorMessage);
+        		MailsterSWT.getInstance().getMailView().log(errorMessage);
         	}
         	else
         	{
         		errorMessage = ex.getMessage();
         		LOG.debug("ERROR: {}", errorMessage);
+        		MailsterSWT.getInstance().getMailView().log(errorMessage);
         		createDefaultKeyStore();
         	}
         }
