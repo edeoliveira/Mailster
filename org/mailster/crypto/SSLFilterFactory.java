@@ -3,7 +3,6 @@ package org.mailster.crypto;
 import org.apache.mina.filter.SSLFilter;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
 import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
-import org.subethamail.smtp.server.io.DummySSLSocketFactory;
 
 /**
  * ---<br>
