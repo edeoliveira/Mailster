@@ -3,11 +3,11 @@ package org.mailster.smtp;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
 import org.mailster.util.MailUtilities;
-import org.mailster.util.OrderedHashMap;
 
 /**
  * ---<br>
@@ -44,7 +44,7 @@ public class SmtpHeaders
 	/** 
      * Headers: Map of List of String hashed on header name. 
      */
-    private OrderedHashMap<String, SmtpHeader> headers = new OrderedHashMap<String, SmtpHeader>(10);
+    private LinkedHashMap<String, SmtpHeader> headers = new LinkedHashMap<String, SmtpHeader>(10);
     private transient String lastHeaderName;
 
     public class SmtpHeader implements Serializable
