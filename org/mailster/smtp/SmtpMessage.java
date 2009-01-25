@@ -137,6 +137,8 @@ public class SmtpMessage implements Serializable
      * <code>InetAddress.getLocalHost()</code>. (The address defaults to
      * "localhost" if <code>getLocalHost()</code> returns null.)
      * 
+     * <hashcode>.<id>.<currentTime>.Mailster@<host>
+     * 
      * @see java.net.InetAddress
      */
     public String getMessageID()
