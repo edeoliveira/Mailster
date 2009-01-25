@@ -185,35 +185,38 @@ public class SmtpHeaders
     {
         if (line != null && !"".equals(line))
         {
-            int pos = line.indexOf(':');
-            int termPos = line.indexOf('=');
+            int pos = line.indexOf(": ");
+            int termPos = line.indexOf(' ');
 
-            if (pos >= 0 && (termPos == -1 || pos < termPos))
+            if (pos > 0 && (termPos == -1 || pos < termPos))
             {
             	line = line.trim();
                 String name = line.substring(0, pos);
-                lastHeaderName = name;
-                List<String> vals = null;
-                
-                if (lastHeaderName.startsWith("X-"))
+                line = line.substring(pos + 2);                
+                List<String> vals = new ArrayList<String>();    
+
+                if (name.equals(lastHeaderName))
                 {
-                    // eXtended header so leave it intact 
-                    vals = new ArrayList<String>(1);
-                    // strips first blank character
-                    vals.add(line.substring(pos + 2));
+                	SmtpHeader h = (SmtpHeader) headers.get(name);
+                	if (h != null)
+                	{
+                		h.getValues().add(line);
+                		return;
+                	}
+                	else
+                		vals.add(line);
                 }
                 else
                 {
-                    String values = MailUtilities.decodeHeaderValue(line
-                            .substring(pos + 2));
-    
-                    StringTokenizer tk = new StringTokenizer(values, ";");
-                    vals = new ArrayList<String>(tk.countTokens());
-    
-                    while (tk.hasMoreTokens())
-                        vals.add(tk.nextToken().trim());
+	                lastHeaderName = name;
+	                
+	                if (lastHeaderName.startsWith("X-"))
+	                	// eXtended header so leave it intact
+	                	vals.add(line);
+	                else
+	                    parseMultipleValues(line, vals);
                 }
-
+                
                 headers.put(name, new SmtpHeader(name, vals));
             }
             else
@@ -223,14 +226,23 @@ public class SmtpHeaders
                 if (lastHeaderName.startsWith("X-"))
                     h.getValues().add(line);
                 else if (SmtpHeadersInterface.SUBJECT.equals(lastHeaderName))
-                    h.getValues().set(0,
+                	h.getValues().set(0,
                             h.getValues().get(0) + MailUtilities.decodeHeaderValue(line.trim()));
                 else
-                    h.getValues().add(line);
+                	parseMultipleValues(line, h.getValues());
             }
         }
     }
 
+    private void parseMultipleValues(String lineToParse, List<String> vals)
+    {
+    	String decodedLine = MailUtilities.decodeHeaderValue(lineToParse);
+        StringTokenizer tk = new StringTokenizer(decodedLine, ";");
+
+        while (tk.hasMoreTokens())
+            vals.add(tk.nextToken().trim());
+    }
+    
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
