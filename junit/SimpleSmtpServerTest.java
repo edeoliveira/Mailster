@@ -25,8 +25,8 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.InternetAddress;
 
-import org.mailster.smtp.SimpleSmtpServer;
-import org.mailster.smtp.SmtpMessage;
+import org.mailster.dumbster.SimpleSmtpServer;
+import org.mailster.service.smtp.parser.SmtpMessage;
 
 
 import java.util.Properties;

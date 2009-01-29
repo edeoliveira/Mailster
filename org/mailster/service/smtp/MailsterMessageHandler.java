@@ -1,16 +1,15 @@
-package org.mailster.subethasmtp;
+package org.mailster.service.smtp;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.subethamail.smtp.AuthenticationHandler;
-import org.subethamail.smtp.MessageContext;
-import org.subethamail.smtp.MessageHandler;
-import org.subethamail.smtp.RejectException;
-import org.subethamail.smtp.TooMuchDataException;
-import org.subethamail.smtp.server.AbstractMessageHandler;
+import org.mailster.smtp.api.RejectException;
+import org.mailster.smtp.api.TooMuchDataException;
+import org.mailster.smtp.api.handler.AbstractDeliveryHandler;
+import org.mailster.smtp.api.handler.DeliveryContext;
+import org.mailster.smtp.auth.AuthenticationHandler;
 
 /**
  * ---<br>
@@ -34,19 +33,19 @@ import org.subethamail.smtp.server.AbstractMessageHandler;
  * Web Site</a> <br>
  * ---
  * <p>
- * MailsterMessageHandler.java - Class which implements the {@link MessageHandler}
+ * MailsterMessageHandler.java - Class which implements the {@link DeliveryHandler}
  * interface.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
 public class MailsterMessageHandler
-	extends AbstractMessageHandler
+	extends AbstractDeliveryHandler
 {
 	private List<String> recipients = new ArrayList<String>();
 	private String from;
 	
-	public MailsterMessageHandler(MessageContext ctx, AuthenticationHandler authHandler)
+	public MailsterMessageHandler(DeliveryContext ctx, AuthenticationHandler authHandler)
 	{
 		super(ctx, authHandler);
 	}
@@ -71,7 +70,7 @@ public class MailsterMessageHandler
 	{
 		if (recipients.size() > 0)
 		{
-			SubEthaSmtpServer server = (SubEthaSmtpServer) getListeners().iterator().next();
+			MailsterSMTPServer server = (MailsterSMTPServer) getListeners().iterator().next();
 			server.deliver(this.from, recipients, data);
 		}
 	}

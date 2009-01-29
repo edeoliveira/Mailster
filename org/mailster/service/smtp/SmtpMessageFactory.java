@@ -1,4 +1,4 @@
-package org.mailster.subethasmtp;
+package org.mailster.service.smtp;
 
 import java.io.InputStream;
 import java.nio.charset.CharacterCodingException;
@@ -7,10 +7,10 @@ import java.nio.charset.CharsetDecoder;
 
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.filter.codec.textline.LineDelimiter;
-import org.mailster.smtp.SmtpMessage;
-import org.mailster.smtp.SmtpRequest;
-import org.mailster.smtp.SmtpResponse;
-import org.mailster.smtp.SmtpState;
+import org.mailster.dumbster.SmtpRequest;
+import org.mailster.dumbster.SmtpResponse;
+import org.mailster.dumbster.SmtpState;
+import org.mailster.service.smtp.parser.SmtpMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

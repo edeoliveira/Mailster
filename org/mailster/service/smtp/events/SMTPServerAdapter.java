@@ -1,4 +1,4 @@
-package org.mailster.smtp.events;
+package org.mailster.service.smtp.events;
 
 
 /**

@@ -14,14 +14,14 @@ import java.util.concurrent.ScheduledFuture;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 import org.mailster.MailsterSWT;
+import org.mailster.dumbster.SimpleSmtpServer;
 import org.mailster.gui.Messages;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
-import org.mailster.smtp.SimpleSmtpServer;
-import org.mailster.smtp.SmtpMessage;
-import org.mailster.smtp.events.SMTPServerAdapter;
-import org.mailster.smtp.events.SMTPServerEvent;
-import org.mailster.smtp.events.SMTPServerListener;
+import org.mailster.service.smtp.events.SMTPServerAdapter;
+import org.mailster.service.smtp.events.SMTPServerEvent;
+import org.mailster.service.smtp.events.SMTPServerListener;
+import org.mailster.service.smtp.parser.SmtpMessage;
 import org.mailster.util.DateUtilities;
 
 /**

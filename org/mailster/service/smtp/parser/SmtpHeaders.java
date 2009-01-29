@@ -1,4 +1,4 @@
-package org.mailster.smtp;
+package org.mailster.service.smtp.parser;
 
 import java.io.Serializable;
 import java.util.ArrayList;

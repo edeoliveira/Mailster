@@ -11,7 +11,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.mailster.service.MailsterConstants;
-import org.mailster.smtp.SmtpMessage;
+import org.mailster.service.smtp.parser.SmtpMessage;
 import org.mailster.util.AbstractReloadableSoftReference;
 import org.mailster.util.FileUtilities;
 import org.slf4j.Logger;

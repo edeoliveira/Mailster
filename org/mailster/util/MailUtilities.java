@@ -17,10 +17,10 @@ import java.util.List;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeUtility;
 
-import org.mailster.smtp.SmtpHeaders;
-import org.mailster.smtp.SmtpHeadersInterface;
-import org.mailster.smtp.SmtpMessage;
-import org.mailster.smtp.SmtpMessagePart;
+import org.mailster.service.smtp.parser.SmtpHeaders;
+import org.mailster.service.smtp.parser.SmtpHeadersInterface;
+import org.mailster.service.smtp.parser.SmtpMessage;
+import org.mailster.service.smtp.parser.SmtpMessagePart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

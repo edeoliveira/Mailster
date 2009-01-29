@@ -2,7 +2,7 @@ package org.mailster.pop3.mailbox;
 
 import java.util.Hashtable;
 
-import org.mailster.smtp.SmtpMessage;
+import org.mailster.service.smtp.parser.SmtpMessage;
 
 /**
  * ---<br>

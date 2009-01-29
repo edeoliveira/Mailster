@@ -1,4 +1,4 @@
-package org.mailster.subethasmtp;
+package org.mailster.service.smtp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,15 +11,15 @@ import java.util.concurrent.Executors;
 import org.mailster.crypto.SSLFilterFactory;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
 import org.mailster.service.MailsterConstants;
-import org.mailster.smtp.SmtpMessage;
-import org.mailster.smtp.events.SMTPServerEvent;
-import org.mailster.smtp.events.SMTPServerListener;
+import org.mailster.service.smtp.events.SMTPServerEvent;
+import org.mailster.service.smtp.events.SMTPServerListener;
+import org.mailster.service.smtp.parser.SmtpMessage;
+import org.mailster.smtp.SMTPServer;
+import org.mailster.smtp.api.SessionContext;
+import org.mailster.smtp.api.TooMuchDataException;
+import org.mailster.smtp.api.listener.MessageListener;
+import org.mailster.smtp.command.impl.StartTLSCommand;
 import org.mailster.util.StringUtilities;
-import org.subethamail.smtp.MessageListener;
-import org.subethamail.smtp.TooMuchDataException;
-import org.subethamail.smtp.command.StartTLSCommand;
-import org.subethamail.smtp.server.MessageListenerAdapter;
-import org.subethamail.smtp.server.SMTPServer;
 
 /**
  * ---<br>
@@ -43,13 +43,13 @@ import org.subethamail.smtp.server.SMTPServer;
  * Web Site</a> <br>
  * ---
  * <p>
- * SimpleSmtpServer.java - The smtp server based on SubEthaSMTP.
+ * MailsterSMTPServer.java - The smtp server.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
 
-public class SubEthaSmtpServer implements MessageListener
+public class MailsterSMTPServer implements MessageListener
 {
 	/**
 	 * The default timeout.
@@ -161,7 +161,7 @@ public class SubEthaSmtpServer implements MessageListener
      * Creates an instance of SimpleSmtpServer. Server will listen on the
      * default host:port. Debug mode is off by default.
      */
-    public SubEthaSmtpServer()
+    public MailsterSMTPServer()
     {
         this(DEFAULT_SMTP_HOST, DEFAULT_SMTP_PORT, false);
     }
@@ -172,7 +172,7 @@ public class SubEthaSmtpServer implements MessageListener
      * 
      * @param debug if true debug mode is enabled
      */
-    public SubEthaSmtpServer(boolean debug)
+    public MailsterSMTPServer(boolean debug)
     {
         this(DEFAULT_SMTP_HOST, DEFAULT_SMTP_PORT, debug);
     }
@@ -183,7 +183,7 @@ public class SubEthaSmtpServer implements MessageListener
      * 
      * @param port port number the server should listen to
      */
-    public SubEthaSmtpServer(int port)
+    public MailsterSMTPServer(int port)
     {
         this(DEFAULT_SMTP_HOST, port, false);
     }
@@ -195,7 +195,7 @@ public class SubEthaSmtpServer implements MessageListener
      * @param port port number the server should listen to
      * @param debug if true debug mode is enabled
      */
-    public SubEthaSmtpServer(int port, boolean debug)
+    public MailsterSMTPServer(int port, boolean debug)
     {
         this(DEFAULT_SMTP_HOST, port, debug);
     }
@@ -207,7 +207,7 @@ public class SubEthaSmtpServer implements MessageListener
      * @param port port number the server should listen to
      * @param debug if true debug mode is enabled
      */
-    public SubEthaSmtpServer(String hostname, int port, boolean debug)
+    public MailsterSMTPServer(String hostname, int port, boolean debug)
     {
         this.hostName = hostname;
         this.port = port;
@@ -216,14 +216,14 @@ public class SubEthaSmtpServer implements MessageListener
         ArrayList<MessageListener> l = new ArrayList<MessageListener>(1);
         l.add(this);
    		server = new SMTPServer(l);
-   		((MessageListenerAdapter)server.getMessageHandlerFactory())
-   			.setMessageHandlerImpl(MailsterMessageHandler.class);
-   		server.setHostName(hostName);
+   		server.getDeliveryHandlerFactory()
+   			.setDeliveryHandlerImplClass(MailsterMessageHandler.class);
+   		server.getConfig().setHostName(hostName);
    		server.setPort(port);
-   		server.setConnectionTimeout((int) connectionTimeout);   		
+   		server.getConfig().setConnectionTimeout((int) connectionTimeout);   		
    		
-   		server.setMaxConnections(-1);
-   		server.setMaxRecipients(-1);
+   		server.getConfig().setMaxConnections(-1);
+   		server.getConfig().setMaxRecipients(-1);
     }
 
     public static void setupSSLParameters(SSLProtocol protocol, boolean clientAuthNeeded)
@@ -339,15 +339,16 @@ public class SubEthaSmtpServer implements MessageListener
 		this.connectionTimeout = connectionTimeout * 1000;
 	}
 
-	public boolean accept(String from, String recipient) 
+	public boolean accept(SessionContext ctx, String from, String recipient) 
 	{
-		// unused
+		// TODO use the ctx
 		return true;
 	}
 
-	public void deliver(String from, String recipient, InputStream data)
+	public void deliver(SessionContext ctx, 
+			String from, String recipient, InputStream data)
 			throws TooMuchDataException, IOException 
 	{
-		// unused
+		// TODO use the ctx
 	}
 }

@@ -1,4 +1,4 @@
-package org.mailster.smtp;
+package org.mailster.service.smtp.parser;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

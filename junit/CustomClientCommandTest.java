@@ -8,8 +8,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Iterator;
 
-import org.mailster.smtp.SimpleSmtpServer;
-import org.mailster.smtp.SmtpMessage;
+import org.mailster.dumbster.SimpleSmtpServer;
+import org.mailster.service.smtp.parser.SmtpMessage;
 
 /**
  * ---<br>

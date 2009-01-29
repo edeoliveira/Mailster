@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.mailster.smtp;
+package org.mailster.dumbster;
 
 /**
  * Contains an SMTP client request. Handles state transitions using the following state transition table.

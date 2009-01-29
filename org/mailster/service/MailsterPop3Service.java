@@ -22,7 +22,7 @@ import org.mailster.pop3.mailbox.MailBox;
 import org.mailster.pop3.mailbox.Pop3User;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.pop3.mailbox.UserManager;
-import org.mailster.smtp.SmtpMessage;
+import org.mailster.service.smtp.parser.SmtpMessage;
 import org.mailster.util.StringUtilities;
 import org.mailster.util.ThreadFactoryUtilitity;
 import org.slf4j.Logger;

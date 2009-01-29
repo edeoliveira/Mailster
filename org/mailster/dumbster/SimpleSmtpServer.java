@@ -13,7 +13,7 @@
  * Mailster additions : (c) De Oliveira Edouard Minor modifications as for
  * example compliance with Java5.0 generics
  */
-package org.mailster.smtp;
+package org.mailster.dumbster;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,8 +27,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.mailster.service.MailsterConstants;
-import org.mailster.smtp.events.SMTPServerEvent;
-import org.mailster.smtp.events.SMTPServerListener;
+import org.mailster.service.smtp.events.SMTPServerEvent;
+import org.mailster.service.smtp.events.SMTPServerListener;
+import org.mailster.service.smtp.parser.SmtpMessage;
 import org.mailster.util.StringUtilities;
 
 /**

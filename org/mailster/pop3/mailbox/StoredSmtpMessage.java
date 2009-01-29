@@ -5,7 +5,7 @@ import java.util.Date;
 
 import javax.mail.Flags;
 
-import org.mailster.smtp.SmtpMessage;
+import org.mailster.service.smtp.parser.SmtpMessage;
 import org.mailster.util.DateUtilities;
 
 /**

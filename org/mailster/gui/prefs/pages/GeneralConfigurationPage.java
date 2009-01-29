@@ -49,7 +49,7 @@ import org.mailster.gui.prefs.store.MailsterPrefStore;
 import org.mailster.gui.prefs.utils.JobExecutionInterval;
 import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.LayoutUtils;
-import org.mailster.smtp.SmtpHeadersInterface;
+import org.mailster.service.smtp.parser.SmtpHeadersInterface;
 
 /**
  * ---<br>

@@ -11,7 +11,7 @@ import java.util.concurrent.Semaphore;
 import javax.mail.Flags.Flag;
 
 import org.mailster.service.Pop3Service;
-import org.mailster.smtp.SmtpMessage;
+import org.mailster.service.smtp.parser.SmtpMessage;
 import org.mailster.util.StreamUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

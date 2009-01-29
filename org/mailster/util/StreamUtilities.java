@@ -12,9 +12,9 @@ import java.util.List;
 import org.apache.mina.filter.codec.textline.LineDelimiter;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
-import org.mailster.smtp.SmtpHeadersInterface;
-import org.mailster.smtp.SmtpMessage;
-import org.mailster.subethasmtp.SmtpMessageFactory;
+import org.mailster.service.smtp.SmtpMessageFactory;
+import org.mailster.service.smtp.parser.SmtpHeadersInterface;
+import org.mailster.service.smtp.parser.SmtpMessage;
 
 /**
  * ---<br>
