@@ -42,7 +42,6 @@ public class AllTests
 		suite.addTestSuite(SmtpRequestTest.class);
 		suite.addTestSuite(HmacTest.class);
 		suite.addTestSuite(Pop3DigestMD5Test.class);
-		suite.addTestSuite(SendEncryptedMail.class);
 		return suite;
 	}
 
