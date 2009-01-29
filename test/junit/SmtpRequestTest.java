@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package junit;
+package test.junit;
 
 import org.mailster.dumbster.SmtpActionType;
 import org.mailster.dumbster.SmtpRequest;

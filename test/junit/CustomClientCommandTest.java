@@ -1,4 +1,4 @@
-package junit;
+package test.junit;
 
 import junit.framework.TestCase;
 import java.io.BufferedReader;

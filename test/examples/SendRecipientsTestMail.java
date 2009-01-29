@@ -1,4 +1,4 @@
-package junit.examples;
+package test.examples;
 
 import java.util.Date;
 import java.util.Properties;

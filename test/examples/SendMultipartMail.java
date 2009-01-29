@@ -1,4 +1,4 @@
-package junit.examples;
+package test.examples;
 
 import static org.mailster.service.MailsterConstants.USER_DIR;
 

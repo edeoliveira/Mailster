@@ -1,5 +1,12 @@
-package junit;
+package test;
 
+import test.junit.CustomClientCommandTest;
+import test.junit.DumbsterTest;
+import test.junit.EncryptedMailTest;
+import test.junit.HmacTest;
+import test.junit.Pop3DigestMD5Test;
+import test.junit.SimpleSmtpServerTest;
+import test.junit.SmtpRequestTest;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.textui.TestRunner;
@@ -26,7 +33,7 @@ import junit.textui.TestRunner;
  * Web Site</a> <br>
  * ---
  * <p>
- * AllTests.java - Launches all junit tests.
+ * AllTests.java - Launches all test tests.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$

@@ -1,4 +1,4 @@
-package junit.examples;
+package test.examples;
 
 import java.io.File;
 import java.io.FileOutputStream;

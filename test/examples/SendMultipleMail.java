@@ -1,4 +1,4 @@
-package junit.examples;
+package test.examples;
 
 import java.security.KeyStore;
 import java.security.PrivateKey;

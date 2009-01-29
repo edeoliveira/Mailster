@@ -1,4 +1,4 @@
-package junit;
+package test.junit;
 
 import java.security.SecureRandom;
 import java.security.Security;

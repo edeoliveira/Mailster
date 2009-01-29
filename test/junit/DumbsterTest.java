@@ -1,4 +1,4 @@
-package junit;
+package test.junit;
 
 import java.util.Properties;
 
