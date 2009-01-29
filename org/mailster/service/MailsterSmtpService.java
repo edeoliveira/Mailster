@@ -1,4 +1,4 @@
-package org.mailster.server;
+package org.mailster.service;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 

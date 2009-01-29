@@ -34,7 +34,7 @@ import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.prefs.store.MailsterPrefStore;
-import org.mailster.server.MailsterConstants;
+import org.mailster.service.MailsterConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

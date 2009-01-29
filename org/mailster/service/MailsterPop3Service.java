@@ -1,4 +1,4 @@
-package org.mailster.server;
+package org.mailster.service;
 
 import java.io.IOException;
 import java.net.InetAddress;

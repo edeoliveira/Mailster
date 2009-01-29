@@ -30,7 +30,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
-import org.mailster.server.MailsterConstants;
+import org.mailster.service.MailsterConstants;
 import org.mailster.util.MailUtilities;
 
 /**

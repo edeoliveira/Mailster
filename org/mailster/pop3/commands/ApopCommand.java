@@ -7,7 +7,7 @@ import java.net.UnknownHostException;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.connection.AbstractPop3Handler;
 import org.mailster.pop3.connection.Pop3State;
-import org.mailster.server.MailsterConstants;
+import org.mailster.service.MailsterConstants;
 import org.mailster.util.StringUtilities;
 import org.mailster.util.md5.MD5;
 

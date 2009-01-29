@@ -10,7 +10,7 @@ import java.util.concurrent.Semaphore;
 
 import javax.mail.Flags.Flag;
 
-import org.mailster.server.Pop3Service;
+import org.mailster.service.Pop3Service;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.util.StreamUtilities;
 import org.slf4j.Logger;

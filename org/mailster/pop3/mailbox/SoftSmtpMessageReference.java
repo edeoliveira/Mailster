@@ -10,7 +10,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import org.mailster.server.MailsterConstants;
+import org.mailster.service.MailsterConstants;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.util.AbstractReloadableSoftReference;
 import org.mailster.util.FileUtilities;

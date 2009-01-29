@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 
 import org.mailster.crypto.SSLFilterFactory;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
-import org.mailster.server.MailsterConstants;
+import org.mailster.service.MailsterConstants;
 import org.mailster.smtp.SmtpMessage;
 import org.mailster.smtp.events.SMTPServerEvent;
 import org.mailster.smtp.events.SMTPServerListener;

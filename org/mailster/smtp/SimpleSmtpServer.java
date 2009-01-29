@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.mailster.server.MailsterConstants;
+import org.mailster.service.MailsterConstants;
 import org.mailster.smtp.events.SMTPServerEvent;
 import org.mailster.smtp.events.SMTPServerListener;
 import org.mailster.util.StringUtilities;

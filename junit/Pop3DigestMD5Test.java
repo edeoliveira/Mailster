@@ -31,7 +31,7 @@ import org.mailster.pop3.commands.auth.AuthCramMD5Command;
 import org.mailster.pop3.commands.auth.AuthException;
 import org.mailster.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter;
 import org.mailster.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter.CIPHER;
-import org.mailster.server.MailsterPop3Service;
+import org.mailster.service.MailsterPop3Service;
 import org.mailster.util.ByteUtilities;
 import org.mailster.util.StringUtilities;
 import org.mailster.util.md5.MD5;
