@@ -3,11 +3,12 @@ package org.mailster.pop3.commands.auth.iofilter;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.IoFilter.NextFilter;
-import org.apache.mina.common.IoFilter.WriteRequest;
-import org.apache.mina.common.support.BaseIoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.filterchain.IoFilter.NextFilter;
+import org.apache.mina.core.session.AbstractIoSession;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.write.DefaultWriteRequest;
+import org.apache.mina.core.write.WriteRequest;
 import org.mailster.pop3.commands.auth.AuthDigestMD5Command;
 import org.mailster.pop3.commands.auth.AuthException;
 import org.slf4j.Logger;
@@ -67,7 +68,7 @@ public class DigestMD5PrivacyIoFilterCodec extends DigestMD5IntegrityIoFilterCod
 		decCipher = (Cipher) session.getAttribute(AuthDigestMD5IoFilter.DECODING_CIPHER);
 	}
 	
-	public void unwrap(NextFilter nextFilter, ByteBuffer buf) 
+	public void unwrap(NextFilter nextFilter, IoBuffer buf) 
 	{
 		try
 		{
@@ -132,7 +133,7 @@ public class DigestMD5PrivacyIoFilterCodec extends DigestMD5IntegrityIoFilterCod
 		    
 		    if (isValidMAC(fullMac, expectedMac))
 		    {
-		    	ByteBuffer out = ByteBuffer.allocate(msgLength+LINE_TERMINATOR.length);
+		    	IoBuffer out = IoBuffer.allocate(msgLength+LINE_TERMINATOR.length);
 				out.put(msg);
 				out.put(LINE_TERMINATOR);
 			    out.flip();
@@ -145,12 +146,13 @@ public class DigestMD5PrivacyIoFilterCodec extends DigestMD5IntegrityIoFilterCod
     		log.debug(ex.getMessage());
     		nextFilter.messageReceived(session, "\r\n");
 		}
-    	
-        if ( session instanceof BaseIoSession )
-            ( ( BaseIoSession ) session ).increaseReadMessages();
+
+        if ( session instanceof AbstractIoSession )
+            ( ( AbstractIoSession ) session ).
+            	increaseReadMessages(System.currentTimeMillis());    	
 	}
 	
-	public void wrap(NextFilter nextFilter, WriteRequest writeRequest, ByteBuffer buf)
+	public void wrap(NextFilter nextFilter, WriteRequest writeRequest, IoBuffer buf)
 	    throws AuthException 
 	{
 		int start = buf.position();
@@ -200,7 +202,7 @@ public class DigestMD5PrivacyIoFilterCodec extends DigestMD5IntegrityIoFilterCod
 	    	throw new AuthException("Invalid block size for cipher", e);
 	    }
 	    
-	    ByteBuffer out = ByteBuffer.allocate(
+	    IoBuffer out = IoBuffer.allocate(
 	    		cipherBlock.length+2+4+LINE_TERMINATOR.length);
 	    out.put(cipherBlock);
 	    out.put(mac, 10, 6); // messageType & sequenceNum
@@ -211,6 +213,6 @@ public class DigestMD5PrivacyIoFilterCodec extends DigestMD5IntegrityIoFilterCod
 			throw new AuthException("Data exceeds client maxbuf capability");
 
 		nextFilter.filterWrite(session, 
-        		new WriteRequest(out, writeRequest.getFuture()));
+        		new DefaultWriteRequest(out, writeRequest.getFuture()));
 	}
 }

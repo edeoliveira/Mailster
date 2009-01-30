@@ -23,8 +23,8 @@ import org.bouncycastle.cms.SignerInformation;
 import org.bouncycastle.cms.SignerInformationStore;
 import org.bouncycastle.mail.smime.SMIMEEnveloped;
 import org.bouncycastle.mail.smime.SMIMEUtil;
-import org.mailster.service.smtp.parser.SmtpMessage;
-import org.mailster.service.smtp.parser.SmtpMessagePart;
+import org.mailster.message.SmtpMessage;
+import org.mailster.message.SmtpMessagePart;
 
 /**
  * ---<br>

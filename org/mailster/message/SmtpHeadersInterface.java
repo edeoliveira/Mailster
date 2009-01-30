@@ -1,4 +1,4 @@
-package org.mailster.service.smtp.parser;
+package org.mailster.message;
 
 /**
  * ---<br>

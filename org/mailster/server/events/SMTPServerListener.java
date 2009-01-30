@@ -1,5 +1,6 @@
-package org.mailster.service.smtp.events;
+package org.mailster.server.events;
 
+import java.util.EventListener;
 
 /**
  * ---<br>
@@ -23,23 +24,16 @@ package org.mailster.service.smtp.events;
  * Web Site</a> <br>
  * ---
  * <p>
- * SMTPServerAdapter.java - Enter your Comment HERE.
+ * SMTPServerListener.java - Enter your Comment HERE.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class SMTPServerAdapter 
-    implements SMTPServerListener
+public interface SMTPServerListener extends EventListener
 {
-    public void started(SMTPServerEvent event)
-    {
-    }
+    public void started(SMTPServerEvent event);
 
-    public void stopped(SMTPServerEvent event)
-    {
-    }
+    public void stopped(SMTPServerEvent event);
     
-    public void emailReceived(SMTPServerEvent event)
-    {
-    }
+    public void emailReceived(SMTPServerEvent event);
 }

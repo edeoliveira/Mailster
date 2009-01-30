@@ -1,15 +1,20 @@
 package test.junit;
 
-import junit.framework.TestCase;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
-import org.mailster.dumbster.SimpleSmtpServer;
-import org.mailster.service.smtp.parser.SmtpMessage;
+import junit.framework.TestCase;
+
+import org.mailster.message.SmtpMessage;
+import org.mailster.server.MailsterSMTPServer;
+import org.mailster.server.events.SMTPServerAdapter;
+import org.mailster.server.events.SMTPServerEvent;
 
 /**
  * ---<br>
@@ -40,7 +45,6 @@ import org.mailster.service.smtp.parser.SmtpMessage;
  */
 public class CustomClientCommandTest extends TestCase 
 {
-
     private static final String FROM_ADDRESS = "from-addr@localhost";
     private static final String HOST_NAME = "localhost";
     private static final String TO_ADDRESS = "to-addr@localhost";
@@ -48,18 +52,27 @@ public class CustomClientCommandTest extends TestCase
 
     private BufferedReader input;
     private PrintWriter output;
-    private SimpleSmtpServer server;
+    private MailsterSMTPServer server;
     private Socket socket;
+    private List<SmtpMessage> messages = new ArrayList<SmtpMessage>();
 
     protected void setUp() 
     	throws Exception 
     {
         super.setUp();
-        server = new SimpleSmtpServer(SMTP_PORT);
+        server = new MailsterSMTPServer(SMTP_PORT);
         server.start();
         socket = new Socket(HOST_NAME, SMTP_PORT);
         input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         output = new PrintWriter(socket.getOutputStream(), true);
+        server.addSMTPServerListener(new SMTPServerAdapter() {		
+			public void started(SMTPServerEvent event) {
+				messages.clear();
+			}
+			public void emailReceived(SMTPServerEvent event) {
+				messages.add(event.getMessage());
+			}
+		});
     }
 
     protected void tearDown() 
@@ -83,8 +96,8 @@ public class CustomClientCommandTest extends TestCase
         sendDataEnd(output, input);
         sendQuit(output, input);
 
-        assertEquals(1, server.getReceivedEmailSize());
-        Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+        assertEquals(1, messages.size());
+        Iterator<SmtpMessage> emailIter = messages.iterator();
         SmtpMessage email = (SmtpMessage) emailIter.next();
         assertEquals("Body", email.getBody());
     }
@@ -105,8 +118,8 @@ public class CustomClientCommandTest extends TestCase
         sendDataEnd(output, input);
         sendQuit(output, input);
 
-        assertEquals(1, server.getReceivedEmailSize());
-        Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+        assertEquals(1, messages.size());
+        Iterator<SmtpMessage> emailIter = messages.iterator();
         SmtpMessage email = (SmtpMessage) emailIter.next();
         assertEquals("Body", email.getBody());
     }
@@ -125,8 +138,8 @@ public class CustomClientCommandTest extends TestCase
         sendDataEnd(output, input);
         sendQuit(output, input);
 
-        assertEquals(1, server.getReceivedEmailSize());
-        Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+        assertEquals(1, messages.size());
+        Iterator<SmtpMessage> emailIter = messages.iterator();
         SmtpMessage email = (SmtpMessage) emailIter.next();
         assertEquals("Body", email.getBody());
     }
@@ -144,8 +157,8 @@ public class CustomClientCommandTest extends TestCase
         sendDataEnd(output, input);
         sendQuit(output, input);
 
-        assertEquals(1, server.getReceivedEmailSize());
-        Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+        assertEquals(1, messages.size());
+        Iterator<SmtpMessage> emailIter = messages.iterator();
         SmtpMessage email = (SmtpMessage) emailIter.next();
         assertEquals("Body", email.getBody());
     }
@@ -153,6 +166,7 @@ public class CustomClientCommandTest extends TestCase
     public void testMailFromWithNoHello() 
     	throws IOException 
     {
+    	//TODO WARNING Is it allowed
         assertConnect(input);
         sendMailFrom(FROM_ADDRESS, output, input);
         sendReceiptTo(TO_ADDRESS, output, input);
@@ -162,8 +176,8 @@ public class CustomClientCommandTest extends TestCase
         sendDataEnd(output, input);
         sendQuit(output, input);
 
-        assertEquals(1, server.getReceivedEmailSize());
-        Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+        assertEquals(1, messages.size());
+        Iterator<SmtpMessage> emailIter = messages.iterator();
         SmtpMessage email = (SmtpMessage) emailIter.next();
         assertEquals("Body", email.getBody());
     }
@@ -196,7 +210,9 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("EHLO " + hostName);
         String response = input.readLine();
-        assertTrue(response, response.startsWith("250 "));
+        assertTrue(response, response.startsWith("250-"));
+        while ((response = input.readLine()).charAt(3) == '-')
+        	;
     }
 
     private void sendMailFrom(String fromAddress, PrintWriter output, BufferedReader input) 

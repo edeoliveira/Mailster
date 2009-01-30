@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.mina.filter.codec.textline.LineDelimiter;
+import org.mailster.message.SmtpHeadersInterface;
+import org.mailster.message.SmtpMessage;
+import org.mailster.message.SmtpMessageFactory;
 import org.mailster.pop3.connection.AbstractPop3Connection;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
-import org.mailster.service.smtp.SmtpMessageFactory;
-import org.mailster.service.smtp.parser.SmtpHeadersInterface;
-import org.mailster.service.smtp.parser.SmtpMessage;
 
 /**
  * ---<br>
@@ -136,7 +136,7 @@ public class StreamUtilities
 					 {
 						 msg.deleteCharAt(msg.length()-1);
 						 mails.add(factory.asSmtpMessage(
-							new ByteArrayInputStream(msg.toString().getBytes(charsetName))));
+							new ByteArrayInputStream(msg.toString().getBytes(charsetName)), null));
 					 }
 					 
 					 msg = new StringBuilder();
@@ -162,7 +162,7 @@ public class StreamUtilities
 			// Add last message
 			msg.deleteCharAt(msg.length()-1);
 			mails.add(factory.asSmtpMessage(
-					new ByteArrayInputStream(msg.toString().getBytes(charsetName))));
+					new ByteArrayInputStream(msg.toString().getBytes(charsetName)), null));
 		} 
     	catch (Exception e) 
 		{

@@ -3,9 +3,9 @@ package org.mailster.mina;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 
-import org.apache.mina.common.BufferDataException;
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoFilter.NextFilter;
+import org.apache.mina.core.buffer.BufferDataException;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.filterchain.IoFilter.NextFilter;
 import org.apache.mina.filter.codec.textline.LineDelimiter;
 
 /**
@@ -30,7 +30,7 @@ import org.apache.mina.filter.codec.textline.LineDelimiter;
  * Web Site</a> <br>
  * ---
  * <p>
- * TextLineConsumer.java - This class consumes a {@link ByteBuffer} extracting a 
+ * TextLineConsumer.java - This class consumes a {@link IoBuffer} extracting a 
  * \r\n terminated line and forwards decoded lines to a {@link IoFilterCodec} codec 
  * for further decoding. 
  * 
@@ -39,8 +39,8 @@ import org.apache.mina.filter.codec.textline.LineDelimiter;
  */
 public class TextLineConsumer implements DataConsumer
 {
-    private ByteBuffer delimBuf;
-    private int maxLineLength = 1024;
+    private IoBuffer delimBuf;
+    private int maxLineLength 	= 1024;
     private int minLineLength 	= 0;
     private IoFilterCodec codec;
 
@@ -88,7 +88,7 @@ public class TextLineConsumer implements DataConsumer
         this.codec = codec;
         
         // Convert delimiter to ByteBuffer.
-        delimBuf = ByteBuffer.allocate( 2 ).setAutoExpand( true );
+        delimBuf = IoBuffer.allocate( 2 ).setAutoExpand( true );
         try 
         {
 			delimBuf.putString( delimiter.getValue(), charset.newEncoder() );
@@ -121,7 +121,7 @@ public class TextLineConsumer implements DataConsumer
      * Sets the allowed minimum size of the line to be decoded.
      * If the size of the line is smaller than this value, the
      * {@link TextLineConsumer#consume(
-     * org.apache.mina.common.IoFilter.NextFilter, ByteBuffer)} 
+     * org.apache.mina.common.IoFilter.NextFilter, IoBuffer)} 
      * will return false immediately. The default value is <tt>0</tt>.
      */
     public void setMinLineLength( int minLineLength )
@@ -159,7 +159,7 @@ public class TextLineConsumer implements DataConsumer
         this.maxLineLength = maxLineLength;
     }    
 
-    public boolean consume( NextFilter nextFilter, ByteBuffer in ) 
+    public boolean consume( NextFilter nextFilter, IoBuffer in ) 
     	throws Exception
     {        
     	if (in.remaining() < minLineLength)

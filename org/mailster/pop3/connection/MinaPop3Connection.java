@@ -1,7 +1,7 @@
 package org.mailster.pop3.connection;
 
-import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.SSLFilter;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.ssl.SslFilter;
 import org.mailster.crypto.SSLFilterFactory;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
 import org.mailster.pop3.mailbox.UserManager;
@@ -40,7 +40,7 @@ public class MinaPop3Connection implements AbstractPop3Connection
     private final static String lineSeparator = "\r\n";
     private final static Logger LOG = LoggerFactory.getLogger(MinaPop3Connection.class);
 
-    private static SSLFilter sslFilter;
+    private static SslFilter sslFilter;
     
     private IoSession session;
     private Pop3State state;
@@ -102,18 +102,18 @@ public class MinaPop3Connection implements AbstractPop3Connection
         // Disable encryption temporarily.
         // This attribute will be removed by SSLFilter
         // inside the Session.write() call below.
-        session.setAttribute(SSLFilter.DISABLE_ENCRYPTION_ONCE, Boolean.TRUE);
+        session.setAttribute(SslFilter.DISABLE_ENCRYPTION_ONCE, Boolean.TRUE);
 
         // Write StartTLSResponse which won't be encrypted.
         println(response);
         
         // Now DISABLE_ENCRYPTION_ONCE attribute is cleared.
-        assert session.getAttribute(SSLFilter.DISABLE_ENCRYPTION_ONCE) == null;
+        assert session.getAttribute(SslFilter.DISABLE_ENCRYPTION_ONCE) == null;
     }
 
     public boolean isTLSConnection()
     {
         return sslFilter != null 
-            && sslFilter.isSSLStarted(session);
+            && sslFilter.isSslStarted(session);
     }
 }

@@ -1,5 +1,7 @@
 package test.junit;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Message;
@@ -8,9 +10,12 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.mailster.dumbster.SimpleSmtpServer;
-
 import junit.framework.TestCase;
+
+import org.mailster.message.SmtpMessage;
+import org.mailster.server.MailsterSMTPServer;
+import org.mailster.server.events.SMTPServerAdapter;
+import org.mailster.server.events.SMTPServerEvent;
 
 /**
  * Check a possible bug in Dumbster SMTP server 
@@ -26,11 +31,18 @@ public class DumbsterTest extends TestCase
      */
     public void testSendWithoutConnectedCheck() throws Exception
     {
-        SimpleSmtpServer server = new SimpleSmtpServer(PORT);
+        MailsterSMTPServer server = new MailsterSMTPServer(PORT);
+        final List<SmtpMessage> messages = new ArrayList<SmtpMessage>();
+
+        server.addSMTPServerListener(new SMTPServerAdapter() {		
+			public void emailReceived(SMTPServerEvent event) {
+				messages.add(event.getMessage());
+			}
+		});
         server.start();
         sendEmail(false);
         server.stop();
-        assertEquals("# emails received", 1, server.getReceivedEmailSize());
+        assertEquals("# emails received", 1, messages.size());
     }
 
     /**
@@ -40,11 +52,18 @@ public class DumbsterTest extends TestCase
      */
     public void testSendWithConnectedCheck() throws Exception
     {
-        SimpleSmtpServer server = new SimpleSmtpServer(PORT);
+        MailsterSMTPServer server = new MailsterSMTPServer(PORT);
+        final List<SmtpMessage> messages = new ArrayList<SmtpMessage>();
+
+        server.addSMTPServerListener(new SMTPServerAdapter() {		
+			public void emailReceived(SMTPServerEvent event) {
+				messages.add(event.getMessage());
+			}
+		});
         server.start();
         sendEmail(true);
         server.stop();
-        assertEquals("# emails received", 1, server.getReceivedEmailSize());
+        assertEquals("# emails received", 1, messages.size());
     }
 
     private void sendEmail(boolean checkState) throws Exception

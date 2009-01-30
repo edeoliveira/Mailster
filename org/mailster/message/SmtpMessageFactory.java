@@ -1,16 +1,16 @@
-package org.mailster.service.smtp;
+package org.mailster.message;
 
 import java.io.InputStream;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.util.List;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.filter.codec.textline.LineDelimiter;
-import org.mailster.dumbster.SmtpRequest;
-import org.mailster.dumbster.SmtpResponse;
-import org.mailster.dumbster.SmtpState;
-import org.mailster.service.smtp.parser.SmtpMessage;
+import org.mailster.message.utils.SmtpRequest;
+import org.mailster.message.utils.SmtpResponse;
+import org.mailster.message.utils.SmtpState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,7 @@ public class SmtpMessageFactory
 	
 	public final static LineDelimiter DELIMITER = new LineDelimiter("\r\n");
 	
-    private ByteBuffer delimBuf;
+    private IoBuffer delimBuf;
     private Charset charset;
     private CharsetDecoder decoder;
     
@@ -95,7 +95,7 @@ public class SmtpMessageFactory
         }
         
         // Convert delimiter to ByteBuffer.
-        delimBuf = ByteBuffer.allocate(delimiter.getValue().length()).setAutoExpand(true);
+        delimBuf = IoBuffer.allocate(delimiter.getValue().length()).setAutoExpand(true);
         try 
         {
 			delimBuf.putString(delimiter.getValue(), charset.newEncoder());
@@ -115,14 +115,19 @@ public class SmtpMessageFactory
         decoder = charset.newDecoder();
     }
     
-    public SmtpMessage asSmtpMessage(InputStream data)
+    public SmtpMessage asSmtpMessage(InputStream data, List<String> recipients)
     	throws Exception
     {
-    	SmtpMessage msg = new SmtpMessage();            	
+    	SmtpMessage msg = new SmtpMessage();
+    	if (recipients != null)
+    	{
+    		msg.addRecipients(recipients);
+    	}
+    	
     	reset();
     	
     	byte[] b = new byte[1024];
-		ByteBuffer buf = ByteBuffer.allocate(1024).setAutoExpand(true);		
+    	IoBuffer buf = IoBuffer.allocate(1024).setAutoExpand(true);		
 		boolean decoded = false;
 		int nb = 0;
 		
@@ -139,13 +144,13 @@ public class SmtpMessageFactory
 		if (decoded && (buf.position() == buf.limit()) && !"\n".equals(previous.getParams()))
 		{
 			request = SmtpRequest.createRequest("", SmtpState.DATA_BODY, previous);
-			msg.store(request.execute(), request.getParams());
+			msg.append(request.execute(), request.getParams());
 		}
 		
 		if (buf.remaining()>0)
 			updateMessage(msg, buf);
 		
-		buf.release();
+		buf.free();
 		
     	return msg;
     }
@@ -153,7 +158,7 @@ public class SmtpMessageFactory
     /**
      * Stores the data in the {@link SmtpMessage} body.
      */
-    private void updateMessage(SmtpMessage msg, ByteBuffer in)
+    private void updateMessage(SmtpMessage msg, IoBuffer in)
     	throws Exception
     {
         String line = in.getString(decoder);
@@ -168,10 +173,10 @@ public class SmtpMessageFactory
         SmtpResponse response = request.execute();
         smtpState = response.getNextState();
         
-        msg.store(response, request.getParams());
+        msg.append(response, request.getParams());
     }
     
-    private boolean consume(SmtpMessage msg, ByteBuffer in) 
+    private boolean consume(SmtpMessage msg, IoBuffer in) 
     	throws Exception
     {        
         // Try to find a match

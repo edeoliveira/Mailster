@@ -1,8 +1,8 @@
 package org.mailster.mina;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoFilter.NextFilter;
-import org.apache.mina.common.IoFilter.WriteRequest;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.filterchain.IoFilter.NextFilter;
+import org.apache.mina.core.write.WriteRequest;
 
 /**
  * ---<br>
@@ -35,16 +35,16 @@ import org.apache.mina.common.IoFilter.WriteRequest;
 public interface IoFilterCodec 
 {
 	/**
-	 * Unwraps the data from the {@link ByteBuffer} and writes it to the 
+	 * Unwraps the data from the {@link IoBuffer} and writes it to the 
 	 * {@link NextFilter} filter.
 	 */    
-	public void unwrap(NextFilter nextFilter, ByteBuffer buf) 
+	public void unwrap(NextFilter nextFilter, IoBuffer buf) 
 		throws Exception;
 	
 	/**
-	 * Wraps the data of the {@link ByteBuffer} and writes it to the 
+	 * Wraps the data of the {@link IoBuffer} and writes it to the 
 	 * {@link NextFilter} filter.
 	 */
-	public void wrap(NextFilter nextFilter, WriteRequest writeRequest, ByteBuffer buf) 
+	public void wrap(NextFilter nextFilter, WriteRequest writeRequest, IoBuffer buf) 
 		throws Exception;
 }

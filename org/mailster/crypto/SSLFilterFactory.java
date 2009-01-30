@@ -1,6 +1,6 @@
 package org.mailster.crypto;
 
-import org.apache.mina.filter.SSLFilter;
+import org.apache.mina.filter.ssl.SslFilter;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
 import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
 
@@ -33,20 +33,20 @@ import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
  */
 public class SSLFilterFactory 
 {
-    public static SSLFilter createFilter(SSLProtocol protocol, boolean clientAuthNeeded)
+    public static SslFilter createFilter(SSLProtocol protocol, boolean clientAuthNeeded)
     	throws RuntimeException
     {
-    	SSLFilter sslFilter;
+    	SslFilter sslFilter;
     	
     	try 
     	{
     		X509SecureSocketFactory ssf = X509SecureSocketFactory.getInstance(protocol, 
     				new SWTCertificateTrustCallBackHandler());
-    		sslFilter = new SSLFilter(ssf.getContext());
+    		sslFilter = new SslFilter(ssf.getContext());
 		}
     	catch (Exception e) 
     	{			
-			sslFilter = new SSLFilter((new DummySSLSocketFactory()).getSSLContext());
+			sslFilter = new SslFilter((new DummySSLSocketFactory()).getSSLContext());
 		}
     	
     	if (sslFilter == null)

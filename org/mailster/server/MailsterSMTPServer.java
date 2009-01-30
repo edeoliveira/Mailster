@@ -1,4 +1,4 @@
-package org.mailster.service.smtp;
+package org.mailster.server;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,10 +10,11 @@ import java.util.concurrent.Executors;
 
 import org.mailster.crypto.SSLFilterFactory;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
+import org.mailster.message.SmtpMessage;
+import org.mailster.message.SmtpMessageFactory;
+import org.mailster.server.events.SMTPServerEvent;
+import org.mailster.server.events.SMTPServerListener;
 import org.mailster.service.MailsterConstants;
-import org.mailster.service.smtp.events.SMTPServerEvent;
-import org.mailster.service.smtp.events.SMTPServerListener;
-import org.mailster.service.smtp.parser.SmtpMessage;
 import org.mailster.smtp.SMTPServer;
 import org.mailster.smtp.api.SessionContext;
 import org.mailster.smtp.api.TooMuchDataException;
@@ -217,7 +218,7 @@ public class MailsterSMTPServer implements MessageListener
         l.add(this);
    		server = new SMTPServer(l);
    		server.getDeliveryHandlerFactory()
-   			.setDeliveryHandlerImplClass(MailsterMessageHandler.class);
+   			.setDeliveryHandlerImplClass(MailsterDeliveryHandler.class);
    		server.getConfig().setHostName(hostName);
    		server.setPort(port);
    		server.getConfig().setConnectionTimeout((int) connectionTimeout);   		
@@ -278,8 +279,7 @@ public class MailsterSMTPServer implements MessageListener
 		
 		try 
 		{
-			SmtpMessage msg = factory.asSmtpMessage(data);
-			msg.addRecipients(recipients);
+			SmtpMessage msg = factory.asSmtpMessage(data, recipients);
 			fireMessageReceived(msg);
 		} 
 		catch (Exception e) 

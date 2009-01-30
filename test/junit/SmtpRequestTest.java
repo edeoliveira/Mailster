@@ -17,10 +17,10 @@
 
 package test.junit;
 
-import org.mailster.dumbster.SmtpActionType;
-import org.mailster.dumbster.SmtpRequest;
-import org.mailster.dumbster.SmtpResponse;
-import org.mailster.dumbster.SmtpState;
+import org.mailster.message.utils.SmtpActionType;
+import org.mailster.message.utils.SmtpRequest;
+import org.mailster.message.utils.SmtpResponse;
+import org.mailster.message.utils.SmtpState;
 
 import junit.framework.TestCase;
 

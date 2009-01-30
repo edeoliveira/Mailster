@@ -20,8 +20,9 @@ import javax.crypto.spec.DESedeKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.write.WriteRequest;
 import org.apache.mina.filter.codec.textline.LineDelimiter;
 import org.mailster.mina.CumulativeIoFilter;
 import org.mailster.mina.DataConsumer;
@@ -520,10 +521,10 @@ public class AuthDigestMD5IoFilter
     public void messageReceived(NextFilter nextFilter, IoSession session, Object message) 
 		throws Exception 
 	{
-        if (message instanceof ByteBuffer
+        if (message instanceof IoBuffer
         		&& (session.containsAttribute(AuthDigestMD5Command.INTEGRITY_QOP) ||
         				session.containsAttribute(AuthDigestMD5Command.PRIVACY_QOP)))
-        	cumulateAndConsume(nextFilter, session, (ByteBuffer) message);
+        	cumulateAndConsume(nextFilter, session, (IoBuffer) message);
         else
         	nextFilter.messageReceived(session, message);
 	}
@@ -532,9 +533,9 @@ public class AuthDigestMD5IoFilter
 		throws Exception 
 	{
 		Object message = writeRequest.getMessage();
-		if (message instanceof ByteBuffer)			 
+		if (message instanceof IoBuffer)			 
 		{
-			if (!((ByteBuffer) message).hasRemaining())
+			if (!((IoBuffer) message).hasRemaining())
 			{
 				nextFilter.filterWrite(session, writeRequest);
 				return;
@@ -549,7 +550,7 @@ public class AuthDigestMD5IoFilter
 			
 			if (! skipOnce && (session.containsAttribute(AuthDigestMD5Command.INTEGRITY_QOP) ||
 					session.containsAttribute(AuthDigestMD5Command.PRIVACY_QOP)))
-				getDataConsumer(session).getCodec().wrap(nextFilter, writeRequest, (ByteBuffer) message);
+				getDataConsumer(session).getCodec().wrap(nextFilter, writeRequest, (IoBuffer) message);
 			else
 				nextFilter.filterWrite(session, writeRequest);
 	    }		

@@ -1,4 +1,4 @@
-package org.mailster.service.smtp;
+package org.mailster.server;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,19 +33,19 @@ import org.mailster.smtp.auth.AuthenticationHandler;
  * Web Site</a> <br>
  * ---
  * <p>
- * MailsterMessageHandler.java - Class which implements the {@link DeliveryHandler}
+ * MailsterDeliveryHandler.java - Class which implements the {@link DeliveryHandler}
  * interface.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class MailsterMessageHandler
+public class MailsterDeliveryHandler
 	extends AbstractDeliveryHandler
 {
 	private List<String> recipients = new ArrayList<String>();
 	private String from;
 	
-	public MailsterMessageHandler(DeliveryContext ctx, AuthenticationHandler authHandler)
+	public MailsterDeliveryHandler(DeliveryContext ctx, AuthenticationHandler authHandler)
 	{
 		super(ctx, authHandler);
 	}

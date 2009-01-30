@@ -6,23 +6,23 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.DefaultIoFilterChainBuilder;
-import org.apache.mina.common.IoAcceptorConfig;
-import org.apache.mina.common.SimpleByteBufferAllocator;
-import org.apache.mina.common.ThreadModel;
-import org.apache.mina.filter.LoggingFilter;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.codec.textline.LineDelimiter;
+import org.apache.mina.filter.codec.textline.TextLineCodecFactory;
 import org.apache.mina.filter.executor.ExecutorFilter;
-import org.apache.mina.transport.socket.nio.SocketAcceptor;
-import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
+import org.apache.mina.filter.logging.LoggingFilter;
+import org.apache.mina.transport.socket.SocketAcceptor;
+import org.apache.mina.transport.socket.SocketSessionConfig;
+import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.mailster.gui.prefs.ConfigurationManager;
+import org.mailster.message.SmtpMessage;
 import org.mailster.pop3.Pop3ProtocolHandler;
 import org.mailster.pop3.mailbox.MailBox;
 import org.mailster.pop3.mailbox.Pop3User;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.pop3.mailbox.UserManager;
-import org.mailster.service.smtp.parser.SmtpMessage;
 import org.mailster.util.StringUtilities;
 import org.mailster.util.ThreadFactoryUtilitity;
 import org.slf4j.Logger;
@@ -63,13 +63,13 @@ public class MailsterPop3Service
      */
     public static final int POP3_PORT = 110;
     
-    private static final Logger log = LoggerFactory.getLogger(MailsterPop3Service.class);
+    private static final Logger log = 
+    	LoggerFactory.getLogger(MailsterPop3Service.class);
     
     private SocketAcceptor acceptor;
     private ExecutorService executor;
-    private ExecutorService acceptorThreadPool;
     private InetSocketAddress iSocketAddr;
-    private IoAcceptorConfig config;
+    private SocketSessionConfig config;
     private Pop3ProtocolHandler handler;
     
     private UserManager userManager = new UserManager();    
@@ -86,20 +86,19 @@ public class MailsterPop3Service
     
     private void initService() throws Exception
     {
-        ByteBuffer.setUseDirectBuffers(false);
-        ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
+        IoBuffer.setUseDirectBuffer(false);
 
-        acceptorThreadPool = Executors.newCachedThreadPool(
-        		ThreadFactoryUtilitity.createFactory("POP3 SocketAcceptor Thread")); 
-        acceptor = new SocketAcceptor(
-        		Runtime.getRuntime().availableProcessors() + 1, acceptorThreadPool);
-        config = new SocketAcceptorConfig();
-        config.setThreadModel(ThreadModel.MANUAL);
-        ((SocketAcceptorConfig) config).setReuseAddress(true);
-        DefaultIoFilterChainBuilder chain = config.getFilterChain();
+        acceptor = new NioSocketAcceptor(
+        		Runtime.getRuntime().availableProcessors() + 1);
+        config = acceptor.getSessionConfig();
+        config.setReuseAddress(true);
+        DefaultIoFilterChainBuilder chain = acceptor.getFilterChain();
 
         chain.addLast("codec", new ProtocolCodecFilter(
-                new InetTextCodecFactory(MailsterConstants.DEFAULT_CHARSET)));
+        		new TextLineCodecFactory(
+                		MailsterConstants.DEFAULT_CHARSET, 
+                		LineDelimiter.CRLF, 
+                		LineDelimiter.CRLF)));
 
 		executor = Executors.newCachedThreadPool(
 				ThreadFactoryUtilitity.createFactory("POP3 Thread"));
@@ -112,14 +111,16 @@ public class MailsterPop3Service
     {
     	this.debugEnabled = debug;
         if (debugEnabled)
-        	config.getFilterChain().addBefore("codec", "logger", new LoggingFilter());
+        	acceptor.getFilterChain().
+        		addBefore("codec", "logger", new LoggingFilter());
 
         if (host == null)
             iSocketAddr = new InetSocketAddress(port);
         else
             iSocketAddr = new InetSocketAddress(InetAddress.getByName(host), port);
         
-        acceptor.bind(iSocketAddr, handler, config);        
+		acceptor.setHandler(handler);
+        acceptor.bind(iSocketAddr);        
     }
     
     public String getOutputDirectory()
@@ -141,11 +142,15 @@ public class MailsterPop3Service
     public void stopService() throws IOException
     {
     	if (debugEnabled)
-    		config.getFilterChain().remove("logger");
+    		acceptor.getFilterChain().remove("logger");
     	
-        acceptor.unbindAll();
-        executor.shutdown();
-        acceptorThreadPool.shutdown();
+    	try { 
+			acceptor.unbind(); 
+		} catch (Exception e) { e.printStackTrace(); }
+		
+		try { 
+			executor.shutdown(); 
+		} catch (Exception e) { e.printStackTrace(); }
     }
 
     public void shutdownService() throws IOException
@@ -217,7 +222,8 @@ public class MailsterPop3Service
      */
     public Integer getListeningPort()
     {
-        return acceptor.isManaged(iSocketAddr) ? new Integer(iSocketAddr.getPort()) : null;
+        return acceptor.isActive() ? 
+        		new Integer(iSocketAddr.getPort()) : null;
     }
 
     public String getHost()

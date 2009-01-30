@@ -1,8 +1,4 @@
-package org.mailster.service.smtp.events;
-
-import java.util.EventObject;
-
-import org.mailster.service.smtp.parser.SmtpMessage;
+package org.mailster.server.events;
 
 
 /**
@@ -27,44 +23,23 @@ import org.mailster.service.smtp.parser.SmtpMessage;
  * Web Site</a> <br>
  * ---
  * <p>
- * SMTPServerEvent.java - Enter your Comment HERE.
+ * SMTPServerAdapter.java - Enter your Comment HERE.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-public class SMTPServerEvent extends EventObject
+public class SMTPServerAdapter 
+    implements SMTPServerListener
 {
-    private static final long serialVersionUID = 6285711085999392526L;
+    public void started(SMTPServerEvent event)
+    {
+    }
 
-    private SmtpMessage message;
+    public void stopped(SMTPServerEvent event)
+    {
+    }
     
-    /**
-     * Constructs a new instance of this class.
-     * 
-     * @param source the object which fired the event
-     */
-    public SMTPServerEvent(Object source)
+    public void emailReceived(SMTPServerEvent event)
     {
-        super(source);
-    }
-
-    public Object getSource()
-    {
-        return super.getSource();
-    }
-
-    public String toString()
-    {
-        return super.toString();
-    }
-
-    public SmtpMessage getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage(SmtpMessage message)
-    {
-        this.message = message;
     }
 }

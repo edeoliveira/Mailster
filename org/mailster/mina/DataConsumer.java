@@ -1,7 +1,7 @@
 package org.mailster.mina;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoFilter.NextFilter;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.filterchain.IoFilter.NextFilter;
 
 /**
  * ---<br>
@@ -40,9 +40,9 @@ public interface DataConsumer
 {
 	/**
 	 * Consumes data and sends it to the {@link IoFilterCodec#unwrap(
-	 * org.apache.mina.common.IoFilter.NextFilter, ByteBuffer)} method.
+	 * NextFilter, IoBuffer)} method.
 	 */
-	public boolean consume( NextFilter nextFilter, ByteBuffer in )
+	public boolean consume( NextFilter nextFilter, IoBuffer in )
 		throws Exception;
 	
 	/**

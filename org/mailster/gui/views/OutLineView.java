@@ -18,9 +18,9 @@ import org.mailster.crypto.smime.SmimeUtilities;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.crypto.CertificateDialog;
+import org.mailster.message.SmtpMessage;
+import org.mailster.message.SmtpMessagePart;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
-import org.mailster.service.smtp.parser.SmtpMessage;
-import org.mailster.service.smtp.parser.SmtpMessagePart;
 
 /**
  * ---<br>

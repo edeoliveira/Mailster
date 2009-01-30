@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
@@ -33,7 +34,10 @@ import org.bouncycastle.asn1.smime.SMIMECapabilityVector;
 import org.bouncycastle.mail.smime.SMIMEEnvelopedGenerator;
 import org.bouncycastle.mail.smime.SMIMESignedGenerator;
 import org.mailster.crypto.MailsterKeyStoreFactory;
-import org.mailster.dumbster.SimpleSmtpServer;
+import org.mailster.message.SmtpMessage;
+import org.mailster.server.MailsterSMTPServer;
+import org.mailster.server.events.SMTPServerAdapter;
+import org.mailster.server.events.SMTPServerEvent;
 import org.mailster.service.MailsterConstants;
 
 public class EncryptedMailTest extends TestCase
@@ -41,7 +45,8 @@ public class EncryptedMailTest extends TestCase
 	  private static GregorianCalendar gc = new GregorianCalendar();
 	  private static final int SMTP_PORT = 1082;
 	  
-	  private SimpleSmtpServer server;
+	  private MailsterSMTPServer server;
+	  private List<SmtpMessage> messages = new ArrayList<SmtpMessage>();
 
 	  public EncryptedMailTest(String s) 
 	  {
@@ -51,8 +56,14 @@ public class EncryptedMailTest extends TestCase
 	  protected void setUp() 
 	  	throws Exception 
 	  {
-	      super.setUp();
-	      server = new SimpleSmtpServer(SMTP_PORT);
+		  super.setUp();
+		  server = new MailsterSMTPServer(SMTP_PORT);			
+		  server.addSMTPServerListener(new SMTPServerAdapter() {		
+			public void emailReceived(SMTPServerEvent event) {
+				messages.add(event.getMessage());
+			}
+		  });
+
 	      server.start();
 	  }
 
@@ -73,7 +84,7 @@ public class EncryptedMailTest extends TestCase
 		try 
 		{
 			sendMail(SMTP_PORT);			
-			assertEquals(2, server.getReceivedEmailSize());
+			assertEquals(2, messages.size());
 		} 
 		catch (Exception e) 
 		{

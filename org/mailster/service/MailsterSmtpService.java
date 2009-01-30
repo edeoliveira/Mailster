@@ -14,14 +14,14 @@ import java.util.concurrent.ScheduledFuture;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 import org.mailster.MailsterSWT;
-import org.mailster.dumbster.SimpleSmtpServer;
 import org.mailster.gui.Messages;
 import org.mailster.gui.prefs.ConfigurationManager;
+import org.mailster.message.SmtpMessage;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
-import org.mailster.service.smtp.events.SMTPServerAdapter;
-import org.mailster.service.smtp.events.SMTPServerEvent;
-import org.mailster.service.smtp.events.SMTPServerListener;
-import org.mailster.service.smtp.parser.SmtpMessage;
+import org.mailster.server.MailsterSMTPServer;
+import org.mailster.server.events.SMTPServerAdapter;
+import org.mailster.server.events.SMTPServerEvent;
+import org.mailster.server.events.SMTPServerListener;
 import org.mailster.util.DateUtilities;
 
 /**
@@ -57,7 +57,7 @@ public class MailsterSmtpService
 
     private List<StoredSmtpMessage> receivedMessages = new ArrayList<StoredSmtpMessage>();
     private MailQueueControl updater = new MailQueueControl();
-    private SimpleSmtpServer server;
+    private MailsterSMTPServer server;
 
     // Options
     private long queueRefreshtimeout = DEFAULT_QUEUE_REFRESH_TIMEOUT;
@@ -164,8 +164,8 @@ public class MailsterSmtpService
 			e.printStackTrace();
 		}
         
-        server = new SimpleSmtpServer();
-        server.setInternalStoreActivated(false);
+        server = new MailsterSMTPServer();
+        //TODO server.setInternalStoreActivated(false);
         server.addSMTPServerListener(new SMTPServerAdapter() {
             public void emailReceived(SMTPServerEvent event)
             {

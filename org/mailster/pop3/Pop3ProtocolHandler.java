@@ -2,13 +2,12 @@ package org.mailster.pop3;
 
 import java.util.StringTokenizer;
 
-import org.apache.mina.common.IdleStatus;
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.TransportType;
-import org.apache.mina.filter.SSLFilter;
-import org.apache.mina.filter.SSLFilter.SSLFilterMessage;
-import org.apache.mina.transport.socket.nio.SocketSessionConfig;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.session.IdleStatus;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.ssl.SslFilter;
+import org.apache.mina.filter.ssl.SslFilter.SslFilterMessage;
+import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.mailster.pop3.commands.ApopCommand;
 import org.mailster.pop3.commands.MultiStatePop3Command;
 import org.mailster.pop3.commands.Pop3Command;
@@ -79,17 +78,17 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
 
     public void sessionCreated(IoSession session)
     {
-        if (session.getTransportType() == TransportType.SOCKET)
+        if (session.getConfig() instanceof SocketSessionConfig)
         {
             SocketSessionConfig cfg = (SocketSessionConfig) session.getConfig();
             cfg.setReceiveBufferSize(1024);
             cfg.setTcpNoDelay(true);
         }
 
-        session.setIdleTime(IdleStatus.READER_IDLE, timeout);
+        session.getConfig().setIdleTime(IdleStatus.READER_IDLE, timeout);
 
         // We're going to use SSL negotiation notification.
-        session.setAttribute(SSLFilter.USE_NOTIFICATION);
+        session.setAttribute(SslFilter.USE_NOTIFICATION);
 
         // Initialize POP3 protocol session attributes
         MinaPop3Connection conn = new MinaPop3Connection(session, userManager);
@@ -129,7 +128,7 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
         conn.println("421 Service shutting down and closing transmission channel");
         if (conn.getState().isAuthenticated())
             conn.getState().getMailBox().releaseLock();
-        session.close();
+        session.close(false);
     }
 
     public void exceptionCaught(IoSession session, Throwable cause)
@@ -138,16 +137,16 @@ public class Pop3ProtocolHandler extends IoHandlerAdapter
         MinaPop3Connection conn = (MinaPop3Connection) session.getAttribute(CONNECTION);
         if (conn != null && conn.getState().isAuthenticated())
             conn.getState().getMailBox().releaseLock();
-        session.close();
+        session.close(false);
     }
 
     public void messageReceived(IoSession session, Object message)
             throws Exception
     {
         if (((Boolean)session.getAttribute(PEER_IS_CLOSING_SESSION)).booleanValue())
-            session.close();
+            session.close(false);
         
-    	if (message instanceof SSLFilterMessage)
+    	if (message instanceof SslFilterMessage)
     	{
     		log.debug("SSL filter message -> {}", message);
     		return;

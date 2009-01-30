@@ -64,7 +64,7 @@ public class VersionCheck
         
         byte[] buf = new byte[65536];
         int len = 0;
-        long total = 0;
+        //long total = 0;
         long start = System.currentTimeMillis();
         while ((len = is.read(buf)) != -1)
         {

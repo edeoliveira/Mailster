@@ -39,7 +39,6 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
-import org.mailster.dumbster.SimpleSmtpServer;
 import org.mailster.gui.AboutDialog;
 import org.mailster.gui.MemoryProgressBar;
 import org.mailster.gui.Messages;
@@ -55,15 +54,16 @@ import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.gui.views.FilterTreeView;
 import org.mailster.gui.views.MailView;
 import org.mailster.gui.views.OutLineView;
+import org.mailster.message.SmtpHeadersInterface;
 import org.mailster.pop3.Pop3ProtocolHandler;
 import org.mailster.pop3.connection.MinaPop3Connection;
 import org.mailster.pop3.mailbox.MailBoxManager;
 import org.mailster.pop3.mailbox.UserManager;
+import org.mailster.server.MailsterSMTPServer;
+import org.mailster.server.events.SMTPServerAdapter;
+import org.mailster.server.events.SMTPServerEvent;
 import org.mailster.service.MailsterPop3Service;
 import org.mailster.service.MailsterSmtpService;
-import org.mailster.service.smtp.events.SMTPServerAdapter;
-import org.mailster.service.smtp.events.SMTPServerEvent;
-import org.mailster.service.smtp.parser.SmtpHeadersInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -542,9 +542,9 @@ public class MailsterSWT
         	
         	store.setValue(ConfigurationManager.SMTP_SERVER_KEY, "");
         	store.setValue(ConfigurationManager.SMTP_PORT_KEY, 
-        			SimpleSmtpServer.DEFAULT_SMTP_PORT);
+        			MailsterSMTPServer.DEFAULT_SMTP_PORT);
         	store.setValue(ConfigurationManager.SMTP_CONNECTION_TIMEOUT_KEY, 
-        			SimpleSmtpServer.DEFAULT_TIMEOUT / 1000);        	
+        			MailsterSMTPServer.DEFAULT_TIMEOUT / 1000);        	
         }
         
         String localeInfo = store.getString(ConfigurationManager.LANGUAGE_KEY);

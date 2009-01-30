@@ -16,28 +16,32 @@
  */
 package test.junit;
 
-import junit.framework.TestCase;
-
-import javax.mail.Session;
-import javax.mail.Message;
-import javax.mail.Transport;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.InternetAddress;
-
-import org.mailster.dumbster.SimpleSmtpServer;
-import org.mailster.service.smtp.parser.SmtpMessage;
-
-
-import java.util.Properties;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+import junit.framework.TestCase;
+
+import org.mailster.message.SmtpMessage;
+import org.mailster.server.MailsterSMTPServer;
+import org.mailster.server.events.SMTPServerAdapter;
+import org.mailster.server.events.SMTPServerEvent;
 
 public class SimpleSmtpServerTest extends TestCase 
 {
   private static final int SMTP_PORT = 1002;
 
-  SimpleSmtpServer server;
+  private MailsterSMTPServer server;
+  private List<SmtpMessage> messages = new ArrayList<SmtpMessage>();
 
   public SimpleSmtpServerTest(String s) 
   {
@@ -48,7 +52,15 @@ public class SimpleSmtpServerTest extends TestCase
   	throws Exception 
   {
       super.setUp();
-      server = new SimpleSmtpServer(SMTP_PORT);
+      server = new MailsterSMTPServer(SMTP_PORT);
+      server.addSMTPServerListener(new SMTPServerAdapter() {		
+			public void started(SMTPServerEvent event) {
+				messages.clear();
+			}
+			public void emailReceived(SMTPServerEvent event) {
+				messages.add(event.getMessage());
+			}
+		});
       server.start();
   }
 
@@ -78,8 +90,8 @@ public class SimpleSmtpServerTest extends TestCase
         fail("Unexpected exception: " + e);
       }
 
-      assertEquals(1, server.getReceivedEmailSize());
-      Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+      assertEquals(1, messages.size());
+      Iterator<SmtpMessage> emailIter = messages.iterator();
       SmtpMessage email = (SmtpMessage) emailIter.next();
       assertEquals(body, email.getBody());
     }
@@ -119,7 +131,8 @@ public class SimpleSmtpServerTest extends TestCase
   {
     try 
     {
-      sendMessage(SMTP_PORT, "sender@here.com", "Test", "Test Body", "receiver@there.com");
+      sendMessage(SMTP_PORT, "sender@here.com", 
+    		  "Test", "Test Body", "receiver@there.com");
     } 
     catch (Exception e) 
     {
@@ -127,8 +140,8 @@ public class SimpleSmtpServerTest extends TestCase
       fail("Unexpected exception: " + e);
     }
 
-    assertEquals(1, server.getReceivedEmailSize());
-    Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+    assertEquals(1, messages.size());
+    Iterator<SmtpMessage> emailIter = messages.iterator();
     SmtpMessage email = (SmtpMessage) emailIter.next();
     assertEquals("Test", email.getHeaderValue("Subject"));
     assertEquals("Test Body", email.getBody());
@@ -149,8 +162,8 @@ public class SimpleSmtpServerTest extends TestCase
       fail("Unexpected exception: " + e);
     }
 
-    assertEquals(1, server.getReceivedEmailSize());
-    Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+    assertEquals(1, messages.size());
+    Iterator<SmtpMessage> emailIter = messages.iterator();
     SmtpMessage email = (SmtpMessage) emailIter.next();
     assertEquals(bodyWithCR, email.getBody());
   }
@@ -168,8 +181,8 @@ public class SimpleSmtpServerTest extends TestCase
         fail("Unexpected exception: " + e);
       }
 
-      assertEquals(1, server.getReceivedEmailSize());
-      Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+      assertEquals(1, messages.size());
+      Iterator<SmtpMessage> emailIter = messages.iterator();
       SmtpMessage email = (SmtpMessage) emailIter.next();
       assertEquals(bodyWithCR, email.getBody());
     }
@@ -204,8 +217,8 @@ public class SimpleSmtpServerTest extends TestCase
 
       Transport.send(msg);
 
-      assertEquals(1, server.getReceivedEmailSize());
-      SmtpMessage recvd = (SmtpMessage)server.getReceivedEmail().next();
+      assertEquals(1, messages.size());
+      SmtpMessage recvd = (SmtpMessage) messages.iterator().next();
       assertEquals("12345\r\n\t67890", headerLinesToString(recvd.getHeaderValues("X-LongHeader")));
       assertEquals("baz\r\n   foo bar\r\n quux", headerLinesToString(recvd.getHeaderValues("X-LongerHeader")));
     }
@@ -239,7 +252,7 @@ public class SimpleSmtpServerTest extends TestCase
       fail("Unexpected exception: " + e);
     }
 
-    assertTrue(server.getReceivedEmailSize() == 2);
+    assertTrue(messages.size() == 2);
   }
 
   public void testSendTwoMsgsWithLogin() 
@@ -303,8 +316,8 @@ public class SimpleSmtpServerTest extends TestCase
       e.printStackTrace();
     }
 
-    assertEquals(2, server.getReceivedEmailSize());
-    Iterator<SmtpMessage> emailIter = server.getReceivedEmail();
+    assertEquals(2, messages.size());
+    Iterator<SmtpMessage> emailIter = messages.iterator();
     SmtpMessage email = (SmtpMessage) emailIter.next();
     assertEquals("Test", email.getHeaderValue("Subject"));
     assertEquals("Test Body", email.getBody());

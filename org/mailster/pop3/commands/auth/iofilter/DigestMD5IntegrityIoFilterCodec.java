@@ -2,11 +2,12 @@ package org.mailster.pop3.commands.auth.iofilter;
 
 import java.util.Arrays;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.IoFilter.NextFilter;
-import org.apache.mina.common.IoFilter.WriteRequest;
-import org.apache.mina.common.support.BaseIoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.filterchain.IoFilter.NextFilter;
+import org.apache.mina.core.session.AbstractIoSession;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.write.DefaultWriteRequest;
+import org.apache.mina.core.write.WriteRequest;
 import org.mailster.mina.IoFilterCodec;
 import org.mailster.pop3.commands.auth.AuthDigestMD5Command;
 import org.mailster.pop3.commands.auth.AuthException;
@@ -76,7 +77,7 @@ public class DigestMD5IntegrityIoFilterCodec implements IoFilterCodec
 	    return true;
     }
     
-    public void unwrap(NextFilter nextFilter, ByteBuffer buf) 
+    public void unwrap(NextFilter nextFilter, IoBuffer buf) 
 	{    	
     	try 
     	{        		 
@@ -108,11 +109,12 @@ public class DigestMD5IntegrityIoFilterCodec implements IoFilterCodec
     		nextFilter.messageReceived(session, "\r\n");
 		}
     	
-        if ( session instanceof BaseIoSession )
-            ( ( BaseIoSession ) session ).increaseReadMessages();
+        if ( session instanceof AbstractIoSession )
+            ( ( AbstractIoSession ) session ).
+            	increaseReadMessages(System.currentTimeMillis());
 	}
     
-    public void wrap(NextFilter nextFilter, WriteRequest writeRequest, ByteBuffer buf)
+    public void wrap(NextFilter nextFilter, WriteRequest writeRequest, IoBuffer buf)
     	throws AuthException
     {
 		int endOriginalMessage = buf.limit() - DigestMD5IntegrityIoFilterCodec.LINE_TERMINATOR.length;
@@ -126,6 +128,6 @@ public class DigestMD5IntegrityIoFilterCodec implements IoFilterCodec
 			throw new AuthException("Data exceeds client maxbuf capabilities");
 
 		nextFilter.filterWrite(session, 
-        		new WriteRequest(buf, writeRequest.getFuture()));
+        		new DefaultWriteRequest(buf, writeRequest.getFuture()));
     }
 }

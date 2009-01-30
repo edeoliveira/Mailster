@@ -29,7 +29,7 @@
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$
  */
-package org.mailster.service.smtp.parser;
+package org.mailster.message;
 
 import java.io.ByteArrayInputStream;
 import java.io.Serializable;
@@ -44,8 +44,8 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
-import org.mailster.dumbster.SmtpResponse;
-import org.mailster.dumbster.SmtpState;
+import org.mailster.message.utils.SmtpResponse;
+import org.mailster.message.utils.SmtpState;
 import org.mailster.service.MailsterConstants;
 import org.mailster.util.MailUtilities;
 
@@ -110,7 +110,7 @@ public class SmtpMessage implements Serializable
      * @param response SmtpResponse object
      * @param params remainder of input line after SMTP command has been removed
      */
-    public void store(SmtpResponse response, String params)
+    protected void append(SmtpResponse response, String params)
     {
         if (params != null)
         {
@@ -337,17 +337,9 @@ public class SmtpMessage implements Serializable
     }
 
     /**
-     * Add a recipient to the list of recipients.
-     */
-    protected void addRecipient(String recipient)
-    {
-        recipients.add(recipient);
-    }
-    
-    /**
      * Add a list of recipients to the list of recipients.
      */
-    public void addRecipients(List<String> l)
+    protected void addRecipients(List<String> l)
     {
         this.recipients.addAll(l);
     }    

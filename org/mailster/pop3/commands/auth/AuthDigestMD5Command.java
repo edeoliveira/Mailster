@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.HashMap;
 
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.session.IoSession;
 import org.bouncycastle.util.encoders.Base64;
 import org.mailster.pop3.commands.Pop3CommandState;
 import org.mailster.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter;
