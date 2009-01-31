@@ -36,14 +36,14 @@ import org.mailster.server.MailsterSMTPServer;
 import org.mailster.server.events.SMTPServerAdapter;
 import org.mailster.server.events.SMTPServerEvent;
 
-public class SimpleSmtpServerTest extends TestCase 
+public class SmtpServerTest extends TestCase 
 {
   private static final int SMTP_PORT = 1002;
 
   private MailsterSMTPServer server;
   private List<SmtpMessage> messages = new ArrayList<SmtpMessage>();
 
-  public SimpleSmtpServerTest(String s) 
+  public SmtpServerTest(String s) 
   {
     super(s);
   }
@@ -71,7 +71,7 @@ public class SimpleSmtpServerTest extends TestCase
       server.stop();
   }
 
-  public void testSendEncodedMessage() 
+  public void testSendEncodedMessage() throws InterruptedException 
   {
       String body = "\u3042\u3044\u3046\u3048\u304a"; // some Japanese letters
       String charset = "iso-2022-jp";
@@ -90,6 +90,7 @@ public class SimpleSmtpServerTest extends TestCase
         fail("Unexpected exception: " + e);
       }
 
+      Thread.sleep(500);
       assertEquals(1, messages.size());
       Iterator<SmtpMessage> emailIter = messages.iterator();
       SmtpMessage email = (SmtpMessage) emailIter.next();
@@ -127,7 +128,7 @@ public class SimpleSmtpServerTest extends TestCase
        return msg;
      }
   
-  public void testSend() 
+  public void testSend() throws InterruptedException 
   {
     try 
     {
@@ -140,16 +141,17 @@ public class SimpleSmtpServerTest extends TestCase
       fail("Unexpected exception: " + e);
     }
 
+    Thread.sleep(500);
     assertEquals(1, messages.size());
     Iterator<SmtpMessage> emailIter = messages.iterator();
     SmtpMessage email = (SmtpMessage) emailIter.next();
     assertEquals("Test", email.getHeaderValue("Subject"));
     assertEquals("Test Body", email.getBody());
     assertEquals("Wrong number of recipients", 1, email.getRecipients().size());
-    assertEquals("Wrong recipient", "<receiver@there.com>", email.getRecipients().get(0));    
+    assertEquals("Wrong recipient", "receiver@there.com", email.getRecipients().get(0));    
   }
 
-  public void testSendMessageWithCarriageReturn() 
+  public void testSendMessageWithCarriageReturn() throws InterruptedException 
   {
     String bodyWithCR = "\n\nKeep these pesky carriage returns\n\n";
     try 
@@ -162,13 +164,14 @@ public class SimpleSmtpServerTest extends TestCase
       fail("Unexpected exception: " + e);
     }
 
+    Thread.sleep(500);
     assertEquals(1, messages.size());
     Iterator<SmtpMessage> emailIter = messages.iterator();
     SmtpMessage email = (SmtpMessage) emailIter.next();
     assertEquals(bodyWithCR, email.getBody());
   }
   
-  public void testSendMessageWithCarriageReturnV2() 
+  public void testSendMessageWithCarriageReturnV2() throws InterruptedException 
   {
       String bodyWithCR = "\n\nKeep these pesky\ncarriage returns\n\n";
       try 
@@ -181,6 +184,7 @@ public class SimpleSmtpServerTest extends TestCase
         fail("Unexpected exception: " + e);
       }
 
+      Thread.sleep(500);
       assertEquals(1, messages.size());
       Iterator<SmtpMessage> emailIter = messages.iterator();
       SmtpMessage email = (SmtpMessage) emailIter.next();
@@ -203,12 +207,14 @@ public class SimpleSmtpServerTest extends TestCase
       return sb.toString();
   }
   
-  public void testContinuedHeadersArriveIntact() throws MessagingException 
+  public void testContinuedHeadersArriveIntact() 
+  	throws MessagingException, InterruptedException 
   {
       Properties mailProps = getMailProperties(SMTP_PORT);
       Session session = Session.getInstance(mailProps, null);
       
-      MimeMessage msg = createMessage(session, "sender@example.com", "guy@example.net", "Re: Hello", "Virus");
+      MimeMessage msg = createMessage(session, 
+    		  "sender@example.com", "guy@example.net", "Re: Hello", "Virus");
       msg.addHeaderLine("X-LongHeader: 12345");
       msg.addHeaderLine("\t67890");
       msg.addHeaderLine("X-LongerHeader: baz");
@@ -217,13 +223,14 @@ public class SimpleSmtpServerTest extends TestCase
 
       Transport.send(msg);
 
+      Thread.sleep(500);
       assertEquals(1, messages.size());
       SmtpMessage recvd = (SmtpMessage) messages.iterator().next();
       assertEquals("12345\r\n\t67890", headerLinesToString(recvd.getHeaderValues("X-LongHeader")));
       assertEquals("baz\r\n   foo bar\r\n quux", headerLinesToString(recvd.getHeaderValues("X-LongerHeader")));
     }
   
-  public void testSendTwoMessagesSameConnection() 
+  public void testSendTwoMessagesSameConnection() throws InterruptedException 
   {
     try 
     {
@@ -251,11 +258,12 @@ public class SimpleSmtpServerTest extends TestCase
       e.printStackTrace();
       fail("Unexpected exception: " + e);
     }
-
+    
+    Thread.sleep(500);
     assertTrue(messages.size() == 2);
   }
 
-  public void testSendTwoMsgsWithLogin() 
+  public void testSendTwoMsgsWithLogin() throws InterruptedException 
   {
     try 
     {
@@ -316,6 +324,7 @@ public class SimpleSmtpServerTest extends TestCase
       e.printStackTrace();
     }
 
+    Thread.sleep(500);
     assertEquals(2, messages.size());
     Iterator<SmtpMessage> emailIter = messages.iterator();
     SmtpMessage email = (SmtpMessage) emailIter.next();

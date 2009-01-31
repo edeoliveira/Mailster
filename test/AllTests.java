@@ -5,7 +5,7 @@ import test.junit.DumbsterTest;
 import test.junit.EncryptedMailTest;
 import test.junit.HmacTest;
 import test.junit.Pop3DigestMD5Test;
-import test.junit.SimpleSmtpServerTest;
+import test.junit.SmtpServerTest;
 import test.junit.SmtpRequestTest;
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -45,7 +45,7 @@ public class AllTests
 		TestSuite suite = new TestSuite();
 		suite.addTestSuite(DumbsterTest.class);
 		suite.addTestSuite(CustomClientCommandTest.class);
-		suite.addTestSuite(SimpleSmtpServerTest.class);
+		suite.addTestSuite(SmtpServerTest.class);
 		suite.addTestSuite(SmtpRequestTest.class);
 		suite.addTestSuite(HmacTest.class);
 		suite.addTestSuite(Pop3DigestMD5Test.class);
