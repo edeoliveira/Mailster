@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
 import org.mailster.message.SmtpMessage;
@@ -84,7 +85,7 @@ public class CustomClientCommandTest extends TestCase
     }
 
     public void testBouncedMail() 
-    	throws IOException 
+    	throws IOException, InterruptedException 
     {
         assertConnect(input);
         sendExtendedHello(HOST_NAME, output, input);
@@ -96,6 +97,7 @@ public class CustomClientCommandTest extends TestCase
         sendDataEnd(output, input);
         sendQuit(output, input);
 
+        Thread.sleep(500);
         assertEquals(1, messages.size());
         Iterator<SmtpMessage> emailIter = messages.iterator();
         SmtpMessage email = (SmtpMessage) emailIter.next();
@@ -103,7 +105,7 @@ public class CustomClientCommandTest extends TestCase
     }
     
     public void testMailFromAfterReset() 
-    	throws IOException 
+    	throws IOException, InterruptedException 
     {
         assertConnect(input);
         sendExtendedHello(HOST_NAME, output, input);
@@ -118,6 +120,7 @@ public class CustomClientCommandTest extends TestCase
         sendDataEnd(output, input);
         sendQuit(output, input);
 
+        Thread.sleep(500);        
         assertEquals(1, messages.size());
         Iterator<SmtpMessage> emailIter = messages.iterator();
         SmtpMessage email = (SmtpMessage) emailIter.next();
@@ -125,7 +128,7 @@ public class CustomClientCommandTest extends TestCase
     }
 
     public void testMailFromWithInitialResetAfterHello() 
-    	throws IOException 
+    	throws IOException, InterruptedException 
     {
         assertConnect(input);
         sendExtendedHello(HOST_NAME, output, input);
@@ -138,6 +141,7 @@ public class CustomClientCommandTest extends TestCase
         sendDataEnd(output, input);
         sendQuit(output, input);
 
+        Thread.sleep(500);
         assertEquals(1, messages.size());
         Iterator<SmtpMessage> emailIter = messages.iterator();
         SmtpMessage email = (SmtpMessage) emailIter.next();
@@ -145,7 +149,7 @@ public class CustomClientCommandTest extends TestCase
     }
     
     public void testMailFromWithInitialReset() 
-    	throws IOException 
+    	throws IOException, InterruptedException 
     {
         assertConnect(input);
         sendReset(output, input);
@@ -157,6 +161,7 @@ public class CustomClientCommandTest extends TestCase
         sendDataEnd(output, input);
         sendQuit(output, input);
 
+        Thread.sleep(500);
         assertEquals(1, messages.size());
         Iterator<SmtpMessage> emailIter = messages.iterator();
         SmtpMessage email = (SmtpMessage) emailIter.next();
@@ -166,20 +171,17 @@ public class CustomClientCommandTest extends TestCase
     public void testMailFromWithNoHello() 
     	throws IOException 
     {
-    	//TODO WARNING Is it allowed
+    	// HELO command must be the first issued in a session per RFC
         assertConnect(input);
-        sendMailFrom(FROM_ADDRESS, output, input);
-        sendReceiptTo(TO_ADDRESS, output, input);
-        sendDataStart(output, input);
-        output.println("");
-        output.println("Body");
-        sendDataEnd(output, input);
-        sendQuit(output, input);
-
-        assertEquals(1, messages.size());
-        Iterator<SmtpMessage> emailIter = messages.iterator();
-        SmtpMessage email = (SmtpMessage) emailIter.next();
-        assertEquals("Body", email.getBody());
+        boolean exceptionThrowed = false;
+        try
+        {
+        	sendMailFrom(FROM_ADDRESS, output, input);
+        }
+        catch (AssertionFailedError err) {
+        	exceptionThrowed = true;
+        }
+        assertTrue(exceptionThrowed);
     }
 
     private void assertConnect(BufferedReader input) 
