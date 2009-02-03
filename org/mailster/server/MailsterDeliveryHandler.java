@@ -45,7 +45,8 @@ public class MailsterDeliveryHandler
 	private List<String> recipients = new ArrayList<String>();
 	private String from;
 	
-	public MailsterDeliveryHandler(DeliveryContext ctx, AuthenticationHandler authHandler)
+	public MailsterDeliveryHandler(DeliveryContext ctx, 
+			AuthenticationHandler authHandler)
 	{
 		super(ctx, authHandler);
 	}
@@ -71,7 +72,7 @@ public class MailsterDeliveryHandler
 		if (recipients.size() > 0)
 		{
 			MailsterSMTPServer server = (MailsterSMTPServer) getListeners().iterator().next();
-			server.deliver(this.from, recipients, data);
+			server.deliver(this.from, recipients, getPrivateInputStream(false, data));
 		}
 	}
 }
