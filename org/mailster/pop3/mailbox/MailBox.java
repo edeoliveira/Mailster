@@ -11,7 +11,6 @@ import java.util.concurrent.Semaphore;
 import javax.mail.Flags.Flag;
 
 import org.mailster.message.SmtpMessage;
-import org.mailster.service.Pop3Service;
 import org.mailster.util.StreamUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -231,14 +230,14 @@ public class MailBox
     /**
      * Writes mailbox to mbox format
      */
-    public void writeMailBoxToFile(Pop3Service pop3Service)
+    public void writeMailBoxToFile(String outputDirectory)
     {
         try
         {
             PrintWriter out = new PrintWriter(new FileWriter(
-                    pop3Service.getOutputDirectory()
-                    + File.separator + mailBoxID
-                    + ".mbox", false));
+            		outputDirectory + File.separator + mailBoxID + ".mbox", 
+            		false));
+            
             for (StoredSmtpMessage msg : mails.values())
             {
                 if (!msg.getFlags().contains(Flag.DELETED))

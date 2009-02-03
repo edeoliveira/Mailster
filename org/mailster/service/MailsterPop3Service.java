@@ -56,7 +56,6 @@ import org.slf4j.LoggerFactory;
  * @version $Revision$, $Date$
  */
 public class MailsterPop3Service
-    implements Pop3Service
 {
     /**
      * This is the official POP3 port number.
@@ -171,6 +170,7 @@ public class MailsterPop3Service
 
     public void removeAllMessages()
     {
+    	// TODO: fix this ?!
     	// Note that we only delete the messages from the special mailbox as
     	// other mailboxes are only accessed by POP3.
     	userManager.getMailBoxManager().removeAllMessagesFromSpecialAccount();
