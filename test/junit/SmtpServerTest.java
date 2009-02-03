@@ -16,6 +16,9 @@
  */
 package test.junit;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -31,6 +34,9 @@ import javax.mail.internet.MimeMessage;
 
 import junit.framework.TestCase;
 
+import org.columba.ristretto.message.Address;
+import org.columba.ristretto.smtp.SMTPException;
+import org.columba.ristretto.smtp.SMTPProtocol;
 import org.mailster.message.SmtpMessage;
 import org.mailster.server.MailsterSMTPServer;
 import org.mailster.server.events.SMTPServerAdapter;
@@ -150,13 +156,42 @@ public class SmtpServerTest extends TestCase
     assertEquals("Wrong number of recipients", 1, email.getRecipients().size());
     assertEquals("Wrong recipient", "receiver@there.com", email.getRecipients().get(0));    
   }
-
+  
+  public void sendMessageWithRistretto(String from, String to, String subject, String body) 
+  		throws IOException, SMTPException
+  {
+      SMTPProtocol protocol = new SMTPProtocol("localhost", SMTP_PORT);
+      
+      // Open the port
+      protocol.openPort();
+      protocol.helo(InetAddress.getLocalHost());
+                  
+      // Setup from and to recipient
+      protocol.mail(new Address(from));
+      protocol.rcpt(new Address(to));
+      
+      // Create mail
+      StringBuilder sb = new StringBuilder();
+      sb.append("Subject: ").append(subject).append("\r\n");
+      sb.append("From: <").append(from).append(">\r\n");
+      sb.append("To: <").append(to).append(">\r\n");
+      sb.append("\r\n").append(body);
+      
+      // Finally send the data
+      protocol.data(new ByteArrayInputStream(sb.toString().getBytes()));
+      
+      // And close the session
+      protocol.quit();  
+  }
+  
   public void testSendMessageWithCarriageReturn() throws InterruptedException 
   {
     String bodyWithCR = "\n\nKeep these pesky carriage returns\n\n";
     try 
     {
-      sendMessage(SMTP_PORT, "sender@hereagain.com", "CRTest", bodyWithCR, "receivingagain@there.com");
+    	sendMessageWithRistretto("sender@hereagain.com", 
+    			"receivingagain@there.com", 
+    			"CRTest", bodyWithCR);
     }
     catch (Exception e) 
     {
@@ -176,7 +211,9 @@ public class SmtpServerTest extends TestCase
       String bodyWithCR = "\n\nKeep these pesky\ncarriage returns\n\n";
       try 
       {
-        sendMessage(SMTP_PORT, "sender@hereagain.com", "CRTest", bodyWithCR, "receivingagain@there.com");
+      		sendMessageWithRistretto("sender@hereagain.com", 
+    			"receivingagain@there.com", 
+    			"CRTest", bodyWithCR);
       } 
       catch (Exception e) 
       {
