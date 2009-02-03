@@ -87,8 +87,14 @@ public class UserManager
         return defaultPassword;
     }
 
-    public static void setDefaultPassword(String defaultPassword)
+    public static void setDefaultPassword(String pwd)
     {
-        UserManager.defaultPassword = defaultPassword;
+        defaultPassword = pwd;
+    }
+    
+    public void updateExistingUsersPassword()
+    {
+    	for (Pop3User usr : _users.values())
+    		usr.setPassword(defaultPassword);
     }
 }

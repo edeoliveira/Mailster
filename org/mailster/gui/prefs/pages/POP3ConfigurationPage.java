@@ -156,6 +156,7 @@ public class POP3ConfigurationPage
         main.getSMTPService().getPop3Service().
     		setSecureAuthRequired(requireSecuredAuthMethodsEditor.getSelection());
         UserManager.setDefaultPassword(pop3PasswordEditor.getStringValue());
+        main.getSMTPService().getPop3Service().getUserManager().updateExistingUsersPassword();
         Pop3ProtocolHandler.setTimeout(connectionTimeoutEditor.getIntValue());
         
         return true;
