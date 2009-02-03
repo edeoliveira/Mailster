@@ -206,9 +206,11 @@ public class AuthDigestMD5Command extends AuthAlgorithmCommand
         		if (foundAvailableCipher)
         			sb.append(", ");
         		else
+        		{
         			sb.append(", auth-conf\",cipher=\"");
+        			foundAvailableCipher=true;
+        		}
         		sb.append(cipher.toString());        		
-        		foundAvailableCipher=true;
         	}
         }
        	sb.append("\",");        
