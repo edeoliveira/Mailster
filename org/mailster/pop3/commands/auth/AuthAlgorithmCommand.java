@@ -47,19 +47,19 @@ public abstract class AuthAlgorithmCommand extends MultiStatePop3Command
     }
 
     public abstract Pop3CommandState checkClientResponse(AbstractPop3Handler handler, 
-								            												AbstractPop3Connection conn, 
-								        													String cmd) 
+													     AbstractPop3Connection conn, 
+													     String cmd) 
 		throws Exception;
     
     public abstract Pop3CommandState challengeClient(AbstractPop3Handler handler, 
-																		            AbstractPop3Connection conn, 
-																		            String cmd) 
+										            AbstractPop3Connection conn, 
+										            String cmd) 
 		throws Exception;
 	
 	public Pop3CommandState execute(AbstractPop3Handler handler,
-															AbstractPop3Connection conn, 
-															String cmd, 
-															Pop3CommandState state) 
+									AbstractPop3Connection conn, 
+									String cmd, 
+									Pop3CommandState state) 
 	{
 		try
 		{

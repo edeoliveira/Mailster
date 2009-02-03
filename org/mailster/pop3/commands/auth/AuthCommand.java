@@ -60,9 +60,9 @@ public class AuthCommand extends MultiStatePop3Command
     }
     
     public Pop3CommandState execute(AbstractPop3Handler handler, 
-																            AbstractPop3Connection conn, 
-																            String cmd, 
-																            Pop3CommandState state)
+						            AbstractPop3Connection conn, 
+						            String cmd, 
+						            Pop3CommandState state)
     {
         String[] cmdLine = StringUtilities.split(cmd);
         
