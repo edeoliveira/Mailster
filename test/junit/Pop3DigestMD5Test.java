@@ -27,6 +27,7 @@ import javax.security.sasl.SaslException;
 import junit.framework.TestCase;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.columba.ristretto.pop3.POP3Protocol;
 import org.mailster.pop3.commands.auth.AuthCramMD5Command;
 import org.mailster.pop3.commands.auth.AuthException;
 import org.mailster.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter;
@@ -183,6 +184,20 @@ public class Pop3DigestMD5Test extends TestCase
         sendNoop();
         sendCapa();        
         sendQuit();
+    }
+    
+    public void testAuthPOP3WithRistretto() throws Exception
+    {
+  	  MailsterPop3Service svc = new MailsterPop3Service();
+  	  svc.startService(true);
+  	  POP3Protocol pop3 = new POP3Protocol("localhost");
+  	  pop3.openPort();
+  	  pop3.capa();
+  	  pop3.auth("DIGEST-MD5", "joe", "pwd".toCharArray());
+  	  pop3.noop();
+  	  pop3.capa();
+  	  pop3.quit();
+  	  svc.stopService();
     }
     
     private void assertConnect() throws Exception 
@@ -564,26 +579,26 @@ public class Pop3DigestMD5Test extends TestCase
 	    	    	throw new SaslException("Illegal block sizes used with chosen cipher", e);
 	    	    }
 	    	
-	    	    byte[] msgWithPadding = new byte[decryptedMsg.length - 10];
+	    	    byte[] msgWithoutPadding = new byte[decryptedMsg.length - 10];
 	    	    byte[] mac = new byte[10];
+	    	    int msgLength = msgWithoutPadding.length;
 	    		    
-	    	    System.arraycopy(decryptedMsg, 0, msgWithPadding, 0, msgWithPadding.length);
-	    	    System.arraycopy(decryptedMsg, msgWithPadding.length, mac, 0, 10);
+	    	    System.arraycopy(decryptedMsg, 0, msgWithoutPadding, 0, msgLength);
+	    	    System.arraycopy(decryptedMsg, msgLength, mac, 0, 10);
 	    	
-	    	    int msgLength = msgWithPadding.length;
 	    	    int blockSize = decCipher.getBlockSize();
 	    	    
 	    	    if (blockSize > 1) 
 	    	    {
 	    			// get value of last octet of the byte array 
-	    			msgLength -= (int)msgWithPadding[msgWithPadding.length - 1];
+	    			msgLength -= (int)msgWithoutPadding[msgWithoutPadding.length - 1];
 	    			if (msgLength < 0) 
 	    			    //  Discard message and do not increment sequence number
 	    				throw new SaslException("Decryption failed");
 	    	    }
 	    		
 	    	    byte[] originalMsg = new byte[msgLength];
-	    	    System.arraycopy(msgWithPadding, 0, originalMsg, 0, msgLength);
+	    	    System.arraycopy(msgWithoutPadding, 0, originalMsg, 0, msgLength);
 	    	        	    
 	    	    // Re-calculate MAC to ensure integrity
 	    	    byte[] expectedMac = computeMACBlock(originalMsg, false);
