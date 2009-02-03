@@ -46,7 +46,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.mailster.message.utils.SmtpResponse;
 import org.mailster.message.utils.SmtpState;
-import org.mailster.service.MailsterConstants;
+import org.mailster.server.MailsterConstants;
 import org.mailster.util.MailUtilities;
 
 /**

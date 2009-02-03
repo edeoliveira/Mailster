@@ -30,7 +30,7 @@ import org.bouncycastle.asn1.smime.SMIMECapability;
 import org.bouncycastle.asn1.smime.SMIMECapabilityVector;
 import org.bouncycastle.mail.smime.SMIMESignedGenerator;
 import org.mailster.crypto.MailsterKeyStoreFactory;
-import org.mailster.service.MailsterConstants;
+import org.mailster.server.MailsterConstants;
 import org.mailster.util.DateUtilities;
 
 public class SendMultipleMail 

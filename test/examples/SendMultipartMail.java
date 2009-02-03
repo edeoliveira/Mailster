@@ -1,6 +1,6 @@
 package test.examples;
 
-import static org.mailster.service.MailsterConstants.USER_DIR;
+import static org.mailster.server.MailsterConstants.USER_DIR;
 
 import java.util.Date;
 import java.util.Properties;

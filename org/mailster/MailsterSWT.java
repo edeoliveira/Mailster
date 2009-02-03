@@ -55,15 +55,15 @@ import org.mailster.gui.views.FilterTreeView;
 import org.mailster.gui.views.MailView;
 import org.mailster.gui.views.OutLineView;
 import org.mailster.message.SmtpHeadersInterface;
+import org.mailster.pop3.MailsterPop3Service;
 import org.mailster.pop3.Pop3ProtocolHandler;
 import org.mailster.pop3.connection.MinaPop3Connection;
 import org.mailster.pop3.mailbox.MailBoxManager;
 import org.mailster.pop3.mailbox.UserManager;
 import org.mailster.server.MailsterSMTPServer;
+import org.mailster.server.MailsterSmtpService;
 import org.mailster.server.events.SMTPServerAdapter;
 import org.mailster.server.events.SMTPServerEvent;
-import org.mailster.service.MailsterPop3Service;
-import org.mailster.service.MailsterSmtpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

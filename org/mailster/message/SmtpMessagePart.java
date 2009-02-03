@@ -13,7 +13,7 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
-import org.mailster.service.MailsterConstants;
+import org.mailster.server.MailsterConstants;
 import org.mailster.util.MailUtilities;
 
 /**

@@ -14,7 +14,6 @@ import org.mailster.message.SmtpMessage;
 import org.mailster.message.SmtpMessageFactory;
 import org.mailster.server.events.SMTPServerEvent;
 import org.mailster.server.events.SMTPServerListener;
-import org.mailster.service.MailsterConstants;
 import org.mailster.smtp.SMTPServer;
 import org.mailster.smtp.api.SessionContext;
 import org.mailster.smtp.api.TooMuchDataException;

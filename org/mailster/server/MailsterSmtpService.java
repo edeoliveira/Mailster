@@ -1,4 +1,4 @@
-package org.mailster.service;
+package org.mailster.server;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -17,8 +17,8 @@ import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.message.SmtpMessage;
+import org.mailster.pop3.MailsterPop3Service;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
-import org.mailster.server.MailsterSMTPServer;
 import org.mailster.server.events.SMTPServerAdapter;
 import org.mailster.server.events.SMTPServerEvent;
 import org.mailster.server.events.SMTPServerListener;

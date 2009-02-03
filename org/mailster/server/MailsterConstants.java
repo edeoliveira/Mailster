@@ -1,4 +1,4 @@
-package org.mailster.service;
+package org.mailster.server;
 
 import java.io.File;
 import java.nio.charset.Charset;

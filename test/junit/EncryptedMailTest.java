@@ -35,10 +35,10 @@ import org.bouncycastle.mail.smime.SMIMEEnvelopedGenerator;
 import org.bouncycastle.mail.smime.SMIMESignedGenerator;
 import org.mailster.crypto.MailsterKeyStoreFactory;
 import org.mailster.message.SmtpMessage;
+import org.mailster.server.MailsterConstants;
 import org.mailster.server.MailsterSMTPServer;
 import org.mailster.server.events.SMTPServerAdapter;
 import org.mailster.server.events.SMTPServerEvent;
-import org.mailster.service.MailsterConstants;
 
 public class EncryptedMailTest extends TestCase
 {

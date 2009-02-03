@@ -1,4 +1,4 @@
-package org.mailster.service;
+package org.mailster.pop3;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -18,11 +18,11 @@ import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.message.SmtpMessage;
-import org.mailster.pop3.Pop3ProtocolHandler;
 import org.mailster.pop3.mailbox.MailBox;
 import org.mailster.pop3.mailbox.Pop3User;
 import org.mailster.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.pop3.mailbox.UserManager;
+import org.mailster.server.MailsterConstants;
 import org.mailster.util.StringUtilities;
 import org.mailster.util.ThreadFactoryUtilitity;
 import org.slf4j.Logger;
