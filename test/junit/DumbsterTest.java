@@ -41,8 +41,9 @@ public class DumbsterTest extends TestCase
 		});
         server.start();
         sendEmail(false);
-        server.stop();
+        Thread.sleep(500);
         assertEquals("# emails received", 1, messages.size());
+        server.stop();
     }
 
     /**
