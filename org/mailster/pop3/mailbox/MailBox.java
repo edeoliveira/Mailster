@@ -87,7 +87,7 @@ public class MailBox
                 }
                 catch (InterruptedException e) {}
             }
-            log.debug("Try n°={} to acquire lock on mailbox of {}", i, getEmail());
+            log.debug("Try n°={} to acquire lock on mailbox of {}", i+1, getEmail());
             acquired = available.tryAcquire();
         }
         
