@@ -44,8 +44,6 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
-import org.mailster.message.utils.SmtpResponse;
-import org.mailster.message.utils.SmtpState;
 import org.mailster.server.MailsterConstants;
 import org.mailster.util.MailUtilities;
 
@@ -104,19 +102,18 @@ public class SmtpMessage implements Serializable
     }
     
     /**
-     * Update the headers or body depending on the SmtpResponse object and line
-     * of input.
+     * Update the headers or body of the message.
      * 
-     * @param response SmtpResponse object
-     * @param params remainder of input line after SMTP command has been removed
+     * @param isHeaderData true if data is part of the mail header
+     * @param line the line of mail data 
      */
-    protected void append(SmtpResponse response, String params)
+    protected void append(boolean isHeaderData, String line)
     {
-        if (params != null)
+        if (line != null)
         {
-            if (SmtpState.DATA_HDR == response.getNextState())
-                headers.addHeaderLine(params);
-            else if (SmtpState.DATA_BODY == response.getNextState())
+            if (isHeaderData)
+                headers.addHeaderLine(line);
+            else
             {
             	if (needsConversion == null)
             	{
@@ -130,7 +127,7 @@ public class SmtpMessage implements Serializable
                 {
                     try
                     {                        
-                        params = new String(params.getBytes(MailsterConstants.DEFAULT_CHARSET_NAME), charset);
+                        line = new String(line.getBytes(MailsterConstants.DEFAULT_CHARSET_NAME), charset);
                         // Since 1.6
                         //params = new String(params.getBytes(serverCharset), charset);
                     }
@@ -139,7 +136,7 @@ public class SmtpMessage implements Serializable
                         e.printStackTrace();                        
                     }
                 }
-                body.append(params);
+                body.append(line);
             }
         }
     }

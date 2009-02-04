@@ -8,9 +8,6 @@ import java.util.List;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.filter.codec.textline.LineDelimiter;
-import org.mailster.message.utils.SmtpRequest;
-import org.mailster.message.utils.SmtpResponse;
-import org.mailster.message.utils.SmtpState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +43,6 @@ public class SmtpMessageFactory
 {
 	private static Logger log = LoggerFactory.getLogger(SmtpMessageFactory.class);
 	
-	public final static LineDelimiter DELIMITER = new LineDelimiter("\r\n");
-	
     private IoBuffer delimBuf;
     private Charset charset;
     private CharsetDecoder decoder;
@@ -55,26 +50,25 @@ public class SmtpMessageFactory
     /**
      * Decoding vars.
      */
-    private SmtpRequest previous = null;
-    private SmtpRequest request = null;
-    private SmtpState smtpState = SmtpState.DATA_HDR;
+    private boolean previousLineInHeader = true;
+    private boolean isHeaderLine = true;
 
     /**
      * Creates a new instance with the current default {@link Charset}, 
-     * the {@link SmtpMessageFactory#DELIMITER} delimiter.
+     * the {@link LineDelimiter#CRLF} delimiter.
      */
     public SmtpMessageFactory()
     {
-        this(Charset.defaultCharset(), DELIMITER);
+        this(Charset.defaultCharset(), LineDelimiter.CRLF);
     }
 
     /**
      * Creates a new instance with the specified <tt>charset</tt> 
-     * and the {@link SmtpMessageFactory#DELIMITER} delimiter.
+     * and the {@link LineDelimiter#CRLF} delimiter.
      */
     public SmtpMessageFactory(Charset charset)
     {
-        this(charset, DELIMITER);
+        this(charset, LineDelimiter.CRLF);
     }  
     
     /**
@@ -94,7 +88,7 @@ public class SmtpMessageFactory
             throw new NullPointerException("delimiter");
         }
         
-        // Convert delimiter to ByteBuffer.
+        // Convert delimiter to IoBuffer.
         delimBuf = IoBuffer.allocate(delimiter.getValue().length()).setAutoExpand(true);
         try 
         {
@@ -109,26 +103,24 @@ public class SmtpMessageFactory
 
     private void reset()
     {
-    	previous = null;
-        request = null;
-        smtpState = SmtpState.DATA_HDR;
+        isHeaderLine = true;
+        previousLineInHeader = true;
         decoder = charset.newDecoder();
     }
     
     public SmtpMessage asSmtpMessage(InputStream data, List<String> recipients)
     	throws Exception
-    {
+    {    	
+    	reset();
+
     	SmtpMessage msg = new SmtpMessage();
     	if (recipients != null)
     	{
     		msg.addRecipients(recipients);
     	}
     	
-    	reset();
-    	
     	byte[] b = new byte[1024];
-    	IoBuffer buf = IoBuffer.allocate(1024).setAutoExpand(true);		
-		boolean decoded = false;
+    	IoBuffer buf = IoBuffer.allocate(1024).setAutoExpand(true);
 		int nb = 0;
 		
 		while ((nb = data.read(b)) > -1)
@@ -138,13 +130,7 @@ public class SmtpMessageFactory
 			
 			buf.put(b, 0, nb);
 			buf.flip();
-			decoded = consume(msg, buf);
-		}
-		
-		if (decoded && (buf.position() == buf.limit()) && !"\n".equals(previous.getParams()))
-		{
-			request = SmtpRequest.createRequest("", SmtpState.DATA_BODY, previous);
-			msg.append(request.execute(), request.getParams());
+			consume(msg, buf);
 		}
 		
 		if (buf.remaining()>0)
@@ -168,12 +154,23 @@ public class SmtpMessageFactory
         else		
         	log.debug("[CONSUME] "+line);
         
-        previous = request;
-        request = SmtpRequest.createRequest(line, smtpState, previous);
-        SmtpResponse response = request.execute();
-        smtpState = response.getNextState();
-        
-        msg.append(response, request.getParams());
+        if (isHeaderLine)
+        {
+        	if (line.length() >= 1 && !"\r".equals(line))
+        		msg.append(true, line);
+        	else
+        		isHeaderLine = false;
+        }
+        else
+        {
+        	if (previousLineInHeader)
+        	{
+        		msg.append(false, line);
+        		previousLineInHeader = false;
+        	}
+        	else
+        		msg.append(false, "\n"+line);
+        }
     }
     
     private boolean consume(SmtpMessage msg, IoBuffer in) 
@@ -195,7 +192,7 @@ public class SmtpMessageFactory
                 {
                     // Found a match.
                     int pos = in.position();
-                    in.position(oldPos);                    
+                    in.position(oldPos);
                     in.limit(pos - matchCount);
                     
                     updateMessage(msg, in);
