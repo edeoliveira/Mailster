@@ -188,8 +188,6 @@ public class Pop3DigestMD5Test extends TestCase
     
     public void testAuthPOP3WithRistretto() throws Exception
     {
-  	  MailsterPop3Service svc = new MailsterPop3Service();
-  	  svc.startService(true);
   	  POP3Protocol pop3 = new POP3Protocol("localhost");
   	  pop3.openPort();
   	  pop3.capa();
@@ -197,7 +195,6 @@ public class Pop3DigestMD5Test extends TestCase
   	  pop3.noop();
   	  pop3.capa();
   	  pop3.quit();
-  	  svc.stopService();
     }
     
     private void assertConnect() throws Exception 
