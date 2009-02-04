@@ -68,8 +68,11 @@ public class X509SecureSocketFactory implements X509TrustManager
         }
     }
     
-    private TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-    private KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");    
+    private TrustManagerFactory tmf = 
+    	TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    private KeyManagerFactory kmf = 
+    	KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());    
+    
     private SSLContext context;
     private KeyStore trustedKS;
     private KeyStore temporaryTrustedKS;
@@ -80,11 +83,11 @@ public class X509SecureSocketFactory implements X509TrustManager
     private UICertificateTrustCallBackHandler trustCallBackHandler;
     
     /**
-     * The default X509TrustManager returned by SunX509.  We'll delegate
+     * The default X509TrustManager provided by the JVM.  We'll delegate
      * decisions to it, and fall back to the logic in this class if the
      * default X509TrustManager doesn't trust it.
      */
-    private X509TrustManager sunJSSEX509TrustManager;
+    private X509TrustManager trustManager;
     
     /**
      * Temporary trusted certificates are hold in this TrustManager.
@@ -99,7 +102,7 @@ public class X509SecureSocketFactory implements X509TrustManager
                 "PKCS12", null, MailsterKeyStoreFactory.KEYSTORE_PASSWORD);
         
         kmf.init(trustedKS, MailsterKeyStoreFactory.KEYSTORE_PASSWORD);
-        sunJSSEX509TrustManager = initTrustManager(trustedKS);
+        trustManager = initTrustManager(trustedKS);
         tmpTrustManager = initTrustManager(temporaryTrustedKS);
         
         context = SSLContext.getInstance(protocol);
@@ -192,7 +195,7 @@ public class X509SecureSocketFactory implements X509TrustManager
     {
     	try
         {
-        	sunJSSEX509TrustManager.checkClientTrusted(chain, authType);
+        	trustManager.checkClientTrusted(chain, authType);
         }
         catch (CertificateException e) 
         {
@@ -212,7 +215,7 @@ public class X509SecureSocketFactory implements X509TrustManager
     {
     	try
         {
-        	sunJSSEX509TrustManager.checkServerTrusted(chain, authType);
+        	trustManager.checkServerTrusted(chain, authType);
         }
         catch (CertificateException e) 
         {
@@ -255,7 +258,7 @@ public class X509SecureSocketFactory implements X509TrustManager
                         break;
                     case UICertificateTrustCallBackHandler.ACCEPT_CERTIFICATE_CHAIN :
                         OutputStream os = MailsterKeyStoreFactory.getInstance().getKeyStoreOutputStream();
-                        sunJSSEX509TrustManager = updateAndCheckTrustManager(trustedKS, chain, os,
+                        trustManager = updateAndCheckTrustManager(trustedKS, chain, os,
                                 MailsterKeyStoreFactory.KEYSTORE_PASSWORD, authType, isServerCheck);
                         os.close();
                 }
