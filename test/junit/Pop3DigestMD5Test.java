@@ -33,6 +33,7 @@ import org.mailster.pop3.commands.auth.AuthCramMD5Command;
 import org.mailster.pop3.commands.auth.AuthException;
 import org.mailster.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter;
 import org.mailster.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter.CIPHER;
+import org.mailster.pop3.mailbox.UserManager;
 import org.mailster.util.ByteUtilities;
 import org.mailster.util.StringUtilities;
 import org.mailster.util.md5.MD5;
@@ -69,7 +70,7 @@ public class Pop3DigestMD5Test extends TestCase
 {
     private static final String HOST_NAME = "localhost";
     private static final String USER = "ted";
-    private static final String PWD = "pwd";
+    private static final String PWD = UserManager.DEFAULT_PASSWORD;
     private static final int POP3_PORT = 110;
     private static final int CLIENT_MAXBUF = 2000;
     
@@ -186,12 +187,23 @@ public class Pop3DigestMD5Test extends TestCase
         sendQuit();
     }
     
-    public void testAuthPOP3WithRistretto() throws Exception
+    public void testDigestMD5AuthWithRistretto() throws Exception
     {
   	  POP3Protocol pop3 = new POP3Protocol("localhost");
   	  pop3.openPort();
   	  pop3.capa();
-  	  pop3.auth("DIGEST-MD5", "joe", "pwd".toCharArray());
+  	  pop3.auth("DIGEST-MD5", "joe", PWD.toCharArray());
+  	  pop3.noop();
+  	  pop3.capa();
+  	  pop3.quit();
+    }
+
+    public void testCramMD5AuthWithRistretto() throws Exception
+    {
+  	  POP3Protocol pop3 = new POP3Protocol("localhost");
+  	  pop3.openPort();
+  	  pop3.capa();
+  	  pop3.auth("CRAM-MD5", "ted", PWD.toCharArray());
   	  pop3.noop();
   	  pop3.capa();
   	  pop3.quit();
