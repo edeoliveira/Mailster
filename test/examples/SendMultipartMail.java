@@ -19,7 +19,8 @@ import javax.mail.internet.MimeMultipart;
 
 public class SendMultipartMail
 {
-	public void testAttachedFiles() throws MessagingException {
+	public static void main(String[] args) throws MessagingException
+	{
 		// create the base for our message
 		Properties props = new Properties();
 		props.setProperty("mail.smtp.host", "localhost");
