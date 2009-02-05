@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -108,37 +110,50 @@ public class SmtpMessageFactory
         decoder = charset.newDecoder();
     }
     
-    public SmtpMessage asSmtpMessage(InputStream data, List<String> recipients)
+    public synchronized SmtpMessage asSmtpMessage(InputStream data, List<String> recipients)
     	throws Exception
     {    	
     	reset();
 
-    	SmtpMessage msg = new SmtpMessage();
-    	if (recipients != null)
-    	{
-    		msg.addRecipients(recipients);
-    	}
-    	
-    	byte[] b = new byte[1024];
+    	SmtpMessage msg = new SmtpMessage();    	
     	IoBuffer buf = IoBuffer.allocate(1024).setAutoExpand(true);
-		int nb = 0;
+    	byte[] b = new byte[1024];
+		int len = 0;
 		
-		while ((nb = data.read(b)) > -1)
+		while ((len = data.read(b)) > -1)
 		{
-			if (buf.position() != 0)
-				buf.compact();
-			
-			buf.put(b, 0, nb);
+			buf.put(b, 0, len);
 			buf.flip();
 			consume(msg, buf);
+			buf.compact();
 		}
 		
 		if (buf.remaining()>0)
 			updateMessage(msg, buf);
 		
 		buf.free();
+
+		if (recipients == null)
+		{
+			HashSet<String> set = new HashSet<String>();
+			addRecipientsFromHeader(msg, set, SmtpHeadersInterface.TO);
+			addRecipientsFromHeader(msg, set, SmtpHeadersInterface.CC);
+			recipients = new ArrayList<String>(set);
+    	}
+    
+		if (recipients != null)
+    		msg.addRecipients(recipients);
 		
     	return msg;
+    }
+    
+    private void addRecipientsFromHeader(
+    		SmtpMessage msg, HashSet<String> set, String headerName)
+    {
+    	String[] values = msg.getHeaderValues(headerName);
+		
+		for (String val : values)
+			set.add(val);	
     }
     
     /**
