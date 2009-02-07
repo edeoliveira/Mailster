@@ -195,6 +195,14 @@ public class SWTHelper
         return loadImage(fileName, true);
     }
     
+    /**
+     * Loads an image from the application's image directory and register it
+     * with a resource tracker for later disposal by the
+     * <code>disposeAll()</code> function.
+     * 
+     * @param fileName the image file name
+     * @return the image as an {@link InputStream}
+     */
     public static InputStream getResourceAsStream(String fileName)
     {
     	return MailsterSWT.class.getResourceAsStream(IMAGES_DIRECTORY + fileName);
