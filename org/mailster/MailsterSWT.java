@@ -241,9 +241,7 @@ public class MailsterSWT
         homeToolItem.setImage(SWTHelper.loadImage("home.gif")); //$NON-NLS-1$
         homeToolItem.setToolTipText(Messages
                 .getString("MailView.home.page.tooltip")); //$NON-NLS-1$  
-        
-        new ToolItem(toolBar, SWT.SEPARATOR);
-        
+                
         final ToolItem changelogToolItem = new ToolItem(toolBar, SWT.PUSH);
         final Image changeLogImage = SWTHelper.loadImage("changelog.gif"); //$NON-NLS-1$
         changelogToolItem.setImage(changeLogImage);
@@ -255,7 +253,8 @@ public class MailsterSWT
         versionCheckToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.versioncheck.tooltip")); //$NON-NLS-1$ 
         
-        new ToolItem(toolBar, SWT.SEPARATOR);
+        item = new ToolItem(toolBar, SWT.SEPARATOR);
+        item.setWidth(item.getWidth()*2);
         
         final ToolItem aboutToolItem = new ToolItem(toolBar, SWT.PUSH);
         aboutToolItem.setImage(SWTHelper.loadImage("about.gif")); //$NON-NLS-1$
