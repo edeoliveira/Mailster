@@ -533,6 +533,7 @@ public class MailView
     	ToolBar browserViewToolBar = new ToolBar(folder, SWT.FILL | SWT.FLAT);
 
     	ToolItem placeHolder = new ToolItem(browserViewToolBar, SWT.NONE);
+    	placeHolder.setEnabled(false);
         placeHolder.setWidth(30);
     	
         final ToolItem backToolItem = new ToolItem(browserViewToolBar, SWT.PUSH);
@@ -579,7 +580,7 @@ public class MailView
         final GIFAnimator t = new GIFAnimator(
         		Messages.getString("MailsterSWT.GIFAnimator.threadName"), //$NON-NLS-1$
         		"load.gif", browserViewToolBar, false); //$NON-NLS-1$
-    	t.setOffsetY(4);
+    	t.setOffsetY(3);
         t.start();
         t.switchState();
         
