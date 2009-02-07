@@ -15,9 +15,9 @@ import org.mailster.message.SmtpMessageFactory;
 import org.mailster.server.events.SMTPServerEvent;
 import org.mailster.server.events.SMTPServerListener;
 import org.mailster.smtp.SMTPServer;
-import org.mailster.smtp.api.SessionContext;
 import org.mailster.smtp.api.TooMuchDataException;
 import org.mailster.smtp.api.listener.MessageListener;
+import org.mailster.smtp.api.listener.MessageListenerAdapter;
 import org.mailster.smtp.command.impl.StartTLSCommand;
 import org.mailster.util.StringUtilities;
 
@@ -49,7 +49,7 @@ import org.mailster.util.StringUtilities;
  * @version $Revision$, $Date$
  */
 
-public class MailsterSMTPServer implements MessageListener
+public class MailsterSMTPServer extends MessageListenerAdapter
 {
 	/**
 	 * The default timeout.
@@ -336,18 +336,5 @@ public class MailsterSMTPServer implements MessageListener
 	public void setConnectionTimeout(int connectionTimeout) 
 	{
 		this.connectionTimeout = connectionTimeout * 1000;
-	}
-
-	public boolean accept(SessionContext ctx, String from, String recipient) 
-	{
-		// TODO use the ctx
-		return true;
-	}
-
-	public void deliver(SessionContext ctx, 
-			String from, String recipient, InputStream data)
-			throws TooMuchDataException, IOException 
-	{
-		// TODO use the ctx
 	}
 }
