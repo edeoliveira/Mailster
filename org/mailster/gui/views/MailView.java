@@ -9,6 +9,8 @@ import java.util.Date;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.LocationEvent;
+import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.ProgressAdapter;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.custom.CTabFolder;
@@ -42,6 +44,7 @@ import org.mailster.gui.DropDownListener;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
+import org.mailster.gui.utils.GIFAnimator;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.message.SmtpMessage;
 import org.mailster.message.SmtpMessagePart;
@@ -51,6 +54,7 @@ import org.mailster.server.MailsterSmtpService;
 import org.mailster.util.DateUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import ca.odell.glazedlists.AbstractEventList;
 
@@ -524,6 +528,90 @@ public class MailView
         collapseAllButton.addSelectionListener(selectionAdapter);
     }
 
+    private ToolBar createBrowserViewToolBar(final Browser browser, final String url)
+    {
+    	ToolBar browserViewToolBar = new ToolBar(folder, SWT.FILL | SWT.FLAT);
+
+    	ToolItem placeHolder = new ToolItem(browserViewToolBar, SWT.NONE);
+        placeHolder.setWidth(30);
+    	
+        final ToolItem backToolItem = new ToolItem(browserViewToolBar, SWT.PUSH);
+        final ToolItem forwardToolItem = new ToolItem(browserViewToolBar, SWT.PUSH);
+        
+        backToolItem.setImage(SWTHelper.loadImage("backward_nav.gif")); //$NON-NLS-1$
+        backToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.browser.back.tooltip")); //$NON-NLS-1$
+        backToolItem.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e)
+            {
+                browser.back();
+            }
+        });
+        backToolItem.setEnabled(false);
+        
+        forwardToolItem.setImage(SWTHelper.loadImage("forward_nav.gif")); //$NON-NLS-1$
+        forwardToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.browser.forward.tooltip")); //$NON-NLS-1$
+        forwardToolItem.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e)
+            {
+                browser.forward();
+            }
+        });
+        forwardToolItem.setEnabled(false);
+        
+        final ToolItem homeToolItem = new ToolItem(browserViewToolBar, SWT.PUSH);        
+        homeToolItem.setImage(SWTHelper.loadImage("nav_home.gif")); //$NON-NLS-1$
+        homeToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.browser.home.tooltip")); //$NON-NLS-1$
+        homeToolItem.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e)
+            {
+                browser.setUrl(url);
+            }
+        });
+
+        ToolItem refreshToolItem = new ToolItem(browserViewToolBar, SWT.PUSH);
+        refreshToolItem.setImage(SWTHelper.loadImage("refresh_nav.gif")); //$NON-NLS-1$
+        refreshToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.browser.refresh.tooltip")); //$NON-NLS-1$
+        
+        final GIFAnimator t = new GIFAnimator(
+        		Messages.getString("MailsterSWT.GIFAnimator.threadName"), //$NON-NLS-1$
+        		"load.gif", browserViewToolBar, false); //$NON-NLS-1$
+    	t.setOffsetY(4);
+        t.start();
+        t.switchState();
+        
+        final ToolItem stopToolItem = new ToolItem(browserViewToolBar, SWT.PUSH);        
+        stopToolItem.setImage(SWTHelper.loadImage("stop.gif")); //$NON-NLS-1$
+        stopToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.browser.stop.tooltip")); //$NON-NLS-1$
+        stopToolItem.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e)
+            {
+                browser.stop();
+            }
+        });
+        
+        browser.addLocationListener(new LocationListener() {		
+			public void changed(LocationEvent evt) {
+				stopToolItem.setEnabled(false);
+                backToolItem.setEnabled(browser.isBackEnabled());
+                forwardToolItem.setEnabled(browser.isForwardEnabled());
+                t.switchState();
+			}
+
+			public void changing(LocationEvent evt) {
+				stopToolItem.setEnabled(true);
+				t.switchState();
+			}
+		});
+        
+        createToolBarCommons(browserViewToolBar);
+        return browserViewToolBar;
+    }
+    
     private void createLogViewToolBar()
     {
     	logViewToolBar = new ToolBar(folder, SWT.FILL | SWT.FLAT);
@@ -996,14 +1084,17 @@ public class MailView
             b.setLayoutData(gridData);
             item.setControl(b);
             folder.setSelection(item);
-            folderLayoutListener.maximize(null);
-
+            folderLayoutListener.maximize(null);            
+            
+            ToolBar tb = createBrowserViewToolBar(b, url);
             item.addDisposeListener(new DisposeListener() {
                 public void widgetDisposed(DisposeEvent e)
                 {
                     b.dispose();
                 }
             });
+            
+            setTopRight(tb);            
         }
         catch (SWTError swt)
         {
