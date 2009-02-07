@@ -3,6 +3,7 @@ package org.mailster.gui;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -192,6 +193,11 @@ public class SWTHelper
     public static Image loadImage(String fileName)
     {
         return loadImage(fileName, true);
+    }
+    
+    public static InputStream getResourceAsStream(String fileName)
+    {
+    	return MailsterSWT.class.getResourceAsStream(IMAGES_DIRECTORY + fileName);
     }
     
     /**

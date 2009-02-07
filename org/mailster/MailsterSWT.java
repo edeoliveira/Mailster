@@ -2,8 +2,13 @@ package org.mailster;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.util.Date;
 import java.util.Locale;
 
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -64,6 +69,7 @@ import org.mailster.server.MailsterSMTPServer;
 import org.mailster.server.MailsterSmtpService;
 import org.mailster.server.events.SMTPServerAdapter;
 import org.mailster.server.events.SMTPServerEvent;
+import org.mailster.util.DateUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -220,27 +226,36 @@ public class MailsterSWT
         serverStopToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.stop.label")); //$NON-NLS-1$        
 
-        new ToolItem(toolBar, SWT.SEPARATOR);
-        new ToolItem(toolBar, SWT.SEPARATOR);
+        ToolItem item = new ToolItem(toolBar, SWT.SEPARATOR);
+        item.setWidth(item.getWidth()*2);
         
         final ToolItem configToolItem = new ToolItem(toolBar, SWT.PUSH);
         configToolItem.setImage(SWTHelper.loadImage("config.gif")); //$NON-NLS-1$
         configToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.config.tooltip")); //$NON-NLS-1$  
         
-        new ToolItem(toolBar, SWT.SEPARATOR);
-        new ToolItem(toolBar, SWT.SEPARATOR);
+        item = new ToolItem(toolBar, SWT.SEPARATOR);
+        item.setWidth(item.getWidth()*2);
         
         final ToolItem homeToolItem = new ToolItem(toolBar, SWT.PUSH);
         homeToolItem.setImage(SWTHelper.loadImage("home.gif")); //$NON-NLS-1$
         homeToolItem.setToolTipText(Messages
                 .getString("MailView.home.page.tooltip")); //$NON-NLS-1$  
         
+        new ToolItem(toolBar, SWT.SEPARATOR);
+        
         final ToolItem changelogToolItem = new ToolItem(toolBar, SWT.PUSH);
         final Image changeLogImage = SWTHelper.loadImage("changelog.gif"); //$NON-NLS-1$
         changelogToolItem.setImage(changeLogImage);
         changelogToolItem.setToolTipText(Messages
                 .getString("MailsterSWT.changelog.tooltip")); //$NON-NLS-1$ 
+        
+        final ToolItem versionCheckToolItem = new ToolItem(toolBar, SWT.PUSH);
+        versionCheckToolItem.setImage(SWTHelper.loadImage("versioncheck.gif")); //$NON-NLS-1$
+        versionCheckToolItem.setToolTipText(Messages
+                .getString("MailsterSWT.versioncheck.tooltip")); //$NON-NLS-1$ 
+        
+        new ToolItem(toolBar, SWT.SEPARATOR);
         
         final ToolItem aboutToolItem = new ToolItem(toolBar, SWT.PUSH);
         aboutToolItem.setImage(SWTHelper.loadImage("about.gif")); //$NON-NLS-1$
@@ -265,6 +280,8 @@ public class MailsterSWT
 								Messages.getString("MailsterSWT.changelog.tooltip"));
 				else if (e.widget == homeToolItem)
                 	mailView.showURL(ConfigurationManager.MAILSTER_HOMEPAGE, false);
+				else if (e.widget == versionCheckToolItem)
+					versionCheck();
             }
         };
         
@@ -275,6 +292,7 @@ public class MailsterSWT
         aboutToolItem.addSelectionListener(selectionAdapter);
         homeToolItem.addSelectionListener(selectionAdapter);
         changelogToolItem.addSelectionListener(selectionAdapter);
+        versionCheckToolItem.addSelectionListener(selectionAdapter);
 
         // Add a coolItem to the coolBar
         CoolItem coolItem = new CoolItem(coolBar, SWT.NONE);
@@ -406,6 +424,7 @@ public class MailsterSWT
                 {
                     startApplication(args);
                     _instance.sShell.open();
+                    _instance.versionCheck();
                     Thread.sleep(1000);
                 }
                 catch (Throwable e)
@@ -950,5 +969,54 @@ public class MailsterSWT
     public FilterTreeView getFilterTreeView()
     {
     	return treeView;
-    }    
+    }
+    
+    public void versionCheck()
+    {
+    	try
+    	{
+			InputStream in = 
+				(new URL(ConfigurationManager.MAILSTER_VERSION_CHECK_URL)).openStream();
+			byte[] buf = new byte[64];
+			int len=0;
+			int offset=0;
+			while ((len = in.read(buf, offset, 64-offset)) != -1) {
+				offset += len;
+			}
+			in.close();
+	        
+			String line = new String(buf, 0, offset);
+			int pos = line.indexOf(' ');
+			String ver = line.substring(0, pos);
+			boolean updateNeeded = 
+				!ConfigurationManager.MAILSTER_VERSION_NB.substring(1).equals(ver);
+			
+			String msg = null;
+	    	
+	    	if (updateNeeded)
+	    	{
+	    		Date d = new Date(Long.parseLong(line.substring(pos+1)));
+	    		StringBuilder sb = new StringBuilder(
+	    				Messages.getString("MailView.tray.versioncheck.needUpdate")); //$NON-NLS-1$
+	    		sb.append('\n');
+	    		sb.append(MessageFormat.format(
+	    					Messages.getString("MailView.tray.versioncheck.available"), //$NON-NLS-1$
+	    					ver,
+	    					DateFormatUtils.ISO_DATE_FORMAT.format(d)));
+	    		msg = sb.toString();
+	    	}
+	    	else
+	    		msg = Messages.getString("MailView.tray.versioncheck.upToDate"); //$NON-NLS-1$
+	    	
+	    	showTrayItemTooltipMessage(
+	    			Messages.getString("MailView.tray.versioncheck.title") //$NON-NLS-1$
+	    			+DateUtilities.hourDateFormat.format(new Date())+")",  //$NON-NLS-1$
+	    			msg);
+    	}
+    	catch (Exception ex)
+    	{
+    		ex.printStackTrace();
+    		log("Failed to check if version is up to date."); //$NON-NLS-1$
+    	}
+    }
 }

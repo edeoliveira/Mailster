@@ -68,6 +68,11 @@ public class ConfigurationManager
     public final static String MAILSTER_VERSION = "Mailster "+MAILSTER_VERSION_NB;
     
     /**
+     * The url to use when checking if version is up to date.
+     */
+    public final static String MAILSTER_VERSION_CHECK_URL = "http://tedorg.free.fr/downloads/mailster.ver";
+    
+    /**
      * Application homepage
      */
     public final static String MAILSTER_HOMEPAGE = "http://tedorg.free.fr/en/projects.php";
