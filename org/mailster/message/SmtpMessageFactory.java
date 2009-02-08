@@ -122,10 +122,12 @@ public class SmtpMessageFactory
 		
 		while ((len = data.read(b)) > -1)
 		{
+			if (buf.position() != 0)
+				buf.compact();
+			
 			buf.put(b, 0, len);
 			buf.flip();
 			consume(msg, buf);
-			buf.compact();
 		}
 		
 		if (buf.remaining()>0)
@@ -221,8 +223,11 @@ public class SmtpMessageFactory
             }
             else
             {
-            	in.position(in.position()-matchCount);
-                matchCount = 0;
+            	if (matchCount > 0)
+            	{
+            		in.position(in.position()-matchCount);
+            		matchCount = 0;
+            	}
             }
         }
         
