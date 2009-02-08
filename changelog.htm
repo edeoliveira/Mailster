@@ -57,6 +57,51 @@
 </head>
 <body style="background-color:#F5F3F1" ><div id="changelog" class="rbdc">
 		<dl class="changes">
+		<dt>ver.0.9.1</dt>
+            <dd><strong class="bdx">Released on 2009-02-15 / Codename The Red Witch</strong></dd>
+			<dd>
+                <strong>Notes</strong>
+                <ul>
+                    <li>UPGRADED to MINA 2.0.0-M4.</li>
+                    <li>Updated starting scripts.</li>
+                </ul>
+            </dd>
+			<dd>
+                <strong>GUI</strong>
+                <ul>
+                	<li>Updated about dialog box to inform about the port to MailsterSMTP.</li>
+                	<li>Added a new toolbar to the browser view to allow using it as a 
+  						simple web browser.</li>
+  					<li>Added an online version check system.</li>
+  				</ul>
+            </dd>
+            <dd>
+				<strong>Core</strong>
+				<ul>
+					<li>Integrated MailsterSMTP & removed Dumbster.</li>
+					<li>Fixed headers parsing when multiple lines are issued for the
+  						same header.</li>
+					<li>Fixed SmtpMessageFactory which is now free from it's 
+  						dependencies to Dumbster code.</li>
+					<li>Fixed SSL factory to use JVM default keystore and truststore 
+  						algorithm, rather than the hard coded Sun version to prevent 
+  						a bug in IBM JVMs.</li>
+  				</ul>
+			</dd>
+			<dd>
+				<strong>POP3</strong>
+				<ul>
+					<li>Fixed propagation to existing mailboxes of a new password set 
+  						in POP3 preference page.</li>
+				</ul>
+			</dd>
+			<dd>
+				<strong>Test</strong>
+				<ul>
+					<li>Fixed examples & junits to take async nature of MailsterSMTP
+  						into account.</li>
+				</ul>
+			</dd>
 		<dt>ver.0.9.0</dt>
             <dd><strong class="bdx">Released on 2008-12-24 / Codename Santa Claus</strong></dd>
 			<dd>

@@ -1,4 +1,35 @@
 #####
+Version 0.9.1 (2009-02-15) - Codename The Red Witch
+
+NOTES :
+- UPGRADED to MINA 2.0.0-M4.
+- Updated starting scripts.
+
+GUI :
+- Updated about dialog box to inform about the port to MailsterSMTP. 
+- Added a new toolbar to the browser view to allow using it as a 
+  simple web browser.
+- Added an online version check system.
+  
+Core :
+- Integrated MailsterSMTP & removed Dumbster.
+- Fixed headers parsing when multiple lines are issued for the
+  same header.
+- Fixed SmtpMessageFactory which is now free from it's 
+  dependencies to Dumbster code.
+- Fixed SSL factory to use JVM default keystore and truststore 
+  algorithm, rather than the hard coded Sun version to prevent 
+  a bug in IBM JVMs.
+     
+POP3 :
+- Fixed propagation to existing mailboxes of a new password set 
+  in POP3 preference page.
+  
+Test :  
+- Fixed examples & junits to take async nature of MailsterSMTP
+  into account.
+    
+#####
 Version 0.9.0 (2008-12-24) - Codename Santa Claus
 
 NOTES :
