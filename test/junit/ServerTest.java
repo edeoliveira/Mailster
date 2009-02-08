@@ -21,7 +21,7 @@ import org.mailster.server.events.SMTPServerEvent;
  * Check a possible bug in Dumbster SMTP server 
  * when Transport.isConnected() is called.
  */
-public class DumbsterTest extends TestCase
+public class ServerTest extends TestCase
 {
     private static final String HOST = "localhost";
     private static final int PORT = 1000;

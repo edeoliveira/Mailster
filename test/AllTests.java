@@ -4,7 +4,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.textui.TestRunner;
 import test.junit.CustomClientCommandTest;
-import test.junit.DumbsterTest;
+import test.junit.ServerTest;
 import test.junit.EncryptedMailTest;
 import test.junit.HmacTest;
 import test.junit.Pop3DigestMD5Test;
@@ -42,7 +42,7 @@ public class AllTests
 	public static Test suite() 
 	{
 		TestSuite suite = new TestSuite();
-		suite.addTestSuite(DumbsterTest.class);
+		suite.addTestSuite(ServerTest.class);
 		suite.addTestSuite(CustomClientCommandTest.class);
 		suite.addTestSuite(SmtpServerTest.class);
 		suite.addTestSuite(HmacTest.class);
