@@ -10,6 +10,7 @@ import org.mailster.smtp.api.TooMuchDataException;
 import org.mailster.smtp.api.handler.AbstractDeliveryHandler;
 import org.mailster.smtp.api.handler.DeliveryContext;
 import org.mailster.smtp.auth.AuthenticationHandler;
+import org.mailster.smtp.util.SharedStreamUtils;
 
 /**
  * ---<br>
@@ -72,7 +73,8 @@ public class MailsterDeliveryHandler
 		if (recipients.size() > 0)
 		{
 			MailsterSMTPServer server = (MailsterSMTPServer) getListeners().iterator().next();
-			server.deliver(this.from, recipients, getPrivateInputStream(false, data));
+			server.deliver(this.from, recipients, 
+					SharedStreamUtils.getPrivateInputStream(false, data));
 		}
 	}
 }

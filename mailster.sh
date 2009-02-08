@@ -10,7 +10,7 @@ export PATH=$PATH:$JAVA_HOME/bin
 export CP=./mailster.jar:lib/mail.jar:$CLASSPATH
 export CP=lib/glazedlists_java15.jar:$CP
 export CP=lib/bcprov-jdk15-141.jar:lib/bcmail-jdk15-141.jar:$CP
-export CP=lib/mina-core-2.0.0-M4.jar:lib/MailsterSMTP.1.0.0-M2.jar:$CP
+export CP=lib/mina-core-2.0.0-M4.jar:lib/MailsterSMTP-1.0.0-M2.jar:$CP
 export CP=lib/slf4j-api-1.5.6.jar:lib/slf4j-log4j12-1.5.6.jar:lib\log4j-1.2.15.jar:$CP
 export CP=lib/commons-lang-2.3.jar:$CP
 
