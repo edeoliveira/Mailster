@@ -24,7 +24,7 @@ import org.mailster.server.events.SMTPServerEvent;
 public class ServerTest extends TestCase
 {
     private static final String HOST = "localhost";
-    private static final int PORT = 1000;
+    private static final int PORT = 2000;
 
     /**
      * Succeeds: one email recorded.
