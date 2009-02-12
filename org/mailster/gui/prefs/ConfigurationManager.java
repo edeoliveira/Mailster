@@ -34,6 +34,7 @@ import org.mailster.gui.prefs.store.MailsterPrefStore;
  * structure in shape of the {@link #CONFIG_STORE}.
  * 
  * @author <a href="mailto:smachhau@users.sourceforge.net">Sebastian Machhausen</a>
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  */
 public class ConfigurationManager
 {
@@ -60,7 +61,7 @@ public class ConfigurationManager
     /**
      * Application version codename string
      */
-    public final static String MAILSTER_VERSION_CODENAME = " - Codename The Red Witch";
+    public final static String MAILSTER_VERSION_CODENAME = " - Codename My little flea";
 
     /**
      * Application version string
