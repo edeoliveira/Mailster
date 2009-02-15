@@ -94,11 +94,10 @@ public class FilterTreeView extends TreeView
     private static String checkedTreeItemLabel = 
     	Messages.getString("MailsterSWT.treeView.flaggedMail.label"); //$NON-NLS-1$
 
-    private HostMatcherEditor editor;
-    
     private MenuItem exportAsMailItem;
-
     private MenuItem exportAsMailBoxItem; 
+    
+    private HostMatcherEditor editor;
     
     /**
      * The count of messages last time a event occured. Prevents from multiple
@@ -199,6 +198,9 @@ public class FilterTreeView extends TreeView
      */
     class ImportExportDropDownMenu extends DropDownListener
     {
+        private MenuItem importAsMailItem;
+        private MenuItem importAsMailBoxItem; 
+    	
         public ImportExportDropDownMenu(ToolItem dropdown)
         {
             super(dropdown);
@@ -213,11 +215,11 @@ public class FilterTreeView extends TreeView
         	dropdown.setEnabled(true);
         	dropdown.setToolTipText(Messages.getString("FilterTreeview.toggle.importExportTooltip")); //$NON-NLS-1$
         	
-        	final MenuItem importAsMailItem = new MenuItem(menu, SWT.NONE);
+        	importAsMailItem = new MenuItem(menu, SWT.NONE);
         	importAsMailItem.setText(Messages.getString("FilterTreeview.toggle.importAsMailTooltip")); //$NON-NLS-1$
         	importAsMailItem.setImage(importImage);
 
-            final MenuItem importAsMailBoxItem = new MenuItem(menu, SWT.NONE);
+            importAsMailBoxItem = new MenuItem(menu, SWT.NONE);
             importAsMailBoxItem.setText(Messages.getString("FilterTreeview.toggle.importAsMailBoxTooltip")); //$NON-NLS-1$
             importAsMailBoxItem.setImage(importImage);
                     	
@@ -234,31 +236,7 @@ public class FilterTreeView extends TreeView
             SelectionAdapter adapter = new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent evt) 
 				{
-					String fileName = null;
-					
-					if (evt.getSource() == importAsMailItem)
-					{
-						fileName = getPath(true, false, false, SWT.OPEN);
-						importFromEmailFile(fileName);
-					}
-					else
-					if (evt.getSource() == importAsMailBoxItem)
-					{
-						fileName = getPath(true, true, false, SWT.OPEN);
-						importFromMbox(fileName);
-					}
-					else
-					if (evt.getSource() == exportAsMailItem)
-					{
-						fileName = getPath(false, false, true,SWT.SAVE);
-						exportAsEmailFile(fileName);
-					}
-					else
-					if (evt.getSource() == exportAsMailBoxItem)
-					{
-						fileName = getPath(false, true, false, SWT.SAVE);
-						exportAsMbox(fileName);
-					}
+					doMenuAction((MenuItem) evt.getSource());
 				}
 			};
 			
@@ -266,6 +244,40 @@ public class FilterTreeView extends TreeView
 			importAsMailBoxItem.addSelectionListener(adapter);
 			exportAsMailItem.addSelectionListener(adapter);
 			exportAsMailBoxItem.addSelectionListener(adapter);
+        }
+        
+        private void doMenuAction(MenuItem menu)
+        {
+			updateMenuPosition(menu);
+
+			if (menu == importAsMailItem)
+			{
+				String fileName = getPath(true, false, false, SWT.OPEN);
+				importFromEmailFile(fileName);
+			}
+			else
+			if (menu == importAsMailBoxItem)
+			{
+				String fileName = getPath(true, true, false, SWT.OPEN);
+				importFromMbox(fileName);
+			}
+			else
+			if (menu == exportAsMailItem)
+			{
+				String fileName = getPath(false, false, true,SWT.SAVE);
+				exportAsEmailFile(fileName);
+			}
+			else
+			if (menu == exportAsMailBoxItem)
+			{
+				String fileName = getPath(false, true, false, SWT.SAVE);
+				exportAsMbox(fileName);
+			}        	
+        }
+        
+        private void updateMenuPosition(MenuItem selected)
+        {
+        	menu.setDefaultItem(selected);
         }
         
         private EventList<StoredSmtpMessage> getEmailSelection()
@@ -423,7 +435,7 @@ public class FilterTreeView extends TreeView
 
         public void buttonPushed()
         {
-        	// TODO
+        	doMenuAction(menu.getDefaultItem());
         }
     }
     
