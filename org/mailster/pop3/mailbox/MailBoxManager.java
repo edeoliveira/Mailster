@@ -52,17 +52,36 @@ public class MailBoxManager
 
     public StoredSmtpMessage addMessageToSpecialAccount(SmtpMessage msg)
     {
-    	return pop3SpecialAccountMailbox.storeMessage(msg);
+    	boolean acquired = pop3SpecialAccountMailbox.tryAcquireLock(3, 300);
+    	if (acquired)
+    	{
+    		StoredSmtpMessage m = pop3SpecialAccountMailbox.storeMessage(msg);
+    		pop3SpecialAccountMailbox.releaseLock();
+    		
+    		return m;
+    	}
+    	
+    	return null;
     }
     
     public void removeAllMessagesFromSpecialAccount()
     {
-    	pop3SpecialAccountMailbox.removeAllMessages();
+    	boolean acquired = pop3SpecialAccountMailbox.tryAcquireLock(3, 300);
+    	if (acquired)
+    	{
+    		pop3SpecialAccountMailbox.removeAllMessages();
+    		pop3SpecialAccountMailbox.releaseLock();
+    	}
     }
     
     public void removeMessageFromSpecialAccount(StoredSmtpMessage msg) 
     {
-        pop3SpecialAccountMailbox.removeMessage(msg);
+    	boolean acquired = pop3SpecialAccountMailbox.tryAcquireLock(3, 300);
+    	if (acquired)
+    	{
+    		pop3SpecialAccountMailbox.removeMessage(msg);
+    		pop3SpecialAccountMailbox.releaseLock();
+    	}
     }
 
     public MailBox getMailBoxByUser(Pop3User user)
