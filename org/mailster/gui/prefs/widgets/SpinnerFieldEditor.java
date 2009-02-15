@@ -40,6 +40,7 @@ import org.mailster.gui.utils.LayoutUtils;
  * Allows editing of a numeric value in a <code>Spinner</code> component.
  * 
  * @author <a href="mailto:Sebastian.Machhausen@gmail.com">Sebastian Machhausen</a>
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  */
 public class SpinnerFieldEditor extends FieldEditor
 {

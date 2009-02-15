@@ -31,6 +31,7 @@ import org.mailster.gui.Messages;
  * <code>IJob</code> within the <code>JobManager</code> scheduler context.
  * 
  * @author <a href="mailto:smachhau@users.sourceforge.net">Sebastian Machhausen</a>
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  */
 public class JobExecutionInterval
 {

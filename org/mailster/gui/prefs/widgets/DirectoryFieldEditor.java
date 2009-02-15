@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Composite;
  * after the text has been typed in.
  * 
  * @author <a href="mailto:Sebastian.Machhausen@gmail.com">Sebastian Machhausen</a>
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  */
 public class DirectoryFieldEditor
         extends org.eclipse.jface.preference.DirectoryFieldEditor

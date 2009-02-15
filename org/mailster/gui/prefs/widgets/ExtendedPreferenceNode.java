@@ -41,6 +41,7 @@ import org.eclipse.jface.viewers.TreeViewer;
  * be set in the implementing class itself.
  * 
  * @author <a href="mailto:Sebastian.Machhausen@gmail.com">Sebastian Machhausen</a>
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  */
 public class ExtendedPreferenceNode extends PreferenceNode
 {

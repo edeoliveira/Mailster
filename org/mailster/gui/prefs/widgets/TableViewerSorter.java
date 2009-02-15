@@ -32,6 +32,7 @@ import org.mailster.util.StringUtilities;
  * instances using <code>ITableContentProvider</code> implementations.
  * 
  * @author <a href="mailto:smachhau@users.sourceforge.net">Sebastian Machhausen</a>
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  */
 public class TableViewerSorter extends ViewerSorter
 {

@@ -37,6 +37,7 @@ import org.mailster.util.StringUtilities;
  * <code>LanguageConfigurationPage</code> to ui representations.
  * 
  * @author <a href="mailto:smachhau@users.sourceforge.net">Sebastian Machhausen</a>
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  */
 public class LanguageTableLabelProvider extends LabelProvider
         implements

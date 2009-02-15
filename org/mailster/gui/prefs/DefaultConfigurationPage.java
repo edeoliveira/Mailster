@@ -39,6 +39,7 @@ import org.mailster.gui.SWTHelper;
  * inherit this class.
  * 
  * @author <a href="mailto:smachhau@users.sourceforge.net">Sebastian Machhausen</a>
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  */
 public abstract class DefaultConfigurationPage 
     extends PreferencePage

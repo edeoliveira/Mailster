@@ -32,6 +32,8 @@ import org.eclipse.jface.viewers.IStructuredContentProvider;
  * {@link org.mailster.gui.prefs.widgets.TableViewerSorter} class.
  * 
  * @author <a href="mailto:smachhau@users.sourceforge.net">Sebastian Machhausen</a>
+ * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
+ * 
  * @see org.mailster.gui.prefs.widgets.TableViewerSorter
  */
 public interface ITableContentProvider extends IStructuredContentProvider
