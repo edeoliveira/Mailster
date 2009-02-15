@@ -61,7 +61,7 @@ public abstract class Pop3Command
     public void tryLockingMailbox(AbstractPop3Connection conn)
     {
     	conn.getState().setAuthenticated();
-        boolean locked = conn.getState().getMailBox().tryAcquireLock(3, 100);
+        boolean locked = conn.getState().getMailBox().tryAcquireLock(3, 300);
         if (locked)
             conn.println("+OK maildrop locked and ready");
         else
