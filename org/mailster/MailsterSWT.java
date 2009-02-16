@@ -401,6 +401,7 @@ public class MailsterSWT
     private static void showSplashScreen(Display display,
             final String[] args)
     {
+    	LOG.debug("Loading splash screen ...");
         final Image image = new Image(display, MailsterSWT.class
                 .getResourceAsStream("/org/mailster/gui/resources/splash.png")); //$NON-NLS-1$
         GC gc = new GC(image);
@@ -415,16 +416,24 @@ public class MailsterSWT
 
         DialogUtils.centerShellOnScreen(splash);
         splash.open();
+        
+        LOG.debug("Starting ...");
         _instance = new MailsterSWT();
+        
         display.asyncExec(new Runnable() {
             public void run()
             {
                 try
                 {
+                	long start = System.currentTimeMillis();
                     startApplication(args);
+                    long elapsed = System.currentTimeMillis() - start;
+                    LOG.debug("Application started in {} ms", elapsed);
+
                     _instance.sShell.open();
-                    _instance.versionCheck();
-                    Thread.sleep(1000);
+
+                    if (elapsed < 2000)
+                    	Thread.sleep(2000 - elapsed);
                 }
                 catch (Throwable e)
                 {
@@ -432,12 +441,14 @@ public class MailsterSWT
                 }
                 splash.close();
                 image.dispose();
+                _instance.versionCheck();
             }
         });
     }
 
     private void applyPreferences()
     {
+        LOG.debug("Applying startup preferences ...");
     	MailsterPrefStore store = ConfigurationManager.CONFIG_STORE;
         
         if (store.getBoolean(ConfigurationManager.APPLY_MAIN_WINDOW_PARAMS_KEY))
@@ -627,6 +638,7 @@ public class MailsterSWT
         Thread.setDefaultUncaughtExceptionHandler(exHandler);
         Thread.currentThread().setUncaughtExceptionHandler(exHandler);
         
+        LOG.debug("Creating shell ...");
         main.createSShell();
         main.applyPreferences();
         
@@ -654,7 +666,7 @@ public class MailsterSWT
 
         while (getInstance().sShell == null || !getInstance().sShell.isDisposed())
         {
-            if (!display.readAndDispatch())
+            if (display != null && !display.readAndDispatch())
                 display.sleep();
         }
 
