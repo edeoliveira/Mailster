@@ -219,18 +219,25 @@ public class SmtpMessagePart implements Serializable
     {
     	Iterator<SmtpMessagePart> it = parts.iterator();
     	SmtpMessagePart part = null;
-
+    	
         while (it.hasNext()
                 && (part == null || !part.getContentType().startsWith(
                 		preferredContentType)))
+        {
             part = it.next();
-
+            if (part.isMultiPart())
+            	return part.getMultiPartRelatedContent(this, preferredContentType);
+        }
+        
         String content = part.getDecodedBody();
 
-        cids = MailUtilities.saveCIDFilesToTemporaryDirectory(this);
-        for (String cid : cids.keySet())
-        	content = content.replaceAll(cid, cids.get(cid));
-
+        if (content.length() > 0)
+        {
+	        cids = MailUtilities.saveCIDFilesToTemporaryDirectory(this);
+	        for (String cid : cids.keySet())
+	        	content = content.replaceAll(cid, cids.get(cid));
+        }
+        
         return content;
     }
     

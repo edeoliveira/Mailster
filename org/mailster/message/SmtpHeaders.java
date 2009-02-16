@@ -192,29 +192,33 @@ public class SmtpHeaders
             {
             	line = line.trim();
                 String name = line.substring(0, pos);
-                line = line.substring(pos + 2);                
                 List<String> vals = new ArrayList<String>();    
 
-                if (name.equals(lastHeaderName))
+                if (line.length() >= pos + 2)
                 {
-                	SmtpHeader h = (SmtpHeader) headers.get(name);
-                	if (h != null)
-                	{
-                		h.getValues().add(line);
-                		return;
-                	}
-                	else
-                		vals.add(line);
-                }
-                else
-                {
-	                lastHeaderName = name;
+	                line = line.substring(pos + 2);                
 	                
-	                if (lastHeaderName.startsWith("X-"))
-	                	// eXtended header so leave it intact
-	                	vals.add(line);
+	                if (name.equals(lastHeaderName))
+	                {
+	                	SmtpHeader h = (SmtpHeader) headers.get(name);
+	                	if (h != null)
+	                	{
+	                		h.getValues().add(line);
+	                		return;
+	                	}
+	                	else
+	                		vals.add(line);
+	                }
 	                else
-	                    parseMultipleValues(line, vals);
+	                {
+		                lastHeaderName = name;
+		                
+		                if (lastHeaderName.startsWith("X-"))
+		                	// eXtended header so leave it intact
+		                	vals.add(line);
+		                else
+		                    parseMultipleValues(line, vals);
+	                }
                 }
                 
                 headers.put(name, new SmtpHeader(name, vals));

@@ -305,16 +305,15 @@ public class SmtpMessage implements Serializable
             if (content != null)
             {
                 String upperContent = content.toUpperCase();
-                if (upperContent.indexOf("<HTML>") == -1)
-                {
-                    if (upperContent.indexOf("<BODY>") == -1)
-                        content = "<html><head> <style type=\"text/css\"><!--\n" +
-                            "html,body {margin:2px;font: 10px Verdana;}" +
-                            "--></style></head><body>"
-                            + content + "</body></html>";
-                    else
-                        content = "<html>"+content+"</html>";
-                }
+                
+                if (upperContent.indexOf("<BODY>") == -1)
+                    content = "<html><head> <style type=\"text/css\"><!--\n" +
+                        "html,body {margin:2px;font: 10px Verdana;}" +
+                        "--></style></head><body>"
+                        + content + "</body></html>";
+                else
+                if (upperContent.indexOf("<HTML>") == -1)	
+                    content = "<html>"+content+"</html>";
             }
         }
 
