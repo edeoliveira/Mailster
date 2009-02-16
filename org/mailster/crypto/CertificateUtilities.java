@@ -82,6 +82,8 @@ import org.slf4j.LoggerFactory;
  */
 public class CertificateUtilities
 {
+	protected final static SecureRandom RANDOM = new SecureRandom();
+	
 	static
 	{
 		if (Security.getProvider("BC") == null)
@@ -126,7 +128,7 @@ public class CertificateUtilities
         throws Exception
     {
         KeyPairGenerator  kpGen = KeyPairGenerator.getInstance("RSA", "BC");    
-        kpGen.initialize(keySize, new SecureRandom());
+        kpGen.initialize(keySize, RANDOM);
     
         return kpGen.generateKeyPair();
     }

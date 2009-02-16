@@ -3,7 +3,6 @@ package org.mailster.crypto;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 import javax.net.SocketFactory;
@@ -67,7 +66,8 @@ public class DummySSLSocketFactory extends SSLSocketFactory
         {
             sslcontext = SSLContext.getInstance("TLS");
             sslcontext.init(null,
-                    new TrustManager[] { new DummyTrustManager() }, new SecureRandom());
+		                    new TrustManager[] { new DummyTrustManager() }, 
+		                    CertificateUtilities.RANDOM);
             factory = (SSLSocketFactory) sslcontext.getSocketFactory();
         }
         catch (Exception ex)
