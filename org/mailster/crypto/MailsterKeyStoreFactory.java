@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
+import javax.crypto.Cipher;
 import javax.security.auth.x500.X500PrivateCredential;
 
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
@@ -114,7 +115,7 @@ public class MailsterKeyStoreFactory
 	static 
 	{
 		if (Security.getProvider("BC") == null)
-            Security.addProvider(new BouncyCastleProvider());		
+            Security.addProvider(new BouncyCastleProvider());
 	}
 
 	private MailsterKeyStoreFactory()
@@ -164,11 +165,36 @@ public class MailsterKeyStoreFactory
 		System.exit(0);
 	}
 	
+	public boolean checkPermission() 
+	{
+		LOG.debug("Cryptography permission check");
+
+		try
+		{
+			Cipher c = Cipher.getInstance("PKCS12", "BC");
+			c.wrap(CertificateUtilities.generateRSAKeyPair(getCryptoStrength()).getPublic());
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+    		errorMessage = Messages.getString("MailsterKeyStoreFactory.error.vm.crypto.restrictions");
+    		LOG.debug("Cryptography fatal error:\n{}", errorMessage);
+    		MailsterSWT.getInstance().getMailView().log(errorMessage);
+    		return false;
+		}
+	}
+	
 	private synchronized KeyStore loadDefaultKeyStore()
 	{
+		LOG.debug("Loading default keystore started");
+		
 		try
         {
 			storeLoaded = false;
+			if (!checkPermission())
+				return null;
+			
 			store = KeyStore.getInstance("PKCS12", "BC");
             InputStream fis = new FileInputStream(KEYSTORE_FULL_PATH);
             store.load(fis, KEYSTORE_PASSWORD);
