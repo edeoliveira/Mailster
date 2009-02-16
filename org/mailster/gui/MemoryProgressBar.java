@@ -42,7 +42,7 @@ public class MemoryProgressBar
 	extends ProgressBar 
 {
 	// Default timeout.
-	public final static int DEFAULT_TIMEOUT = 500;
+	public final static int DEFAULT_TIMEOUT = 1000;
 	
 	public MemoryProgressBar(Composite parent, int style) 
 	{
