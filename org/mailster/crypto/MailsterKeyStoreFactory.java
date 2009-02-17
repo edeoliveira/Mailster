@@ -204,19 +204,10 @@ public class MailsterKeyStoreFactory
         }
         catch (Exception ex)
         {
-        	if (ex.getMessage().indexOf("java.security.InvalidKeyException") > -1)
-        	{
-        		errorMessage = Messages.getString("MailsterKeyStoreFactory.error.vm.crypto.restrictions");
-        		LOG.debug("ERROR: {}", errorMessage);
-        		MailsterSWT.getInstance().getMailView().log(errorMessage);
-        	}
-        	else
-        	{
-        		errorMessage = ex.getMessage();
-        		LOG.debug("ERROR: {}", errorMessage);
-        		MailsterSWT.getInstance().getMailView().log(errorMessage);
-        		createDefaultKeyStore();
-        	}
+    		errorMessage = ex.getMessage();
+    		LOG.debug("ERROR: {}", errorMessage);
+    		MailsterSWT.getInstance().getMailView().log(errorMessage);
+    		createDefaultKeyStore();
         }
         
         return store;
