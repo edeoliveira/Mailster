@@ -984,50 +984,55 @@ public class MailsterSWT
     
     public void versionCheck()
     {
-    	try
-    	{
-			InputStream in = 
-				(new URL(ConfigurationManager.MAILSTER_VERSION_CHECK_URL)).openStream();
-			byte[] buf = new byte[64];
-			int len=0;
-			int offset=0;
-			while ((len = in.read(buf, offset, 64-offset)) != -1) {
-				offset += len;
-			}
-			in.close();
-	        
-			String line = new String(buf, 0, offset);
-			int pos = line.indexOf(' ');
-			String ver = line.substring(0, pos);
-			boolean updateNeeded = 
-				!ConfigurationManager.MAILSTER_VERSION_NB.substring(1).equals(ver);
-			
-			String msg = null;
-	    	
-	    	if (updateNeeded)
-	    	{
-	    		Date d = new Date(Long.parseLong(line.substring(pos+1)));
-	    		StringBuilder sb = new StringBuilder(
-	    				Messages.getString("MailView.tray.versioncheck.needUpdate")); //$NON-NLS-1$
-	    		sb.append('\n');
-	    		sb.append(MessageFormat.format(
-	    					Messages.getString("MailView.tray.versioncheck.available"), //$NON-NLS-1$
-	    					ver,
-	    					DateFormatUtils.ISO_DATE_FORMAT.format(d)));
-	    		msg = sb.toString();
-	    	}
-	    	else
-	    		msg = Messages.getString("MailView.tray.versioncheck.upToDate"); //$NON-NLS-1$
-	    	
-	    	showTrayItemTooltipMessage(
-	    			Messages.getString("MailView.tray.versioncheck.title") //$NON-NLS-1$
-	    			+DateUtilities.hourDateFormat.format(new Date())+")",  //$NON-NLS-1$
-	    			msg);
-    	}
-    	catch (Exception ex)
-    	{
-    		ex.printStackTrace();
-    		log("Failed to check if version is up to date."); //$NON-NLS-1$
-    	}
+        Display.getDefault().asyncExec(new Thread() {
+            public void run()
+            {
+		    	try
+		    	{
+					InputStream in = 
+						(new URL(ConfigurationManager.MAILSTER_VERSION_CHECK_URL)).openStream();
+					byte[] buf = new byte[64];
+					int len=0;
+					int offset=0;
+					while ((len = in.read(buf, offset, 64-offset)) != -1) {
+						offset += len;
+					}
+					in.close();
+			        
+					String line = new String(buf, 0, offset);
+					int pos = line.indexOf(' ');
+					String ver = line.substring(0, pos);
+					boolean updateNeeded = 
+						!ConfigurationManager.MAILSTER_VERSION_NB.substring(1).equals(ver);
+					
+					String msg = null;
+			    	
+			    	if (updateNeeded)
+			    	{
+			    		Date d = new Date(Long.parseLong(line.substring(pos+1)));
+			    		StringBuilder sb = new StringBuilder(
+			    				Messages.getString("MailView.tray.versioncheck.needUpdate")); //$NON-NLS-1$
+			    		sb.append('\n');
+			    		sb.append(MessageFormat.format(
+			    					Messages.getString("MailView.tray.versioncheck.available"), //$NON-NLS-1$
+			    					ver,
+			    					DateFormatUtils.ISO_DATE_FORMAT.format(d)));
+			    		msg = sb.toString();
+			    	}
+			    	else
+			    		msg = Messages.getString("MailView.tray.versioncheck.upToDate"); //$NON-NLS-1$
+			    	
+			    	showTrayItemTooltipMessage(
+			    			Messages.getString("MailView.tray.versioncheck.title") //$NON-NLS-1$
+			    			+DateUtilities.hourDateFormat.format(new Date())+")",  //$NON-NLS-1$
+			    			msg);
+		    	}
+		    	catch (Exception ex)
+		    	{
+		    		ex.printStackTrace();
+		    		log("Failed to check if version is up to date."); //$NON-NLS-1$
+		    	}
+            }
+        });
     }
 }
