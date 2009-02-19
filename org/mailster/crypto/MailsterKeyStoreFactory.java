@@ -7,24 +7,33 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.PKIXParameters;
 import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
 import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
 import javax.security.auth.x500.X500PrivateCredential;
 
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.misc.NetscapeCertType;
+import org.bouncycastle.asn1.pkcs.PKCS12PBEParams;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
@@ -104,12 +113,9 @@ public class MailsterKeyStoreFactory
 	private PKIXParameters params;
 	
 	private boolean storeLoaded;
+	private boolean permissionDenied;
 	private String errorMessage;
 	
-	public boolean isStoreLoaded() {
-		return storeLoaded;
-	}
-
 	private Set<TrustAnchor> sessionAnchors = new HashSet<TrustAnchor>();
 	
 	static 
@@ -129,6 +135,16 @@ public class MailsterKeyStoreFactory
 			_instance = new MailsterKeyStoreFactory();
 		
 		return _instance;
+	}
+	
+	public boolean isStoreLoaded() 
+	{
+		return storeLoaded;
+	}
+
+	public boolean isPermissionDenied()
+	{
+		return permissionDenied;
 	}
 	
 	private static String getFullPath(String fileName)
@@ -166,23 +182,42 @@ public class MailsterKeyStoreFactory
 	}
 	
 	public boolean checkPermission() 
+		throws NoSuchAlgorithmException, NoSuchProviderException, 
+		NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException 
 	{
 		LOG.debug("Cryptography permission check");
 
 		try
 		{
-			Cipher c = Cipher.getInstance("PKCS12", "BC");
-			c.wrap(CertificateUtilities.generateRSAKeyPair(getCryptoStrength()).getPublic());
+			byte[] iv = new byte[20];
+			CertificateUtilities.RANDOM.nextBytes(iv);
+			PKCS12PBEParams pbeParams = new PKCS12PBEParams(iv, 1024);
+            String algorithm = "1.2.840.113549.1.12.1.3";
+            SecretKeyFactory keyFact = SecretKeyFactory.getInstance(
+            		algorithm, "BC");
+            PBEParameterSpec defParams = new PBEParameterSpec(
+                    pbeParams.getIV(),
+                    pbeParams.getIterations().intValue());
 
+            Cipher cipher = Cipher.getInstance(algorithm, "BC");
+            PBEKeySpec pbeSpec = new PBEKeySpec("testwelcome".toCharArray());
+            cipher.init(Cipher.WRAP_MODE, keyFact.generateSecret(pbeSpec), defParams);
+			
 			return true;
 		}
-		catch (Exception ex)
+		catch (InvalidKeyException ex)
 		{
-    		errorMessage = Messages.getString("MailsterKeyStoreFactory.error.vm.crypto.restrictions");
-    		LOG.debug("Cryptography fatal error:\n{}", errorMessage);
-    		MailsterSWT.getInstance().getMailView().log(errorMessage);
+    		permissionDenied = true;
+    		setErrorMessage(Messages.getString("MailsterKeyStoreFactory.error.vm.crypto.restrictions"));
     		return false;
 		}
+	}
+	
+	private void setErrorMessage(String msg)
+	{
+		errorMessage = msg;
+		LOG.debug("ERROR:\n{}", errorMessage);
+		MailsterSWT.getInstance().getMailView().log(errorMessage);		
 	}
 	
 	private synchronized KeyStore loadDefaultKeyStore()
@@ -204,10 +239,8 @@ public class MailsterKeyStoreFactory
         }
         catch (Exception ex)
         {
-    		errorMessage = ex.getMessage();
-    		LOG.debug("ERROR: {}", errorMessage);
-    		MailsterSWT.getInstance().getMailView().log(errorMessage);
-    		createDefaultKeyStore();
+        	setErrorMessage(ex.getMessage());
+        	//createDefaultKeyStore();
         }
         
         return store;
