@@ -700,7 +700,7 @@ public class MailView
     
     public void log(String msg)
     {
-        if (log != null && !log.isDisposed())
+        if (log != null && !log.isDisposed() && msg != null)
         {
             String date = DateUtilities.df.format(new Date());
             StringBuilder sb = new StringBuilder(3+date.length()+msg.length());
