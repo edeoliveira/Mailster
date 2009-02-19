@@ -56,12 +56,12 @@ public class ConfigurationManager
     /**
      * Application version number
      */
-    public final static String MAILSTER_VERSION_NB	= "v0.9.1";
+    public final static String MAILSTER_VERSION_NB	= "v0.9.2";
 
     /**
      * Application version codename string
      */
-    public final static String MAILSTER_VERSION_CODENAME = " - Codename My little flea";
+    public final static String MAILSTER_VERSION_CODENAME = " - Codename Magneto";
 
     /**
      * Application version string
