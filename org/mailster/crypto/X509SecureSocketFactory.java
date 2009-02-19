@@ -15,6 +15,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
 
 /**
  * ---<br>
@@ -135,10 +136,12 @@ public class X509SecureSocketFactory implements X509TrustManager
     public static synchronized void reload()
 		throws Exception
     {
-    	if (_instance.selectedProtocol == null)
+    	if (_instance == null || _instance.selectedProtocol == null)
             _instance = new X509SecureSocketFactory(SSLProtocol.SSL.toString());
         else
             _instance = new X509SecureSocketFactory(_instance.selectedProtocol.toString());
+    	
+    	_instance.setTrustCallBackHandler(new SWTCertificateTrustCallBackHandler());
     }
     
     private X509TrustManager initTrustManager(KeyStore ks) 
