@@ -510,24 +510,36 @@ public class FilterTreeView extends TreeView
     public static String getEmailHost(String email)
     {
     	if (email == null)
-    		return Messages.getString("MailsterSWT.treeView.localNetwork.label");
+    		return Messages.getString("MailsterSWT.treeView.localNetwork.label"); //$NON-NLS-1$
     	
-    	email = email.toLowerCase();
-    	if (email.indexOf(',')>=0)
-    		email = email.substring(0, email.indexOf(','));
-    	
-    	int pos = email.lastIndexOf("@"); //$NON-NLS-1$
-    	if (pos>=0)
+    	try
     	{
-            pos++;
-    		int end=email.indexOf(">"); //$NON-NLS-1$
-    		return end < 0 ? email.substring(pos) : email.substring(pos, end);
+	    	email = email.toLowerCase();
+	    	
+	    	if (email.indexOf(',')>=0) //$NON-NLS-1$
+	    		email = email.substring(0, email.indexOf(',')); //$NON-NLS-1$
+
+	    	if (email.indexOf(';')>=0) //$NON-NLS-1$
+	    		email = email.substring(0, email.indexOf(';')); //$NON-NLS-1$
+	    	
+	    	int pos = email.lastIndexOf("@"); //$NON-NLS-1$
+	    	if (pos>=0)
+	    	{
+	            pos++;
+	    		int end=email.indexOf(">"); //$NON-NLS-1$
+	    		return end < 0 ? email.substring(pos) : email.substring(pos, end);
+	    	}
+	    	else 
+	    		return Messages.getString("MailsterSWT.treeView.localNetwork.label"); //$NON-NLS-1$
     	}
-    	else 
-    		return Messages.getString("MailsterSWT.treeView.localNetwork.label");
+    	catch (Exception ex) 
+    	{
+    		log.debug("getmailHost() error:", ex); 
+    		return Messages.getString("MailsterSWT.treeView.localNetwork.label"); //$NON-NLS-1$
+    	}
     }
 	
-    public void updateMessagesCounts(AbstractEventList<StoredSmtpMessage> eventList)
+    public void updateMessageCounts(AbstractEventList<StoredSmtpMessage> eventList)
     {
     	lastCallCount = eventList.size();
     	log.debug("Call to updateMessagesCounts()");
@@ -556,9 +568,10 @@ public class FilterTreeView extends TreeView
 		        if (child == checkedMailsTreeItem)
 		        	countLabel.append('/').append(lastCallCount);
 		        countLabel.append(')');
+		        child.setText(countLabel.toString());
 	        }
-	        
-	        child.setText(countLabel.toString());
+	        else
+	        	child.setText(filterHost);
         }
     }
 	
@@ -572,7 +585,7 @@ public class FilterTreeView extends TreeView
 				try
 				{
 					if (!listChanges.isReordering() && lastCallCount != baseList.size())
-						updateMessagesCounts(baseList);
+						updateMessageCounts(baseList);
 				}
 				finally
 				{
