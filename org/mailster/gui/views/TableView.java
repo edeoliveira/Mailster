@@ -131,7 +131,7 @@ public class TableView
     	try
     	{
     		eventList.clear();
-    		treeView.updateMessagesCounts(eventList);
+    		treeView.updateMessageCounts(eventList);
     	}
     	finally
     	{
@@ -216,7 +216,7 @@ public class TableView
 					        {
 					        	eventList.getReadWriteLock().writeLock().unlock();
 					        }
-					        treeView.updateMessagesCounts(eventList);
+					        treeView.updateMessageCounts(eventList);
 							return;
 						}
 						if (!visible && rect.intersects(clientArea)) 
@@ -346,7 +346,7 @@ public class TableView
                         	}
                             
                             mailView.createMailTab(stored);
-                            treeView.updateMessagesCounts(eventList);
+                            treeView.updateMessageCounts(eventList);
                         }
                         else if (e.type == SWT.Selection && mailView.isSynced())
                             mailView.selectMailTab(stored);
@@ -419,7 +419,7 @@ public class TableView
                 	{                		
                 		batchList.getReadWriteLock().writeLock().unlock();
                 	}
-                	treeView.updateMessagesCounts(eventList);
+                	treeView.updateMessageCounts(eventList);
                 	return;
                 }
                 
@@ -481,7 +481,7 @@ public class TableView
                     		batchList.getReadWriteLock().writeLock().unlock();
                     	}
                     }
-                    treeView.updateMessagesCounts(eventList);
+                    treeView.updateMessageCounts(eventList);
                     return;
                 }
             }
