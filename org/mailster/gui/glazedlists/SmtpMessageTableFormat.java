@@ -49,6 +49,13 @@ public class SmtpMessageTableFormat
         	return s0.compareTo(s1);
         }
     };
+
+    private static Comparator<Date> dateComparator = new Comparator<Date>() {
+        public int compare(Date d0, Date d1)
+        {
+        	return d0.compareTo(d1);
+        }
+    };
     
     public final static int ATTACHMENT_COLUMN   = 0;
     public final static int TO_COLUMN           = 1;
@@ -128,14 +135,7 @@ public class SmtpMessageTableFormat
 	public Comparator getColumnComparator(int column) 
 	{
 		if (column == DATE_COLUMN)
-		{
-			return new Comparator<Date>() {
-	            public int compare(Date d0, Date d1)
-	            {
-	            	return d0.compareTo(d1);
-	            }
-	        };
-		}
+			return dateComparator;
 		else
 		if (column == TO_COLUMN || column == SUBJECT_COLUMN)
 			return stringComparator;
