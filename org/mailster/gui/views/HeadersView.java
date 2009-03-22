@@ -70,7 +70,7 @@ public class HeadersView
     /** 
      * Log object for this class. 
      */
-    private static final Logger log = LoggerFactory.getLogger(HeadersView.class);
+    private final static Logger log = LoggerFactory.getLogger(HeadersView.class);
     
     private final static Image minimizedImage = SWTHelper.loadImage("plus.gif"); //$NON-NLS-1$
     private final static Image expandedImage = SWTHelper.loadImage("minus.gif"); //$NON-NLS-1$
@@ -128,13 +128,13 @@ public class HeadersView
     
                     while (tk.hasMoreTokens())
                     {
-                    	sb.append("<a>").append(tk.nextToken().trim()).append("</a>");
+                    	sb.append("[a]").append(tk.nextToken().trim()).append("[/a]");
                     	if (tk.hasMoreTokens())
                     		sb.append(';');
                     }
             	}
             	else
-            		sb.append("<a>").append(s.trim()).append("</a>");
+            		sb.append("[a]").append(s.trim()).append("[/a]");
             }
         }
         
@@ -217,22 +217,23 @@ public class HeadersView
         SmtpHeadersInterface headers = msg.getHeaders();        
         String date = DateUtilities.df.format(stored.getMessageDate());
         
-        sb.append("<b>").append(Messages.getString("MailView.column.subject")).append(" : ");
-        sb.append(MailUtilities.getNonNullHeaderValue(headers, SmtpHeadersInterface.SUBJECT));
-        sb.append("</b>");
+        sb.append("[b]").append(Messages.getString("MailView.column.subject")).append(" : [/b][s]");
+        sb.append(MailUtilities.getNonNullHeaderValue(headers, SmtpHeadersInterface.SUBJECT, true));
+        sb.append("[/s]");
+
         resumeText = sb.toString();
         
-        sb.append("\n<b>").append(Messages.getString("MailView.column.date")).append(" : </b>");
+        sb.append("\n[b]").append(Messages.getString("MailView.column.date")).append(" : [/b]");
         sb.append(date);
-        sb.append("\n<b>").append(Messages.getString("MailView.column.from")).append(" : </b>");
+        sb.append("\n[b]").append(Messages.getString("MailView.column.from")).append(" : [/b]");
         sb.append(formatEmailList(headers, SmtpHeadersInterface.FROM));
-        sb.append("\n<b>").append(Messages.getString("MailView.column.to")).append(" : </b>");
+        sb.append("\n[b]").append(Messages.getString("MailView.column.to")).append(" : [/b]");
         sb.append(formatEmailList(headers, SmtpHeadersInterface.TO));
         
         String list = formatEmailList(headers, SmtpHeadersInterface.CC);
         if (!"".equals(list))
         {
-            sb.append("\n<b>").append(Messages.getString("MailView.column.cc")).append(" : </b>");
+            sb.append("\n[b]").append(Messages.getString("MailView.column.cc")).append(" : [/b]");
             sb.append(list);
         }
         
@@ -240,7 +241,7 @@ public class HeadersView
         
         if (!"".equals(list))
         {
-            sb.append("\n<b>").append(Messages.getString("MailView.column.bcc")).append(" : </b>");
+            sb.append("\n[b]").append(Messages.getString("MailView.column.bcc")).append(" : [/b]");
             sb.append(list);
         }
         
