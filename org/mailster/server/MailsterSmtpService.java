@@ -297,7 +297,7 @@ public class MailsterSmtpService
         }
         catch (Exception ex)
         {
-            main.log("MailsterSWT.log.error.stopping.server"); //$NON-NLS-1$
+            main.log(Messages.getString("MailsterSWT.log.error.stopping.server")); //$NON-NLS-1$
         }
     }
 
