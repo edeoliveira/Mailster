@@ -182,7 +182,7 @@ public class TableView
             }
         });
         
-        treeView.addMessageCounter(dataList, eventList);
+        treeView.installMessageCounter(dataList, eventList);
         
         SmtpMessageTableFormat tf = new SmtpMessageTableFormat();
         
