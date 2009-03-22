@@ -41,7 +41,9 @@ import org.eclipse.swt.widgets.Display;
  */
 public class StyledLabel extends StyledText
 {
-	public final static Color LINK_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
+	public final static Color LINK_COLOR = 
+		Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
+	public final static Color SUBJECT_COLOR = SWTHelper.createColor(255, 128, 0);
 	
     public StyledLabel(Composite c, int flags)
     {
@@ -50,51 +52,81 @@ public class StyledLabel extends StyledText
         getCaret().setVisible(false);
     }
 
+    private void setLink(ArrayList<StyleRange> ranges, int start, int length)
+    {
+        StyleRange range = new StyleRange();
+        range.start = start;
+        range.length = length;
+        range.foreground = LINK_COLOR;
+        range.underline = true;
+        ranges.add(range);    	
+    }
+
+    private void setBold(ArrayList<StyleRange> ranges, int start, int length)
+    {
+    	StyleRange range = new StyleRange();
+        range.start = start;
+        range.length = length;
+        range.fontStyle = SWT.BOLD;
+        ranges.add(range);
+    }
+
+    private void setSubject(ArrayList<StyleRange> ranges, int start, int length)
+    {
+    	StyleRange range = new StyleRange();
+        range.start = start;
+        range.length = length;
+        range.foreground = SUBJECT_COLOR;
+        ranges.add(range);
+    }
+    
     public void setText(String s)
     {
-        if (s.indexOf("<") != -1)
+        if (s.indexOf("[") != -1)
         {
             StringBuilder buffer = new StringBuilder(s);
             ArrayList<StyleRange> ranges = new ArrayList<StyleRange>();
 
-            while (buffer.length() > 0)
+            int open = 0; 
+            do
             {
-                int start = buffer.indexOf("<a>");
-                int end = buffer.indexOf("</a>");
-                int tmp = buffer.indexOf("<b>");
-
-                if (start != -1 && end != -1
-                        && start < end
-                        && (tmp == -1 || start < tmp))
+                open = buffer.indexOf("[");
+                
+                String tag = buffer.substring(open+1, open+3);
+                if ("a]".equals(tag))
                 {
+                	int end = buffer.indexOf("[/a]");
+                	if (end == -1)
+                		break;
                     buffer.delete(end, end + 4);
-                    buffer.delete(start, start + 3);
-                    StyleRange range = new StyleRange();
-                    range.start = start;
-                    range.length = end - start - 3;
-                    range.foreground = LINK_COLOR;
-                    range.underline = true;
-                    ranges.add(range);
+                    buffer.delete(open, open + 3);
+                    setLink(ranges, open, end - open - 3);            	
                 }
                 else
+                if ("b]".equals(tag))
                 {
-                    start = tmp;
-                    end = buffer.indexOf("</b>");
-
-                    if (start != -1 && end != -1 && start < end)
-                    {
-                        buffer.delete(end, end + 4);
-                        buffer.delete(start, start + 3);
-                        StyleRange range = new StyleRange();
-                        range.start = start;
-                        range.length = end - start - 3;
-                        range.fontStyle = SWT.BOLD;
-                        ranges.add(range);
-                    }
-                    else
-                        break;
+                	int end = buffer.indexOf("[/b]");
+                	if (end == -1)
+                		break;
+                    buffer.delete(end, end + 4);
+                    buffer.delete(open, open + 3);
+                    setBold(ranges, open, end - open - 3);            	                	
                 }
-            }
+                else
+                if ("s]".equals(tag))
+                {
+                	int end = buffer.indexOf("[/s]");
+                	if (end == -1)
+                		break;
+                    buffer.delete(end, end + 4);
+                    buffer.delete(open, open + 3);
+                    setSubject(ranges, open, end - open - 3);            	                	
+                }
+                else
+                	break;
+            } 
+            while (open != -1);
+            
             super.setText(buffer.toString());
             setStyleRanges(ranges.toArray(new StyleRange[ranges.size()]));
         }
