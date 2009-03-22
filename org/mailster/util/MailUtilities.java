@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -76,7 +77,8 @@ public class MailUtilities
             .getProperty("java.io.tmpdir");
 
     /**
-     * Returns the value of the header <code>headerName</code>. If value is
+     * Returns the value of the header <code>headerName</code>. If the parameter
+     * <code>decode</code> is set to true the the value is decoded. If value is
      * null, returns "" unless required header is of the following types :
      * <p>
      * Date : returns a RFC 822 compliant string of the current date and time<br>
@@ -89,10 +91,11 @@ public class MailUtilities
      * 
      * @param headers all the headers in which to search
      * @param headerName the name of the header
+     * @param decode if true the header value is decoded
      * @return the non null header value
      */
     public static String getNonNullHeaderValue(SmtpHeadersInterface headers,
-            String headerName)
+            String headerName, boolean decode)
     {
         if (headers == null || headerName == null)
             return "";
@@ -112,7 +115,29 @@ public class MailUtilities
 
             return "";
         }
-        return s;
+        else
+        {
+        	if (decode)
+        	{
+        		if (SmtpHeadersInterface.SUBJECT.equals(headerName))
+        		{
+        			StringBuilder sb = new StringBuilder();
+        			for (String val : headers.getHeaderValues(headerName))
+        			{
+						try 
+        				{
+							sb.append(MimeUtility.decodeText(val));
+						} 
+						catch (UnsupportedEncodingException e) {}
+        			}
+        			return sb.toString();
+        		}
+        		else
+        			return decodeHeaderValue(s);
+        	}
+        	else
+        		return s;
+        }
     }
 
     /**
