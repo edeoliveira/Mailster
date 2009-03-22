@@ -1,6 +1,7 @@
 package org.mailster.gui.views;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -183,10 +184,13 @@ public class FilterTreeView extends TreeView
         {
             // We only count unread messages
             if (msg.isSeen())
-                return "";
+                return "-";
             
             if (msg.getFlags().contains(Flags.Flag.FLAGGED))
                 return deletedTreeItemLabel;
+            else
+        	if (msg.isChecked())
+        		return checkedTreeItemLabel;
             else
                 return getEmailHost(msg.getMessageTo());
         }
@@ -253,28 +257,16 @@ public class FilterTreeView extends TreeView
         	menu.setDefaultItem(item);
 
 			if (item == importAsMailItem)
-			{
-				String fileName = getPath(true, false, false, SWT.OPEN);
-				importFromEmailFile(fileName);
-			}
+				importFromEmailFile();
 			else
 			if (item == importAsMailBoxItem)
-			{
-				String fileName = getPath(true, true, false, SWT.OPEN);
-				importFromMbox(fileName);
-			}
+				importFromMbox();
 			else
 			if (item == exportAsMailItem)
-			{
-				String fileName = getPath(false, false, true,SWT.SAVE);
-				exportAsEmailFile(fileName);
-			}
+				exportAsEmailFile();
 			else
 			if (item == exportAsMailBoxItem)
-			{
-				String fileName = getPath(false, true, false, SWT.SAVE);
-				exportAsMbox(fileName);
-			}        	
+				exportAsMbox();
         }
         
         private EventList<StoredSmtpMessage> getEmailSelection()
@@ -282,14 +274,16 @@ public class FilterTreeView extends TreeView
     		EventList<StoredSmtpMessage> mails = 
     			MailsterSWT.getInstance().getMailView().getTableView().getSelection();
     		
-    		if (mails.size() == 0)
+    		if (mails == null || mails.size() == 0)
     			mails = MailsterSWT.getInstance().getMailView().getTableView().getTableList();
 
     		return mails;
         }
 
-        private void importFromEmailFile(String fileName)
+        private void importFromEmailFile()
         {
+			String fileName = getPath(true, false, false, SWT.OPEN);
+        	
         	if (fileName == null)
         		return;
         	
@@ -314,8 +308,10 @@ public class FilterTreeView extends TreeView
             }
         }
         
-        private void importFromMbox(String fileName)
+        private void importFromMbox()
         {
+			String fileName = getPath(true, true, false, SWT.OPEN);
+        	
         	if (fileName == null)
         		return;
         	
@@ -337,11 +333,12 @@ public class FilterTreeView extends TreeView
             }
         }
         
-        private void exportAsEmailFile(String path)
+        private void exportAsEmailFile()
         {
         	EventList<StoredSmtpMessage> mails = getEmailSelection();
+        	String path = getPath(false, false, true,SWT.SAVE);
         	
-        	if (path == null || mails == null || mails.size() == 0)
+        	if (path == null)
         		return;
         	
     		for (StoredSmtpMessage msg : mails)
@@ -350,8 +347,8 @@ public class FilterTreeView extends TreeView
     			
     			try
                 {
-    				out = new PrintWriter(new FileWriter(path+
-    						msg.getMessageId().substring(1,msg.getMessageId().length()-2)+".eml", false));
+	    				out = new PrintWriter(new FileWriter(path+File.separatorChar+
+	    						msg.getMessageId().substring(1,msg.getMessageId().length()-1)+".eml", false));
     				out.write(msg.getMessage().toString());                
                 }
                 catch (Exception e)
@@ -366,11 +363,12 @@ public class FilterTreeView extends TreeView
     		}
         }
         
-        private void exportAsMbox(String fileName)
+        private void exportAsMbox()
         {
         	EventList<StoredSmtpMessage> mails = getEmailSelection();
+			String fileName = getPath(false, true, false, SWT.SAVE);
         	
-        	if (fileName == null || mails == null || mails.size() == 0)
+        	if (fileName == null)
         		return;
         	
         	try
@@ -436,8 +434,6 @@ public class FilterTreeView extends TreeView
         }
     }
     
-	private Map<String, List<StoredSmtpMessage>> messageTreeMap;
-	
 	private FilterList<StoredSmtpMessage> checkedList;    
     
     public FilterTreeView(Composite parent, boolean enableToolbar)
@@ -544,24 +540,36 @@ public class FilterTreeView extends TreeView
     	lastCallCount = eventList.size();
     	log.debug("Call to updateMessagesCounts()");
         
-    	String filterHost;
+    	String filterString;
     	List<StoredSmtpMessage> l;
+    	Map<String, List<StoredSmtpMessage>> map;
     	
+    	eventList.getReadWriteLock().readLock().lock();
+		try
+		{
+	    	map = GlazedLists.
+	    		syncEventListToMultiMap(eventList, new FilterGroupFunction());
+		}
+		finally
+		{
+			eventList.getReadWriteLock().readLock().unlock();
+		}					
+
         for (TreeItem child : root.getItems())
         {
         	if (child == checkedMailsTreeItem)
         	{
-        		filterHost = checkedTreeItemLabel;
+        		filterString = checkedTreeItemLabel;
         		l = checkedList;
         	}
         	else
         	{
-	        	filterHost = (String)child.getData();
-	        	l = messageTreeMap == null ? null : messageTreeMap.get(filterHost);	        	
+	        	filterString = (String)child.getData();
+	        	l = map == null ? null : map.get(filterString);	        	
         	}
         	
         	long count = l == null ? 0 : l.size();
-        	StringBuilder countLabel = new StringBuilder(filterHost);
+        	StringBuilder countLabel = new StringBuilder(filterString);
 	        if (count > 0)
 	        {
 	        	countLabel.append(" (").append(count);
@@ -571,13 +579,13 @@ public class FilterTreeView extends TreeView
 		        child.setText(countLabel.toString());
 	        }
 	        else
-	        	child.setText(filterHost);
+	        	child.setText(filterString);
         }
     }
 	
-	public void addMessageCounter(AbstractEventList<StoredSmtpMessage> eventList,
+	protected void installMessageCounter(AbstractEventList<StoredSmtpMessage> eventList,
 			final AbstractEventList<StoredSmtpMessage> baseList)
-	{
+	{        
 		eventList.addListEventListener(new ListEventListener<StoredSmtpMessage>() {
             public void listChanged(ListEvent<StoredSmtpMessage> listChanges)
             {
@@ -597,8 +605,6 @@ public class FilterTreeView extends TreeView
 		baseList.getReadWriteLock().writeLock().lock();
         try
         {
-        	messageTreeMap = GlazedLists.syncEventListToMultiMap(baseList, new FilterGroupFunction());
-        	
         	checkedList = new FilterList<StoredSmtpMessage>(baseList, new Matcher<StoredSmtpMessage>() {
     			public boolean matches(StoredSmtpMessage stored) 
     			{
