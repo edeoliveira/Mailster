@@ -7,8 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.mailster.util.MailUtilities;
-
 /**
  * ---<br>
  * Mailster (C) 2007-2009 De Oliveira Edouard
@@ -126,7 +124,7 @@ public class SmtpHeaders
      * @param trimed if <code>true</code> the header value is trimed.
      * @return value(s) associated with the header name
      */
-    public String[] getHeaderValues(String name, boolean trimed)    
+    private String[] getHeaderValues(String name, boolean trimed)    
     {
         SmtpHeader h = headers.get(name);
         if (h == null || h.getValues() == null)
@@ -157,11 +155,14 @@ public class SmtpHeaders
      */
     public String getHeaderValue(String name)
     {
-        SmtpHeader h = headers.get(name);
-        if (h == null || h.getValues() == null || h.getValues().get(0) == null)
-            return null;
-        else
-            return h.getValues().get(0).trim();
+        try
+        {
+            return headers.get(name).getValues().get(0).trim();
+        }
+        catch (Exception ex)
+        {
+        	return null;
+        }
     }
 
     /**
@@ -170,10 +171,7 @@ public class SmtpHeaders
     public void addHeader(String name, String value)
     {
         List<String> vals = new ArrayList<String>(1);
-        if (SmtpHeadersInterface.SUBJECT.equals(name))
-            vals.add(MailUtilities.decodeHeaderValue(value));
-        else
-            vals.add(value);
+        vals.add(value);
 
         headers.put(name, new SmtpHeader(name, vals));
     }
@@ -230,8 +228,7 @@ public class SmtpHeaders
                 if (lastHeaderName.startsWith("X-"))
                     h.getValues().add(line);
                 else if (SmtpHeadersInterface.SUBJECT.equals(lastHeaderName))
-                	h.getValues().set(0,
-                            h.getValues().get(0) + MailUtilities.decodeHeaderValue(line.trim()));
+                	h.getValues().add(line);
                 else
                 	parseMultipleValues(line, h.getValues());
             }
@@ -240,9 +237,8 @@ public class SmtpHeaders
 
     private void parseMultipleValues(String lineToParse, List<String> vals)
     {
-    	String decodedLine = MailUtilities.decodeHeaderValue(lineToParse);
-        StringTokenizer tk = new StringTokenizer(decodedLine, ";");
-
+    	StringTokenizer tk = new StringTokenizer(lineToParse, ";");
+    	
         while (tk.hasMoreTokens())
             vals.add(tk.nextToken().trim());
     }

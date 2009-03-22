@@ -261,7 +261,7 @@ public class SmtpMessage implements Serializable
         {
         	if (internalDate == null)
         	{
-        		date = MailUtilities.getNonNullHeaderValue(getHeaders(), SmtpHeadersInterface.DATE);
+        		date = MailUtilities.getNonNullHeaderValue(getHeaders(), SmtpHeadersInterface.DATE, false);
         		internalDate = date;
         	}
         	else
@@ -279,7 +279,7 @@ public class SmtpMessage implements Serializable
     public String getSubject()
     {
         return MailUtilities.getNonNullHeaderValue(getHeaders(),
-                SmtpHeadersInterface.SUBJECT);
+                SmtpHeadersInterface.SUBJECT, true);
     }
 
     public SmtpMessagePart getInternalParts()
