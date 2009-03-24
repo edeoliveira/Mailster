@@ -99,17 +99,22 @@ public class MailBox
         return available.tryAcquire();
     }
 
+    protected void acquireLock() throws InterruptedException
+    {
+        available.acquire();
+    }
+    
     public void releaseLock()
     {
         available.release();
     }
     
-    public void removeMessage(StoredSmtpMessage msg)
+    protected void removeMessage(StoredSmtpMessage msg)
     {
    		mails.remove(msg.getId());
     }
     
-    public void removeAllMessages()
+    protected void removeAllMessages()
     {
    		mails.clear();
     }
@@ -122,16 +127,11 @@ public class MailBox
      */
     public StoredSmtpMessage storeMessage(SmtpMessage message)
     {
-    	StoredSmtpMessage stored = null;
-    	
-    	synchronized (mails) 
-    	{
-			Long id = new Long(counter);
-			stored = new StoredSmtpMessage(message, id);
-	        stored.setMailBox(this);
-	    	mails.put(id, stored);
-	    	counter++;
-    	}
+		Long id = new Long(counter);
+		StoredSmtpMessage stored = new StoredSmtpMessage(message, id);
+        stored.setMailBox(this);
+    	mails.put(id, stored);
+    	counter++;
     	
         return stored;
     }

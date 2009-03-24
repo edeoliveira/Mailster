@@ -170,17 +170,12 @@ public class MailsterPop3Service
 
     public void removeAllMessages()
     {
-    	// TODO: fix this ?!
-    	// Note that we only delete the messages from the special mailbox as
-    	// other mailboxes are only accessed by POP3.
-    	userManager.getMailBoxManager().removeAllMessagesFromSpecialAccount();
+    	userManager.getMailBoxManager().removeAllMessages();
     }    
     
     public void removeMessage(StoredSmtpMessage msg)
     {
-    	// Note that we only delete the message from the special mailbox as
-    	// other mailboxes are only accessed by POP3.
-    	userManager.getMailBoxManager().removeMessageFromSpecialAccount(msg);
+    	userManager.getMailBoxManager().removeMessage(msg);
     }
     
     public StoredSmtpMessage storeMessage(SmtpMessage msg)

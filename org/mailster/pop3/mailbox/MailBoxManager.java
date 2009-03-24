@@ -1,8 +1,11 @@
 package org.mailster.pop3.mailbox;
 
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import org.mailster.message.SmtpMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ---<br>
@@ -33,9 +36,11 @@ import org.mailster.message.SmtpMessage;
  */
 public class MailBoxManager
 {
+    private static final Logger log = LoggerFactory.getLogger(MailBoxManager.class);
+	
     /**
      * This is a special mailbox account name used to retrieve all the received
-     * emails. This is intentionnaly a valid forged email address in order that
+     * emails. This is purposedly a valid forged email address in order that
      * email clients won't reject it.
      */
     public final static String POP3_SPECIAL_ACCOUNT_LOGIN = "pop3.all@Mailster.host.org";
@@ -74,7 +79,7 @@ public class MailBoxManager
     	}
     }
     
-    public void removeMessageFromSpecialAccount(StoredSmtpMessage msg) 
+    protected void removeMessageFromSpecialAccount(StoredSmtpMessage msg) 
     {
     	boolean acquired = pop3SpecialAccountMailbox.tryAcquireLock(3, 300);
     	if (acquired)
@@ -84,6 +89,46 @@ public class MailBoxManager
     	}
     }
 
+    public void removeAllMessages()
+    {
+    	synchronized (this) 
+    	{
+        	Iterator<MailBox> it = mailBoxes.values().iterator();
+        	while (it.hasNext())
+        	{
+        		MailBox m = it.next();
+        		try
+        		{
+        			m.acquireLock();
+        			m.removeAllMessages();
+        			m.releaseLock();
+        		}
+        		catch (Exception ex)
+        		{
+       				log.debug("Error acquiring lock on mailbox", ex);
+        		}
+        	}			
+		}
+    }
+    
+    public void removeMessage(StoredSmtpMessage msg)
+    {
+    	removeMessageFromSpecialAccount(msg);
+        for (String recipient : msg.getMessage().getRecipients())
+        {
+        	if (recipient.indexOf('<') > -1)
+        		recipient = recipient.substring(recipient.indexOf('<') + 1, recipient.indexOf('>'));
+        	
+            MailBox mbox = getMailBoxByUser(new Pop3User(recipient));            
+			boolean acquired = mbox.tryAcquireLock(3, 300);
+			if (acquired)
+			{
+				mbox.removeMessage(msg);
+				mbox.releaseLock();
+			}
+        }
+	}
+    
     public MailBox getMailBoxByUser(Pop3User user)
     {
         if (user == null || "".equals(user.getEmail()))
@@ -93,8 +138,8 @@ public class MailBoxManager
         {
         	if (pop3SpecialAccountLogin.equals(user.getEmail()))
         		return pop3SpecialAccountMailbox;
-        		
-            if (!mailBoxes.containsKey(user.getEmail()))
+        	
+        	if (!mailBoxes.containsKey(user.getEmail()))
             {
                 MailBox m = new MailBox(user);
                 mailBoxes.put(user.getEmail(), m);
@@ -107,11 +152,17 @@ public class MailBoxManager
 
     public void clear()
     {
-        mailBoxes.clear();
+    	synchronized (this)
+    	{
+    		mailBoxes.clear();
+    	}
     }
 
 	public void setPop3SpecialAccountLogin(String pop3SpecialAccountLogin) 
 	{
-		this.pop3SpecialAccountLogin = pop3SpecialAccountLogin;
+		synchronized (this) 
+		{
+			this.pop3SpecialAccountLogin = pop3SpecialAccountLogin;	
+		}
 	}
 }
