@@ -513,10 +513,12 @@ public class MailsterSWT
         Pop3ProtocolHandler.setTimeout(store.
 			getInt(ConfigurationManager.POP3_CONNECTION_TIMEOUT_KEY));
         
-        MinaPop3Connection.setupSSLParameters(
-        		store.getInt(ConfigurationManager.PREFERRED_SSL_PROTOCOL_KEY) == 0 ? 
-        				SSLProtocol.SSL : SSLProtocol.TLS, 
-        		store.getBoolean(ConfigurationManager.AUTH_SSL_CLIENT_KEY));       
+        SSLProtocol protocol = store.getInt(ConfigurationManager.PREFERRED_SSL_PROTOCOL_KEY) == 0 ? 
+				SSLProtocol.SSL : SSLProtocol.TLS;
+        boolean clientAuthNeeded = store.getBoolean(ConfigurationManager.AUTH_SSL_CLIENT_KEY);
+        
+        MinaPop3Connection.setupSSLParameters(protocol, clientAuthNeeded); 
+        MailsterSMTPServer.setupSSLParameters(protocol, clientAuthNeeded);
     }
     
     private static void startApplication(String[] args)
@@ -1002,8 +1004,12 @@ public class MailsterSWT
 					String line = new String(buf, 0, offset);
 					int pos = line.indexOf(' ');
 					String ver = line.substring(0, pos);
+					String currentVer = ConfigurationManager.MAILSTER_VERSION_NB.substring(1);
+					
 					boolean updateNeeded = 
-						!ConfigurationManager.MAILSTER_VERSION_NB.substring(1).equals(ver);
+						currentVer.charAt(0) < ver.charAt(0) ||
+						currentVer.charAt(2) < ver.charAt(2) ||
+						currentVer.charAt(4) < ver.charAt(4);
 					
 					String msg = null;
 			    	
