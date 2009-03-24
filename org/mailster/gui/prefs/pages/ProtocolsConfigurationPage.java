@@ -26,6 +26,7 @@ import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.GIFAnimator;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.pop3.connection.MinaPop3Connection;
+import org.mailster.server.MailsterSMTPServer;
 
 /**
  * ---<br>
@@ -309,6 +310,7 @@ public class ProtocolsConfigurationPage
         String selection = preferredSSLProtocolViewer.getCombo().getItem(index).toString();
         SSLProtocol protocol = SSLProtocol.SSL.equals(selection) ? SSLProtocol.SSL : SSLProtocol.TLS;
         MinaPop3Connection.setupSSLParameters(protocol, authSSLClientsStartEditor.getSelection());
+        MailsterSMTPServer.setupSSLParameters(protocol, authSSLClientsStartEditor.getSelection());
         
         return true;
     }    
