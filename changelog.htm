@@ -57,6 +57,43 @@
 </head>
 <body style="background-color:#F5F3F1" ><div id="changelog" class="rbdc">
 		<dl class="changes">
+		<dt>ver.0.9.2</dt>
+            <dd><strong class="bdx">Released on 2009-03-28 / Codename Magneto</strong></dd>
+			<dd>
+                <strong>GUI</strong>
+                <ul>
+                	<li>Added a default behaviour support to the import/export dropdown
+  						toolbar item.</li>
+					<li>Fixed splash screen show duration relatively to the startup time.</li>
+					<li>Dramatically increased startup time by further checking crypto
+  						permissions when security environment is not properly setup.</li>
+					<li>Made version check asynchronous.</li>
+					<li>Optimized date column sorting.</li>
+					<li>Fixed export as eml file function which was generating incorrect
+  						pathnames and failed to export the files.</li>
+					<li>Optimized and enhanced headers view with additional styles support.</li>
+					<li>Fixed the new message count displayed in the hosts tree.</li>
+					<li>Fixed the online version check version computing code.</li>
+  				</ul>
+            </dd>
+            <dd>
+				<strong>Core</strong>
+				<ul>
+					<li>Fixed a bug when parsing some strange extended headers with no 
+  						header values.</li>
+					<li>Fixed a bug in multipart/related messages parsing.</li>
+					<li>Fixed subject header decoding thus preventing storing it unencoded.</li>
+					<li>Fixed SMTP server. It now correctly uses SSL options.</li>
+  				</ul>
+			</dd>
+            <dd>
+				<strong>POP3</strong>
+				<ul>
+					<li>Enhanced concurrency of the MailBoxManager.</li>
+					<li>Mails are now also removed from all the mailboxes and not only from 
+  						the special account mailbox.</li>
+  				</ul>
+			</dd>
 		<dt>ver.0.9.1</dt>
             <dd><strong class="bdx">Released on 2009-02-14 / Codename My little flea</strong></dd>
 			<dd>

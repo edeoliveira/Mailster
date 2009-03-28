@@ -1,4 +1,33 @@
 #####
+Version 0.9.2 (2009-03-28) - Codename Magneto
+
+GUI :
+- Added a default behaviour support to the import/export dropdown
+  toolbar item.
+- Fixed splash screen show duration relatively to the startup time.
+- Dramatically increased startup time by further checking crypto
+  permissions when security environment is not properly setup.
+- Made version check asynchronous.
+- Optimized date column sorting.
+- Fixed export as eml file function which was generating incorrect
+  pathnames and failed to export the files.
+- Optimized and enhanced headers view with additional styles support.
+- Fixed the new message count displayed in the hosts tree.
+- Fixed the online version check version computing code.   
+   
+Core :
+- Fixed a bug when parsing some strange extended headers with no 
+  header values.
+- Fixed a bug in multipart/related messages parsing.
+- Fixed subject header decoding thus preventing storing it unencoded.
+- Fixed SMTP server. It now correctly uses SSL options.
+
+POP3 :
+- Enhanced concurrency of the MailBoxManager.
+- Mails are now also removed from all the mailboxes and not only from 
+  the special account mailbox. 
+   
+#####
 Version 0.9.1 (2009-02-14) - Codename My little flea
 
 NOTES :
