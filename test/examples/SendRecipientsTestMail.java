@@ -57,7 +57,7 @@ public class SendRecipientsTestMail
 		}
 		
 		baseMsg.setSubject("Test recipients mail");
-		baseMsg.setContent("Test content", "text/plain; charset=\"ISO-8859-1\"");
+		baseMsg.setContent("Test content ë", "text/plain; charset=\"ISO-8859-1\"");
 		baseMsg.setHeader("Date", DateUtilities.rfc822DateFormatter.format(new Date()));
 		
         baseMsg.saveChanges();
