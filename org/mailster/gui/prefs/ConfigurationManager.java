@@ -56,12 +56,12 @@ public class ConfigurationManager
     /**
      * Application version number
      */
-    public final static String MAILSTER_VERSION_NB	= "v0.9.2";
+    public final static String MAILSTER_VERSION_NB	= "v0.9.3";
 
     /**
      * Application version codename string
      */
-    public final static String MAILSTER_VERSION_CODENAME = " - Codename Magneto";
+    public final static String MAILSTER_VERSION_CODENAME = " - Codename Weapon X";
 
     /**
      * Application version string
@@ -77,6 +77,11 @@ public class ConfigurationManager
      * Application homepage
      */
     public final static String MAILSTER_HOMEPAGE = "http://tedorg.free.fr/en/projects.php";
+    
+    /**
+     * Application download page
+     */
+    public final static String MAILSTER_DOWNLOAD_PAGE = "https://sourceforge.net/project/showfiles.php?group_id=189956";
     
     /**
      * Application copyright
