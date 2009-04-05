@@ -120,7 +120,7 @@ public class HeadersView
             if (sb.length()>0)
                 sb.append(';');
 
-            if (s != null)
+            if (s != null && s.length()>0)
             {
             	if (s.indexOf(',')>=0)
             	{
@@ -227,10 +227,15 @@ public class HeadersView
         sb.append(date);
         sb.append("\n[b]").append(Messages.getString("MailView.column.from")).append(" : [/b]");
         sb.append(formatEmailList(headers, SmtpHeadersInterface.FROM));
-        sb.append("\n[b]").append(Messages.getString("MailView.column.to")).append(" : [/b]");
-        sb.append(formatEmailList(headers, SmtpHeadersInterface.TO));
         
-        String list = formatEmailList(headers, SmtpHeadersInterface.CC);
+        String list = formatEmailList(headers, SmtpHeadersInterface.TO);
+        if (!"".equals(list))
+        {
+        	sb.append("\n[b]").append(Messages.getString("MailView.column.to")).append(" : [/b]");
+        	sb.append(list);
+        }
+        
+        list = formatEmailList(headers, SmtpHeadersInterface.CC);
         if (!"".equals(list))
         {
             sb.append("\n[b]").append(Messages.getString("MailView.column.cc")).append(" : [/b]");
