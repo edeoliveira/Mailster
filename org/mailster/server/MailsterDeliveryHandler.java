@@ -62,7 +62,7 @@ public class MailsterDeliveryHandler
 		recipients.add(recipient);
 	}
 	
-	public void resetMessageState()
+	public void resetDeliveryState()
 	{
 		this.from = null;
 		this.recipients.clear();
