@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.mailster.MailsterSWT;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.glazedlists.BatchEventList;
@@ -234,7 +235,7 @@ public class TableView
         table.setHeaderVisible(true);
         table.setLinesVisible(false);
         table.setItemCount(0);
-
+        
         TableColumn attachments = table.getColumn(0);
         attachments.setResizable(false);
         attachments.setMoveable(true);
@@ -523,6 +524,8 @@ public class TableView
         gd.grabExcessHorizontalSpace = true;
         gd.horizontalAlignment = GridData.END;
         countLabel.setLayoutData(gd);
+        
+        MailsterSWT.getInstance().configureDragAndDrop(table);
     }
     
     protected void updateTableColumnsWidth()
