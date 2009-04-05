@@ -7,7 +7,7 @@ SET JAVA_HOME=C:\Program Files\Java\jdk1.6.0_01
 
 SET CP=mailster.jar;lib\mail.jar;lib\glazedlists_java15.jar;%CLASSPATH%
 SET CP=lib\bcprov-jdk15-141.jar;lib\bcmail-jdk15-141.jar;%CP%
-SET CP=lib\mina-core-2.0.0-M4.jar;lib\MailsterSMTP-1.0.0-M2.jar;%CP%
+SET CP=lib\mina-core-2.0.0-M4.jar;lib\MailsterSMTP-1.0.0-RC1.jar;%CP%
 SET CP=lib\slf4j-api-1.5.6.jar;lib\slf4j-log4j12-1.5.6.jar;lib\log4j-1.2.15.jar;%CP%
 SET CP=lib\commons-lang-2.3.jar;%CP%
 
