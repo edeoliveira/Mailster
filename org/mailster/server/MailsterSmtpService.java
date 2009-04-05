@@ -230,7 +230,13 @@ public class MailsterSmtpService
         try
         {            
             server.setDebug(debug);
-            server.start();
+            try 
+            {
+            	server.start();
+            } 
+            catch (RuntimeException rex) {
+            	main.log(rex.getMessage());
+            }
             
             if (!server.isStopped())
             {
