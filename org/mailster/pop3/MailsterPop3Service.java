@@ -187,8 +187,9 @@ public class MailsterPop3Service
         	
             log.debug("Storing new message in mailbox of recipient <{}>", recipient);
             Pop3User user = userManager.getUserByEmail(recipient);
-            MailBox mbox = userManager.getMailBoxManager().getMailBoxByUser(user);            
-            mbox.storeMessage(msg);
+            MailBox mbox = userManager.getMailBoxManager().getMailBoxByUser(user);
+            if (mbox != null)
+            	mbox.storeMessage(msg);
         }
         
         return userManager.getMailBoxManager().addMessageToSpecialAccount(msg);
