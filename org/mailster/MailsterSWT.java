@@ -13,6 +13,12 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyAdapter;
@@ -27,6 +33,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.CoolItem;
 import org.eclipse.swt.widgets.Display;
@@ -57,6 +64,7 @@ import org.mailster.gui.pshelf.PaletteShelfRenderer;
 import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.gui.views.FilterTreeView;
+import org.mailster.gui.views.ImportExportUtilities;
 import org.mailster.gui.views.MailView;
 import org.mailster.gui.views.OutLineView;
 import org.mailster.message.SmtpHeadersInterface;
@@ -580,11 +588,14 @@ public class MailsterSWT
         
         String localeInfo = store.getString(ConfigurationManager.LANGUAGE_KEY);
         
-        if (localeInfo.indexOf('_') != -1)
-        	Messages.setLocale(new Locale(localeInfo.substring(0, 2), localeInfo.substring(3)));
-        else
-        	Messages.setLocale(new Locale(localeInfo));
-    	
+        if (localeInfo != null && !"".equals(localeInfo))
+        {
+	        if (localeInfo.indexOf('_') != -1)
+	        	Messages.setLocale(new Locale(localeInfo.substring(0, 2), localeInfo.substring(3)));
+	        else	
+	        	Messages.setLocale(new Locale(localeInfo));
+        }
+        
     	main.smtpService.setQueueRefreshTimeout(
     			store.getLong(ConfigurationManager.SMTP_CONNECTION_TIMEOUT_KEY)	/ 1000);
         
@@ -621,17 +632,15 @@ public class MailsterSWT
         Thread.UncaughtExceptionHandler exHandler  = new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(final Thread t,
                     final Throwable ex)
-            {
-            	System.out.println(ex.getCause());
+            {            
             	ex.printStackTrace();
                 Display.getDefault().asyncExec(new Runnable() {
                     public void run()
                     {
                         _main.log(Messages
                             .getString("MailsterSWT.exception.log1") + t.getName() //$NON-NLS-1$
-                            + Messages
-                                    .getString("MailsterSWT.exception.log2") //$NON-NLS-1$
-                            + ex.getCause().toString());                        
+                            + Messages.getString("MailsterSWT.exception.log2") //$NON-NLS-1$
+                            + ex.getMessage());                        
                     }
                 });
                 _main.smtpService.shutdownServer(false);
@@ -864,25 +873,24 @@ public class MailsterSWT
         ConfigurationManager.CONFIG_STORE.save();
     }
     
-    public void showTrayItemTooltipMessage(String title, String message)
+    public void showTrayItemTooltipMessage(final String title, final String message)
     {
-    	final ToolTip tip = new ToolTip(sShell, SWT.BALLOON | SWT.ICON_INFORMATION);
-    	final Tray tray = Display.getDefault().getSystemTray();
-    	
-    	tip.setMessage(message);    	
-    	if (tray != null) 
-    	{
-    		tip.setText(title);
-    		trayItem.setToolTip(tip);
-    	} 
-    	else 
-    	{
-    		tip.setText(title);
-    		tip.setLocation(sShell.getLocation());
-    	}
-    	tip.setVisible(true);
-        tip.setAutoHide(ConfigurationManager.CONFIG_STORE.
-        		getBoolean(ConfigurationManager.AUTO_HIDE_NOTIFICATIONS_KEY));
+    	Display.getDefault().asyncExec(new Thread() {
+    		public void run() {
+    			final ToolTip tip = new ToolTip(sShell, SWT.BALLOON | SWT.ICON_INFORMATION);    	
+	        	tip.setMessage(message);
+        		tip.setText(title);
+	        	
+    	    	if (Display.getDefault().getSystemTray() != null) 
+	        		trayItem.setToolTip(tip);
+	        	else 
+	        		tip.setLocation(sShell.getLocation());
+
+    	    	tip.setVisible(true);
+	            tip.setAutoHide(ConfigurationManager.CONFIG_STORE.
+	            		getBoolean(ConfigurationManager.AUTO_HIDE_NOTIFICATIONS_KEY));    		
+    		}
+    	});
     }
     	
     private void createSystemTray()
@@ -986,9 +994,8 @@ public class MailsterSWT
     
     public void versionCheck()
     {
-        Display.getDefault().asyncExec(new Thread() {
-            public void run()
-            {
+        (new Thread() {
+            public void run() {
 		    	try
 		    	{
 					InputStream in = 
@@ -1032,6 +1039,15 @@ public class MailsterSWT
 			    			Messages.getString("MailView.tray.versioncheck.title") //$NON-NLS-1$
 			    			+DateUtilities.hourDateFormat.format(new Date())+")",  //$NON-NLS-1$
 			    			msg);
+			    	
+			    	if (updateNeeded)
+						Display.getDefault().asyncExec(new Thread() {
+							public void run() {
+								mailView.showURL(
+									ConfigurationManager.MAILSTER_DOWNLOAD_PAGE,
+									false);
+							}
+						});
 		    	}
 		    	catch (Exception ex)
 		    	{
@@ -1039,6 +1055,33 @@ public class MailsterSWT
 		    		log("Failed to check if version is up to date."); //$NON-NLS-1$
 		    	}
             }
-        });
+        }).start();
     }
+    
+    public void configureDragAndDrop(Control ctrl)
+    {
+    	DropTarget dt = new DropTarget(ctrl, DND.DROP_DEFAULT
+				| DND.DROP_MOVE);
+		dt.setTransfer(new Transfer[] { FileTransfer.getInstance() });
+		dt.addDropListener(new DropTargetAdapter() {
+			public void drop(DropTargetEvent event) 
+			{
+				FileTransfer ft = FileTransfer.getInstance();
+				if (ft.isSupportedType(event.currentDataType)) 
+				{
+					String[] files = (String[]) event.data;
+					for (String file : files)
+					{
+						if (file.toLowerCase().endsWith(".eml"))
+							ImportExportUtilities.importFromEmailFile(file);
+						else
+						if (file.toLowerCase().endsWith(".mbx"))
+							ImportExportUtilities.importFromMbox(file);								
+					}
+				}
+			}
+		});    	
+    }
+    
+    
 }
