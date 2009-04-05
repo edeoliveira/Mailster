@@ -32,6 +32,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
@@ -709,11 +710,15 @@ public class MailView
             sb.append(']'); //$NON-NLS-1$
             sb.append(msg);
             sb.append('\n'); //$NON-NLS-1$
+            final String s = sb.toString();
             
-            int idx = log.getTopIndex();
-            log.append(sb.toString());
-            if (logViewIsScrollLocked)
-                log.setTopIndex(idx);
+            Display.getDefault().asyncExec(new Thread() {
+				public void run() {
+		            int idx = log.getTopIndex();
+		            log.append(s.toString());
+		            if (logViewIsScrollLocked)
+		                log.setTopIndex(idx);
+				}});
         }
         else
             LOG.info(msg);
@@ -1045,7 +1050,7 @@ public class MailView
                 SWT.COLOR_WHITE));
     }
 
-    public void showURL(Image img, String url,  String title)
+    public void showURL(Image img, String url, String title)
     {
     	showURL(img, url, title, false);
     }
