@@ -228,7 +228,7 @@ public class SmtpHeaders
                 if (lastHeaderName.startsWith("X-"))
                     h.getValues().add(line);
                 else if (SmtpHeadersInterface.SUBJECT.equals(lastHeaderName))
-                	h.getValues().add(line);
+                	h.getValues().set(0, h.getValues().get(0)+'\n'+line);
                 else
                 	parseMultipleValues(line, h.getValues());
             }
