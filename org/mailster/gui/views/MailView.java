@@ -101,34 +101,34 @@ public class MailView
         {
             super(dropdown);
 
-        	dcFormat = new DecimalFormat("#,##0");
+        	dcFormat = new DecimalFormat("#,##0"); //$NON-NLS-1$
         	dcFormat.setGroupingSize(3);
         }
         
         private void getFormattedPartSize(StringBuilder sb, SmtpMessagePart part)
         {
         	int size = part.getSize();
-        	String unit = Messages.getString("MailView.fileSizeUnit.bytes");
+        	String unit = Messages.getString("MailView.fileSizeUnit.bytes"); //$NON-NLS-1$
         	
         	if (size > 1E9)
         	{
         		size = (int) (size / 1E9);
-        		unit = Messages.getString("MailView.fileSizeUnit.gigabytes");;
+        		unit = Messages.getString("MailView.fileSizeUnit.gigabytes"); //$NON-NLS-1$
         	}
         	else
         	if (size > 1E6)
         	{
         		size = (int) (size / 1E6);
-        		unit = Messages.getString("MailView.fileSizeUnit.megabytes");;
+        		unit = Messages.getString("MailView.fileSizeUnit.megabytes"); //$NON-NLS-1$
         	}
         	else        		
         	if (size > 1E4)
         	{
         		size = (int) (size / 1E3);
-        		unit = Messages.getString("MailView.fileSizeUnit.kilobytes");;
+        		unit = Messages.getString("MailView.fileSizeUnit.kilobytes"); //$NON-NLS-1$
         	}
         	
-        	sb.append(dcFormat.format(size)).append(' ').append(unit);
+        	sb.append(dcFormat.format(size)).append(' ').append(unit); //$NON-NLS-1$
         }
         
         /**
