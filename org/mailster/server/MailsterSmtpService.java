@@ -5,6 +5,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -175,8 +176,15 @@ public class MailsterSmtpService
 
     public void addReceivedEmail(List<SmtpMessage> list)
     {
-    	for (SmtpMessage msg : list)
-    		addReceivedEmail(msg);
+    	Collection<StoredSmtpMessage> mails = new ArrayList<StoredSmtpMessage>();
+    	for (SmtpMessage msg : list) {
+    		mails.add(pop3Service.storeMessage(msg));
+    	}
+    	
+        synchronized(receivedMessages)
+        {
+        	receivedMessages.addAll(mails);
+        }
     }
     
     public void addReceivedEmail(SmtpMessage msg)
