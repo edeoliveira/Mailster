@@ -47,6 +47,7 @@ public class MemoryProgressBar
 	public MemoryProgressBar(Composite parent, int style) 
 	{
 		this(parent, style, DEFAULT_TIMEOUT);
+		setToolTipText(Messages.getString("MailsterSWT.memory.progressBar.tooltip")); //$NON-NLS-1$
 	}
 	
 	public MemoryProgressBar(Composite parent, int style, int timeout) 
@@ -61,14 +62,16 @@ public class MemoryProgressBar
 				
 				gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
 				
-				int used = Math.round(((Runtime.getRuntime().maxMemory()-Runtime.getRuntime().freeMemory()) * 100) 
-						/ Runtime.getRuntime().maxMemory());
+				long maxMemory = Runtime.getRuntime().maxMemory();
+				int used = Math.round(((maxMemory-Runtime.getRuntime().freeMemory()) * 100) 
+						/ maxMemory);
 				
 				String title = used+" %";
 				Point size = getSize();
 				
 				gc.drawString(title, 
-						(size.x - gc.getFontMetrics().getAverageCharWidth()*title.length()) /2, (size.y-gc.getFontMetrics().getHeight()) / 2, true);
+						(size.x - gc.getFontMetrics().getAverageCharWidth()*title.length()) /2, 
+						(size.y-gc.getFontMetrics().getHeight()) / 2, true);
 				
 				gc.setForeground(foreGround);
 			}		
@@ -102,8 +105,9 @@ public class MemoryProgressBar
 						getDisplay().asyncExec(new Runnable() {
 							public void run() 
 							{
-								int used = Math.round(((Runtime.getRuntime().maxMemory()-Runtime.getRuntime().freeMemory()) * 100) 
-										/ Runtime.getRuntime().maxMemory());
+								long maxMemory = Runtime.getRuntime().maxMemory();
+								int used = Math.round(((maxMemory-Runtime.getRuntime().freeMemory()) * 100) 
+										/ maxMemory);
 								
 								if (!isDisposed()) {
 									setSelection(used);
