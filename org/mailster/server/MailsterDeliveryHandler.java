@@ -72,7 +72,8 @@ public class MailsterDeliveryHandler
 	{
 		if (recipients.size() > 0)
 		{
-			MailsterSMTPServer server = (MailsterSMTPServer) getListeners().iterator().next();
+			MailsterSMTPServer server = 
+				(MailsterSMTPServer) getListeners().iterator().next();
 			server.deliver(this.from, recipients, 
 					SharedStreamUtils.getPrivateInputStream(false, data));
 		}
