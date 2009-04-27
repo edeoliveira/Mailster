@@ -64,8 +64,8 @@ import org.mailster.gui.prefs.widgets.TableFieldEditor;
 
 public class LanguageConfigurationPage
         extends DefaultFieldEditorConfigurationPage
-{
-    /**
+{    
+	/**
      * The <code>FieldEditor</code> to select the user interface language
      */
     private TableFieldEditor languageEditor;
@@ -92,7 +92,6 @@ public class LanguageConfigurationPage
         LanguageTableLabelProvider labelProvider = new LanguageTableLabelProvider();
 
         String[] columns = { Messages.getString("languageHeader"),
-                                //Messages.getString("isoCodeHeader"),
 				        		Messages.getString("translationDateHeader"),                 
 				        		Messages.getString("versionHeader"),
                                 Messages.getString("translatorHeader")};
@@ -104,7 +103,7 @@ public class LanguageConfigurationPage
                         Messages.getAvailableLanguageResources());
         languageEditor.setSortingEnabled(true);
         languageEditor.sort(0, true);
-        languageEditor.setSelectionColumn(1);
+        languageEditor.setSelectionColumn(0);
         languageEditor.setColumnWidth(0, 120);
         languageEditor.setColumnAlignment(2, SWT.CENTER);
         addField(languageEditor);

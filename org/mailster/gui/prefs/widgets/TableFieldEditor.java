@@ -206,8 +206,9 @@ public class TableFieldEditor extends FieldEditor
         else
         {
             /* Column selection */
-            return this.labelProvider.getColumnText(selection
-                    .getFirstElement(), this.selectionColumn);
+            return ((ITableContentProvider) this.contentProvider)
+					.getColumnValue(selection.getFirstElement(),
+							this.selectionColumn).toString();
         }
     }
 
@@ -581,8 +582,10 @@ public class TableFieldEditor extends FieldEditor
             {
                 for (int i = 0; i < items.length && !selected; i++)
                 {
-                    if (selectionStr.equals(this.labelProvider.getColumnText(
-                            items[i], this.selectionColumn)))
+                    if (selectionStr
+							.equals(((ITableContentProvider) this.contentProvider)
+									.getColumnValue(items[i],
+											this.selectionColumn)))
                     {
                         StructuredSelection selection = new StructuredSelection(
                                 items[i]);

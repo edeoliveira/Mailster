@@ -24,7 +24,6 @@
 package org.mailster.gui.prefs;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.mailster.gui.Messages;
 import org.mailster.gui.prefs.utils.LanguageResource;
 import org.mailster.gui.prefs.widgets.ITableContentProvider;
 import org.mailster.util.StringUtilities;
@@ -58,12 +57,7 @@ public class LanguageTableContentProvider extends ArrayContentProvider
         {
             case 0 :
             {
-                /* Use english language identifiers by default */
-            	StringBuffer sb = new StringBuffer(resource
-                        .getLanguage(Messages.getLanguageResource("en")));
-            	sb.append(" (").append(resource.getFullISOLanguage()).append(')');
-            	
-            	return sb.toString();
+            	return resource.getFullISOLanguage();
             }
             case 1 :
             {
