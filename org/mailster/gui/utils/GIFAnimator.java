@@ -51,6 +51,7 @@ public class GIFAnimator extends Thread
 	private Color bgColor;
 	
 	private boolean paused = true;
+	private boolean quit = false;
 	
 	private int offsetX = 0;
 	private int offsetY = 0;
@@ -59,7 +60,6 @@ public class GIFAnimator extends Thread
 			String resourceFileName, Control ctrl, boolean useGIFBackground)
 	{
 		super(threadName);
-		setDaemon(true);
 		
 		this.useGIFBackground = useGIFBackground;
 		gc = new GC(ctrl);
@@ -74,6 +74,11 @@ public class GIFAnimator extends Thread
 	public void switchState()
 	{
 		paused = ! paused;
+	}
+	
+	public void dispose()
+	{
+	    	this.quit = true;
 	}
 	
 	public void run() 
@@ -113,6 +118,9 @@ public class GIFAnimator extends Thread
 			int repeatCount = loader.repeatCount;
 			while (loader.repeatCount == 0 || repeatCount > 0) 
 			{
+			    	if (quit)
+			    	    	break;
+			    	
 				if (!paused)
 				{
 					switch (imageData.disposalMethod) 
