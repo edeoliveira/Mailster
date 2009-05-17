@@ -42,8 +42,7 @@ public abstract class CumulativeIoFilter extends IoFilterAdapter
     /**
      * Cumulates content of <tt>in</tt> into internal buffer and forwards
      * decoding requests to 
-     * {@link DataConsumer#consume(
-     * org.apache.mina.common.IoFilter.NextFilter, ByteBuffer)}.
+     * {@link DataConsumer#consume(org.apache.mina.core.filterchain.IoFilter.NextFilter, IoBuffer)}.
      * repeatedly until it returns <tt>false</tt>. The cumulative buffer is 
      * compacted after decoding ends.
      * 

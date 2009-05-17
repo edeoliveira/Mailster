@@ -120,8 +120,7 @@ public class TextLineConsumer implements DataConsumer
     /**
      * Sets the allowed minimum size of the line to be decoded.
      * If the size of the line is smaller than this value, the
-     * {@link TextLineConsumer#consume(
-     * org.apache.mina.common.IoFilter.NextFilter, IoBuffer)} 
+     * {@link #consume(NextFilter, IoBuffer)} 
      * will return false immediately. The default value is <tt>0</tt>.
      */
     public void setMinLineLength( int minLineLength )

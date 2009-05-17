@@ -26,7 +26,7 @@ import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
  * Web Site</a> <br>
  * ---
  * <p>
- * SSLFilterFactory.java - The factory that generates a {@link SSLFilter}.
+ * SSLFilterFactory.java - The factory that generates a {@link SslFilter}.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision$, $Date$

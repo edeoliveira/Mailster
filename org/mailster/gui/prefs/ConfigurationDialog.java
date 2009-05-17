@@ -739,7 +739,6 @@ public class ConfigurationDialog extends PreferenceDialog
     /**
      * Creates the preference tree structure.
      * 
-     * @param resource the <code>LanguageResource/code> to use for i18n
      * @param mgr the <code>PreferenceManager</code> that the <code>PreferenceNode</code>s
      * should be embedded in
      */

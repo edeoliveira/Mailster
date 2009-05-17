@@ -456,7 +456,7 @@ public class StringUtilities
     /**
      * <p>Strips whitespace from the start and end of a String.</p>
      *
-     * <p>This is similar to {@link #trim(String)} but removes whitespace.
+     * <p>This is similar to {@link String#trim()} but removes whitespace.
      * Whitespace is defined by {@link Character#isWhitespace(char)}.</p>
      *
      * <p>A <code>null</code> input String returns <code>null</code>.</p>

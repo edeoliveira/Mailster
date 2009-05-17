@@ -134,7 +134,7 @@ public class MailView
         /**
          * Adds an item to the dropdown list
          * 
-         * @param item the item to add
+         * @param part the part item to add
          */
         public void add(SmtpMessagePart part)
         {

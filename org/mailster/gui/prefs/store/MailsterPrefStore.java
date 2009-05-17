@@ -329,9 +329,10 @@ public class MailsterPrefStore extends EventManager implements
 
     /**
      * Helper function: gets long for a given name.
-     * @param p
-     * @param name
-     * @return
+     * @param p the properties
+     * @param name the name of the property
+     * 
+     * @return the return value as a long
      */
     private long getLong(Properties p, String name) {
         String value = p != null ? p.getProperty(name) : null;
@@ -355,9 +356,10 @@ public class MailsterPrefStore extends EventManager implements
 
     /**
      * Helper function: gets string for a given name.
-     * @param p
-     * @param name
-     * @return
+     * @param p the properties
+     * @param name the property name
+     * 
+     * @return the return value as a String
      */
     private String getString(Properties p, String name) {
         String value = p != null ? p.getProperty(name) : null;

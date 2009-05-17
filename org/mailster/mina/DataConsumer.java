@@ -39,8 +39,8 @@ import org.apache.mina.core.filterchain.IoFilter.NextFilter;
 public interface DataConsumer 
 {
 	/**
-	 * Consumes data and sends it to the {@link IoFilterCodec#unwrap(
-	 * NextFilter, IoBuffer)} method.
+	 * Consumes data and sends it to the 
+	 * {@link IoFilterCodec#unwrap(NextFilter, IoBuffer)} method.
 	 */
 	public boolean consume( NextFilter nextFilter, IoBuffer in )
 		throws Exception;

@@ -34,7 +34,7 @@ import org.mailster.smtp.util.SharedStreamUtils;
  * Web Site</a> <br>
  * ---
  * <p>
- * MailsterDeliveryHandler.java - Class which implements the {@link DeliveryHandler}
+ * MailsterDeliveryHandler.java - Class which implements the {@link AbstractDeliveryHandler}
  * interface.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
