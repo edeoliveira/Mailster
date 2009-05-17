@@ -375,10 +375,9 @@ public class MailView
             if (event.item != logTabItem)
                 restore(event);
             else
-            {
             	logTabItem = null;
-            	setTopRight(mailToolbar);
-            }
+            	
+            setTopRight(mailToolbar);
         }
     }
 
@@ -421,6 +420,7 @@ public class MailView
     
     private ToolBar logViewToolBar;
     private ToolBar mailToolbar;
+    private ToolBar browserViewToolBar;
     
     public MailView(Composite parent, FilterTreeView treeView)
     {
@@ -529,9 +529,9 @@ public class MailView
         collapseAllButton.addSelectionListener(selectionAdapter);
     }
 
-    private ToolBar createBrowserViewToolBar(final Browser browser, final String url)
+    private void createBrowserViewToolBar(final Browser browser, final String url)
     {
-    	ToolBar browserViewToolBar = new ToolBar(folder, SWT.FILL | SWT.FLAT);
+    	browserViewToolBar = new ToolBar(folder, SWT.FILL | SWT.FLAT);
 
     	ToolItem placeHolder = new ToolItem(browserViewToolBar, SWT.NONE);
     	placeHolder.setEnabled(false);
@@ -596,6 +596,12 @@ public class MailView
             }
         });
         
+        browser.addDisposeListener(new DisposeListener() {
+	    public void widgetDisposed(DisposeEvent evt) {
+		t.dispose();		
+	    }
+	});
+        
         browser.addLocationListener(new LocationListener() {		
 			public void changed(LocationEvent evt) {
 				stopToolItem.setEnabled(false);
@@ -611,7 +617,6 @@ public class MailView
 		});
         
         createToolBarCommons(browserViewToolBar);
-        return browserViewToolBar;
     }
     
     private void createLogViewToolBar()
@@ -645,8 +650,10 @@ public class MailView
     
     public void createLogConsole(boolean createTabItem)
     {
-    	if (logTabItem != null)
+    	if (logTabItem != null) {
+    	    	folder.setSelection(logTabItem);
     		return;
+    	}
 
     	final Composite logComposite = new Composite(folder, SWT.NONE);
         logComposite.setLayout(
@@ -1004,6 +1011,8 @@ public class MailView
                 	else
             		if (event.item == logTabItem)
             			setTopRight(logViewToolBar);
+            		else
+            		    setTopRight(browserViewToolBar);
                 }
             }
         });
@@ -1092,7 +1101,7 @@ public class MailView
             folder.setSelection(item);
             folderLayoutListener.maximize(null);            
             
-            ToolBar tb = createBrowserViewToolBar(b, url);
+            createBrowserViewToolBar(b, url);
             item.addDisposeListener(new DisposeListener() {
                 public void widgetDisposed(DisposeEvent e)
                 {
@@ -1100,7 +1109,7 @@ public class MailView
                 }
             });
             
-            setTopRight(tb);            
+            setTopRight(browserViewToolBar);            
         }
         catch (SWTError swt)
         {
