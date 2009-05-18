@@ -477,14 +477,9 @@ public class MailView
 
     private Text createRawMailView(Composite parent)
     {
-        GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-        gridData.verticalAlignment = GridData.BEGINNING;
-        gridData.grabExcessHorizontalSpace = true;
         Text rawMailView = new Text(parent, SWT.MULTI | SWT.V_SCROLL
                 | SWT.BORDER | SWT.WRAP);
-        rawMailView.setLayoutData(gridData);
         rawMailView.setEditable(false);
-
         return rawMailView;
     }
 
@@ -748,6 +743,7 @@ public class MailView
             final Composite itemComposite = new Composite(folder, SWT.NONE);
             final StackLayout layout = new StackLayout();
             itemComposite.setLayout(layout);
+            
             item.setControl(itemComposite);
             
             Browser _browser = null;
@@ -1095,7 +1091,7 @@ public class MailView
             gridData.verticalAlignment = GridData.FILL;
 
             final Browser b = createBrowser(folder);
-            b.setUrl(url); //$NON-NLS-1$
+            b.setUrl(url);
             b.setLayoutData(gridData);
             item.setControl(b);
             folder.setSelection(item);
