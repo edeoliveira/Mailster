@@ -178,12 +178,12 @@ public class MailsterSmtpService
     {
     	Collection<StoredSmtpMessage> mails = new ArrayList<StoredSmtpMessage>();
     	for (SmtpMessage msg : list) {
-    		mails.add(pop3Service.storeMessage(msg));
+    	    mails.add(pop3Service.storeMessage(msg));
     	}
     	
         synchronized(receivedMessages)
         {
-        	receivedMessages.addAll(mails);
+            receivedMessages.addAll(mails);
         }
     }
     
@@ -192,7 +192,7 @@ public class MailsterSmtpService
     	StoredSmtpMessage stored = pop3Service.storeMessage(msg);
         synchronized(receivedMessages)
         {
-        	receivedMessages.add(stored);
+            receivedMessages.add(stored);
         }    	
     }
     
