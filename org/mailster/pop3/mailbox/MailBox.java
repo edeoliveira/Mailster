@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.mail.Flags.Flag;
 
@@ -52,7 +53,7 @@ public class MailBox
     private String email;
     
     // Unique counter ID for the mailbox
-    private long counter = 1;
+    private AtomicLong counter = new AtomicLong(1);
 
     public MailBox(Pop3User user)
     {
@@ -127,11 +128,9 @@ public class MailBox
      */
     public StoredSmtpMessage storeMessage(SmtpMessage message)
     {
-		Long id = new Long(counter);
-		StoredSmtpMessage stored = new StoredSmtpMessage(message, id);
-        stored.setMailBox(this);
-    	mails.put(id, stored);
-    	counter++;
+	Long id = new Long(counter.getAndIncrement());
+	StoredSmtpMessage stored = new StoredSmtpMessage(message, id);
+        mails.put(id, stored);
     	
         return stored;
     }

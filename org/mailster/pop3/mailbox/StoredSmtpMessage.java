@@ -61,29 +61,29 @@ public class StoredSmtpMessage
     {
     	updateCache(msg);
 	    
-		this.message = new SoftSmtpMessageReference(id, msg);
+	this.message = new SoftSmtpMessageReference(id, msg);
         this.id = id;
     }
 
     protected void updateCache(SmtpMessage msg)
     {
     	try 
-		{
+	{
     		synchronized(DateUtilities.rfc822DateFormatter)
     		{
     			messageDate = DateUtilities.rfc822DateFormatter.parse(msg.getDate());
     		}
-		} 
-		catch (ParseException e) 
-		{
-			messageDate = new Date();
-		}
+	} 
+	catch (ParseException e) 
+	{
+		messageDate = new Date();
+	}
 		
-		_msgId = msg.getMessageID();
-	    _msgTo = msg.getTo();
-	    _msgSubject = msg.getSubject();
-	    _msgSize = msg.getSize();
-	    _msgAttachedFilesCount = msg.getInternalParts().getAttachedFiles().length; 
+	_msgId = msg.getMessageID();
+	_msgTo = msg.getTo();
+    	_msgSubject = msg.getSubject();
+    	_msgSize = msg.getSize();
+    	_msgAttachedFilesCount = msg.getInternalParts().getAttachedFiles().length; 
     }
     
     public Date getMessageDate()
@@ -191,9 +191,8 @@ public class StoredSmtpMessage
         this.mailBox = mailBox;
     }
 
-	protected void finalize() throws Throwable 
-	{
-		super.finalize();
-		message.delete();
-	}
+    protected void finalize() throws Throwable 
+    {
+	message.delete();
+    }
 }

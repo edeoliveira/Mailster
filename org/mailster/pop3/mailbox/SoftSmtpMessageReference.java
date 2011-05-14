@@ -145,6 +145,8 @@ public class SoftSmtpMessageReference
 	
 	public void delete()
 	{
-		(new File(this.tmpFileName)).delete();
+	    File f = new File(this.tmpFileName);
+	    if (!f.delete())
+		f.deleteOnExit();
 	}
 }
