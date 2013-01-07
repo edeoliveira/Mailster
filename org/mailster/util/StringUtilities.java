@@ -7,7 +7,7 @@ import java.util.StringTokenizer;
 
 import javax.security.sasl.SaslException;
 
-import org.mailster.pop3.commands.auth.AuthException;
+import org.mailster.core.pop3.commands.auth.AuthException;
 
 /**
  * ---<br>
@@ -34,7 +34,7 @@ import org.mailster.pop3.commands.auth.AuthException;
  * StringUtilities.java - Various methods to handle strings.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.8 $, $Date: 2009/05/17 20:56:35 $
  */
 public class StringUtilities
 {
@@ -55,6 +55,18 @@ public class StringUtilities
     public static boolean isEmpty(String str) 
     {
         return (str == null || str.trim().length() == 0);
+    }
+
+    /**
+     * Capitalize a <code>String</code> first letter.
+     *  
+     * @param s the string to capitalize
+     * @return the capitalized string
+     */    
+    public static String capitalizeFirstLetter(String s) 
+    {
+	return String.format("%s%s", Character.toUpperCase(s.charAt(0)), s
+		.substring(1));
     }
     
     /**

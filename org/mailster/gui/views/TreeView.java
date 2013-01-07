@@ -42,7 +42,7 @@ import org.mailster.gui.utils.LayoutUtils;
  * TreeView.java - A class that abstracts a generic tree view.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.4 $, $Date: 2008/12/06 13:57:16 $
  */
 public abstract class TreeView 
 {

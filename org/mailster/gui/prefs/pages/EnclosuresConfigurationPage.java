@@ -56,7 +56,7 @@ import org.mailster.gui.prefs.widgets.DirectoryFieldEditor;
  * EnclosuresConfigurationPage.java - Configuration page for enclosures specific settings.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2008/12/06 13:57:16 $
  */
 public class EnclosuresConfigurationPage 
     extends DefaultFieldEditorConfigurationPage 

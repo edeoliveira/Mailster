@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>Mailster</groupId>
   <artifactId>Mailster</artifactId>
-  <version>0.9.0</version>
+  <version>0.9.3</version>
   <description>Mailster is a project aimed at testing software mail capabilities. It provides a mail server container to test emails sent by your apps without rewriting your application code.</description>
   <dependencies>
     <dependency>
@@ -45,6 +45,20 @@
     	<groupId>log4j</groupId>
     	<artifactId>log4j</artifactId>
     	<version>1.2.15</version>
+		<exclusions>
+     		<exclusion>
+    			<groupId>com.sun.jdmk</groupId>
+    			<artifactId>jmxtools</artifactId>
+     		</exclusion>
+     		<exclusion>
+     			<groupId>com.sun.jmx</groupId>
+     			<artifactId>jmxri</artifactId>
+     		</exclusion>
+     		<exclusion>
+     			<groupId>javax.jms</groupId>
+     			<artifactId>jms</artifactId>
+     		</exclusion>
+   		</exclusions>    	
 	</dependency>
 	<dependency>
 	    <groupId>org.subethamail</groupId>
@@ -67,4 +81,23 @@
     	<version>2.3</version>
 	</dependency>
   </dependencies>
+  <build>
+	<sourceDirectory>org/mailster</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>js</directory>
+      </resource>
+    </resources>
+    <plugins>
+    	<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+		</plugin>
+	</plugins>      
+  </build>
 </project>

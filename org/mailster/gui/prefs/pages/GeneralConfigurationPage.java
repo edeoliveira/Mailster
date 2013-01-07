@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.mailster.MailsterSWT;
+import org.mailster.core.mail.SmtpHeadersInterface;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
@@ -49,7 +50,6 @@ import org.mailster.gui.prefs.store.MailsterPrefStore;
 import org.mailster.gui.prefs.utils.JobExecutionInterval;
 import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.LayoutUtils;
-import org.mailster.message.SmtpHeadersInterface;
 
 /**
  * ---<br>
@@ -76,7 +76,7 @@ import org.mailster.message.SmtpHeadersInterface;
  * GeneralConfigurationPage.java - Configuration page for general application settings.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2009/01/30 01:32:30 $
  */
 public class GeneralConfigurationPage 
     extends DefaultConfigurationPage 
@@ -170,16 +170,16 @@ public class GeneralConfigurationPage
         {
 	        int index = preferredBrowserViewer.getCombo().getSelectionIndex();
 	        store.setValue(ConfigurationManager.PREFERRED_BROWSER_KEY, index); 
-	        main.getMailView().setForcedMozillaBrowserUse(index != 0);
+	        main.getMultiView().setForcedMozillaBrowserUse(index != 0);
         }
         else
         {
         	store.setValue(ConfigurationManager.PREFERRED_BROWSER_KEY, 0); 
-	        main.getMailView().setForcedMozillaBrowserUse(false);
+	        main.getMultiView().setForcedMozillaBrowserUse(false);
         }
         
         int index = preferredContentTypeViewer.getCombo().getSelectionIndex();
-        main.getMailView().setPreferredContentType(index == 0 ? 
+        main.getMultiView().getMailView().setPreferredContentType(index == 0 ? 
         			SmtpHeadersInterface.TEXT_HTML_CONTENT_TYPE : 
         			SmtpHeadersInterface.TEXT_PLAIN_CONTENT_TYPE);
         store.setValue(ConfigurationManager.PREFERRED_CONTENT_TYPE_KEY, index);

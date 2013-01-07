@@ -55,8 +55,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-import org.mailster.crypto.CertificateUtilities;
-import org.mailster.crypto.CertificateUtilities.DigestAlgorithm;
+import org.mailster.core.crypto.CertificateUtilities;
+import org.mailster.core.crypto.CertificateUtilities.DigestAlgorithm;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.utils.DialogUtils;
@@ -88,7 +88,7 @@ import org.mailster.util.DateUtilities;
  * CertificateDialog.java - A dialog that shows informations about certificates.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.4 $, $Date: 2008/12/06 13:57:17 $
  */
 public class CertificateDialog extends Dialog 
 {   

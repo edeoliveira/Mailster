@@ -30,10 +30,16 @@ import java.util.TimeZone;
  * MailUtilities.java - Various methods to help in date formatting and handling.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.6 $, $Date: 2008/12/06 13:57:17 $
  */
 public class DateUtilities 
 {
+    /**
+     * Advanced day & hour formatter.
+     */
+    public final static SimpleDateFormat adf = 
+    	new SimpleDateFormat("EEE dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$
+    
     /**
      * Simple day & hour formatter.
      */

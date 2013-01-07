@@ -42,8 +42,8 @@ pref("network.proxy.type", 1);
 
 IMPORTANT : <...> notation is used to replace a user custom value
 
-You must run Mailster with an appropriate user because binding to SMTP port 
-needs privileges.
+You must run Mailster with an appropriate user because binding to SMTP or 
+POP3 ports needs privileges.
 
 Currently, i've successfully ran Mailster in the following environments :
 - Mandriva 2007 distribution with xulrunner 1.8.0.4 and jdk 1.5.0_11

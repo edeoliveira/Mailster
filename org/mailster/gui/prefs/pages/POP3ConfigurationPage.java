@@ -10,6 +10,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.mailster.MailsterSWT;
+import org.mailster.core.pop3.Pop3ProtocolHandler;
+import org.mailster.core.pop3.mailbox.UserManager;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
@@ -18,8 +20,6 @@ import org.mailster.gui.prefs.store.MailsterPrefStore;
 import org.mailster.gui.prefs.widgets.HostFieldEditor;
 import org.mailster.gui.prefs.widgets.SpinnerFieldEditor;
 import org.mailster.gui.utils.LayoutUtils;
-import org.mailster.pop3.Pop3ProtocolHandler;
-import org.mailster.pop3.mailbox.UserManager;
 
 /**
  * ---<br>
@@ -46,7 +46,7 @@ import org.mailster.pop3.mailbox.UserManager;
  * POP3ConfigurationPage.java - Configuration page for POP3 settings.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2009/02/03 00:28:51 $
  */
 public class POP3ConfigurationPage 
     extends DefaultConfigurationPage

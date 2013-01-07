@@ -2,7 +2,7 @@ package org.mailster.gui.crypto;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.mailster.MailsterSWT;
-import org.mailster.crypto.UICertificateTrustCallBackHandler;
+import org.mailster.core.crypto.UICertificateTrustCallBackHandler;
 import org.mailster.gui.SWTHelper;
 
 /**
@@ -31,7 +31,7 @@ import org.mailster.gui.SWTHelper;
  * <code>UICertificateTrustCallBackHandler</code> interface.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.3 $, $Date: 2008/12/06 13:57:17 $
  */
 public class SWTCertificateTrustCallBackHandler
         extends UICertificateTrustCallBackHandler

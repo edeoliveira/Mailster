@@ -12,10 +12,10 @@ import java.util.List;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
-import org.mailster.message.SmtpMessage;
-import org.mailster.server.MailsterSMTPServer;
-import org.mailster.server.events.SMTPServerAdapter;
-import org.mailster.server.events.SMTPServerEvent;
+import org.mailster.core.mail.SmtpMessage;
+import org.mailster.core.smtp.MailsterSMTPServer;
+import org.mailster.core.smtp.events.SMTPServerAdapter;
+import org.mailster.core.smtp.events.SMTPServerEvent;
 
 /**
  * ---<br>
@@ -42,7 +42,7 @@ import org.mailster.server.events.SMTPServerEvent;
  * CustomClientCommandTest.java - Minimal client that tests smtp responses.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.3 $, $Date: 2009/01/31 13:40:37 $
  */
 public class CustomClientCommandTest extends TestCase 
 {

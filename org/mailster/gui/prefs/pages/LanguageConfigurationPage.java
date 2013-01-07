@@ -59,7 +59,7 @@ import org.mailster.gui.prefs.widgets.TableFieldEditor;
  * user interface language used.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2009/04/27 23:40:31 $
  */
 
 public class LanguageConfigurationPage

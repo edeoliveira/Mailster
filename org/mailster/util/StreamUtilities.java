@@ -10,11 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.mina.filter.codec.textline.LineDelimiter;
-import org.mailster.message.SmtpHeadersInterface;
-import org.mailster.message.SmtpMessage;
-import org.mailster.message.SmtpMessageFactory;
-import org.mailster.pop3.connection.AbstractPop3Connection;
-import org.mailster.pop3.mailbox.StoredSmtpMessage;
+import org.mailster.core.mail.SmtpMessage;
+import org.mailster.core.mail.SmtpMessageFactory;
+import org.mailster.core.pop3.connection.AbstractPop3Connection;
+import org.mailster.core.pop3.mailbox.StoredSmtpMessage;
 
 /**
  * ---<br>
@@ -41,7 +40,7 @@ import org.mailster.pop3.mailbox.StoredSmtpMessage;
  * StreamUtilities.java - Various methods to help reading and writing to streams.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.7 $, $Date: 2009/01/30 01:32:31 $
  */
 public class StreamUtilities
 {
@@ -201,8 +200,7 @@ public class StreamUtilities
 
         try
         {
-            String envSender = msg.getMessage().getHeaders().getHeaderValue(
-                    SmtpHeadersInterface.FROM);
+            String envSender = msg.getMessageFrom();
             envSender = envSender == null || "".equals(envSender)
                     ? "MAILER-DAEMON"
                     : envSender.replaceAll("[ \t\r\n]", "-").trim();

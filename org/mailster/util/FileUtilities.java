@@ -27,7 +27,7 @@ import java.io.File;
  * FileUtilities.java - Various methods to help in file handling.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.3 $, $Date: 2008/12/06 13:57:17 $
  */
 public class FileUtilities 
 {

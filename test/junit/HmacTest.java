@@ -8,8 +8,8 @@ import junit.framework.TestCase;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Base64;
-import org.mailster.pop3.commands.auth.AuthCramMD5Command;
-import org.mailster.pop3.commands.auth.AuthCramSHA1Command;
+import org.mailster.core.pop3.commands.auth.AuthCramMD5Command;
+import org.mailster.core.pop3.commands.auth.AuthCramSHA1Command;
 import org.mailster.util.ByteUtilities;
 
 public class HmacTest extends TestCase 

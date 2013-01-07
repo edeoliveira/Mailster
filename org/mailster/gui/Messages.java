@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * Messages.java - Handles localisation of UI.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.6 $, $Date: 2008/12/06 13:57:17 $
  */
 public class Messages
 {
