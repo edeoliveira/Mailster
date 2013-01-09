@@ -159,9 +159,12 @@ public class StreamUtilities
 			}
 			
 			// Add last message
-			msg.deleteCharAt(msg.length()-1);
-			mails.add(factory.asSmtpMessage(
-					new ByteArrayInputStream(msg.toString().getBytes(charsetName)), null));
+			if (msg != null)
+			{
+				msg.deleteCharAt(msg.length()-1);
+				mails.add(factory.asSmtpMessage(
+						new ByteArrayInputStream(msg.toString().getBytes(charsetName)), null));
+			}
 		} 
     	catch (Exception e) 
 		{
