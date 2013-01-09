@@ -42,7 +42,7 @@ import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.gui.views.FilterTreeView;
 import org.mailster.util.DateUtilities;
 
-import ca.odell.glazedlists.DebugList;
+import ca.odell.glazedlists.BasicEventList;
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.FilterList;
 import ca.odell.glazedlists.GlazedLists;
@@ -158,7 +158,8 @@ public class MailBoxTableView
 		final Composite tableComposite = new Composite(parent, SWT.NONE);
 		tableComposite.setLayout(LayoutUtils.createGridLayout(1, false, 0, 0, 0, 0, 0, 0, 0, 2));
 		
-		_viewer = new TableViewer(tableComposite, SWT.NONE | SWT.FULL_SELECTION | SWT.MULTI); // TODO SWT.VIRTUAL
+		// TODO to see if SWT.VIRTUAL does not cause any trouble any more
+		_viewer = new TableViewer(tableComposite, SWT.NONE | SWT.FULL_SELECTION | SWT.MULTI | SWT.VIRTUAL);
 		_viewer.setLabelProvider(new GlazedLabelProvider());
 		_viewer.setContentProvider(new GlazedContentProvider());
 		_viewer.setUseHashlookup(true);
@@ -256,9 +257,9 @@ public class MailBoxTableView
 		gd.horizontalAlignment = GridData.END;
 		countLabel.setLayoutData(gd);
 		
-		// TODO return to basic event list
-		DebugList<StoredSmtpMessage> tmp = new DebugList<StoredSmtpMessage>();
-		tmp.setLockCheckingEnabled(true);
+		//DebugList<StoredSmtpMessage> tmp = new DebugList<StoredSmtpMessage>();
+		//tmp.setLockCheckingEnabled(true);
+		BasicEventList<StoredSmtpMessage> tmp = new BasicEventList<StoredSmtpMessage>();		
 
 		// hook up everything with glazed lists
 		_eventList = tmp;// new BasicEventList<StoredSmtpMessage>();

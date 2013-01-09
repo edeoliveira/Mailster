@@ -189,7 +189,7 @@ public class MailsterSWT
 		pshelfPanel = new PshelfPanel(filterViewDivider, SWT.NONE);
 		pshelfPanel.setBackground(BGCOLOR);
 		pshelfPanel.setCursor(normal);
-		pshelfPanel.setTitle("Mail panel"); //TODO
+		pshelfPanel.setTitle(Messages.getString("MailsterSWT.mailpanel.title")); //$NON-NLS-1$
 		pshelfPanel.setLayoutData(LayoutUtils.createGridData(GridData.FILL, GridData.FILL, true, true, 1, 1));
 		pshelfPanel.addPShelfPanelListener(new PShelfPanelListener() {
 			private int[] savedWeights;
