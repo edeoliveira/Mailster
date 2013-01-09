@@ -86,7 +86,7 @@ public class ConfigurationManager
     /**
      * Application copyright
      */
-    public final static String MAILSTER_COPYRIGHT = "Copyright (C) De Oliveira Edouard 2007-2012";
+    public final static String MAILSTER_COPYRIGHT = "Copyright (C) De Oliveira Edouard 2007-2013";
 
     /**
      * The url of the application forum
