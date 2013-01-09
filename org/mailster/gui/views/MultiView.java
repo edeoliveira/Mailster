@@ -343,13 +343,13 @@ public class MultiView
 				stopToolItem.setEnabled(false);
 				backToolItem.setEnabled(browser.isBackEnabled());
 				forwardToolItem.setEnabled(browser.isForwardEnabled());
-				t.switchState();
+				t.stopAnimation();
 			}
 
 			public void changing(LocationEvent evt)
 			{
 				stopToolItem.setEnabled(true);
-				t.switchState();
+				t.startAnimation();
 			}
 		});
 	}

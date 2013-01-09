@@ -71,14 +71,24 @@ public class GIFAnimator extends Thread
 			throw new IllegalStateException("The animated file has only one frame ...");
 	}
 	
-	public void switchState()
+	public void startAnimation()
 	{
-		paused = !paused;
+		setPaused(false);
+	}
+	
+	public void stopAnimation()
+	{
+		setPaused(true);
+	}
+	
+	private void setPaused(boolean paused)
+	{
+		this.paused = paused;
 	}
 	
 	public void dispose()
 	{
-	    	this.quit = true;
+	    this.quit = true;
 	}
 	
 	public void run() 
@@ -118,8 +128,8 @@ public class GIFAnimator extends Thread
 			int repeatCount = loader.repeatCount;
 			while (loader.repeatCount == 0 || repeatCount > 0) 
 			{
-			    	if (quit)
-			    	    	break;
+			    if (quit)
+			       	break;
 			    	
 				if (!paused)
 				{
@@ -127,13 +137,13 @@ public class GIFAnimator extends Thread
 					{
 						case SWT.DM_FILL_BACKGROUND:
 							// Fill with the background color before drawing.
-							Color bgColor = null;
+							Color bgColor = this.bgColor;
 							if (useGIFBackground && loader.backgroundPixel != -1) 
 								bgColor = new Color(display, imageData.palette.getRGB(loader.backgroundPixel));
 		
-							offScreenImageGC.setBackground(bgColor != null ? bgColor : bgColor);
+							offScreenImageGC.setBackground(bgColor);
 							offScreenImageGC.fillRectangle(imageData.x, imageData.y, imageData.width, imageData.height);
-							if (bgColor != null) 
+							if (bgColor != null)
 								bgColor.dispose();
 							break;
 						case SWT.DM_FILL_PREVIOUS:
@@ -185,7 +195,6 @@ public class GIFAnimator extends Thread
 					Thread.sleep(ms);
 				} 
 				catch (InterruptedException e) {}
-				
 			}
 		} 
 		catch (SWTException ex) 

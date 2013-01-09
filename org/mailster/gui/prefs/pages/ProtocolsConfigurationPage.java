@@ -251,7 +251,7 @@ public class ProtocolsConfigurationPage
 					        animator.setOffsetY(3);
 					        animator.setOffsetX(3);
 					        animator.start();
-							animator.switchState();
+							animator.startAnimation();
 							
 							try 
 							{
@@ -259,7 +259,7 @@ public class ProtocolsConfigurationPage
 							} 
 							catch (Exception e) {}
 							
-							animator.switchState();
+							animator.stopAnimation();
 							
 							fixLabel.setVisible(!factory.isStoreLoaded());
 							cryptoErrorLabel.setVisible(factory.isCryptoPermissionDenied());
