@@ -149,7 +149,6 @@ public class TableTree
 			}
 		});
 
-		// TODO clean 
 		final Color SELECTED_NODE_BG_COLOR = SWTHelper.createColor(197, 206, 216);
 		final Color SELECTED_BG_COLOR = SWTHelper.createColor(167, 205, 241);
 
@@ -206,6 +205,7 @@ public class TableTree
 		final int IMAGE_PLUS_MARGIN = MAIL_IMAGE_WIDTH + IMAGE_MARGIN;
 		final Color GROUP_COLOR = SWTHelper.createColor(54, 54, 54);
 
+		final SimpleDateFormat OLD_SDF = new SimpleDateFormat("dd/MM/yyyy");
 		final SimpleDateFormat SDF = new SimpleDateFormat("EEE dd/MM");
 		final SimpleDateFormat SIMPLE_SDF = new SimpleDateFormat("HH:mm");
 		final int[] DASH_LINE = new int[] {2, 2};
@@ -265,9 +265,14 @@ public class TableTree
 						gc.setFont(MailBoxView.BOLD_FONT);
 
 					Date d = msg.getMessageDate();
-					String tmp = SDF.format(msg.getMessageDate());
+					String tmp = null;
 					if (DateUtilities.isCurrentDay(d))
 						tmp = SIMPLE_SDF.format(msg.getMessageDate());
+					else
+					if (DateUtilities.isCurrentYear(d))
+						tmp = SDF.format(msg.getMessageDate());
+					else
+						tmp = OLD_SDF.format(msg.getMessageDate());
 
 					int tmpWidth = gc.textExtent(tmp).x;
 					int dateX = w - tmpWidth - IMAGE_MARGIN;

@@ -1,6 +1,7 @@
 package org.mailster.util;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -109,4 +110,20 @@ public class DateUtilities
     	
     	return ((int) (compared / 8.64E7)) == ((int) (current / 8.64E7));
     }
+    
+    /**
+     * Return true if <code>d</code> represents a time value on the current
+     * year.
+     *  
+     * @param d the date to compare with today
+     * @return boolean true if <code>d</code> is bounded in the current year
+     */
+    public static boolean isCurrentYear(Date d)
+    {
+    	Calendar cal = Calendar.getInstance();
+    	int y = cal.get(Calendar.YEAR);
+    	cal.setTime(d);
+    	
+    	return cal.get(Calendar.YEAR) == y;
+    }    
 }
