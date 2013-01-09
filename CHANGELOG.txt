@@ -1,12 +1,6 @@
 #####
 Version 1.0.0-beta (2013-01-09) - Codename Professor X
 
-GUI :
-- Big UI reworking to mimic some cool outlook UI settings.
-
-#####
-Version 0.9.4 (2011-06-19) - Codename Tornade
-
 NOTES :
 - Upgraded swt & jface libs.
 - Upgraded glazedlists libs.
@@ -14,12 +8,13 @@ NOTES :
 - Updated & simplified starting scripts.
 
 GUI :
-- Big UI reworking.
+- Big UI reworking to mimic some cool outlook UI settings.
 - Fixed mail filtering to prevent early reloading of a mail.
 - A fix to a rare layout exception problem.
 - More efficient TableView resize.
 - Added an autosave/autoload function to try preventing loosing
   mails.
+- Fixed animated gif thread not disappearing when page loaded.
 
 CORE :
 - Changed to org.mailster.smtp.debug the name of VM argument
