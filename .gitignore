@@ -1,0 +1,7 @@
+# Garbage files   #
+###################
+bin/
+mailster.log
+autosave.mbx
+*.tmp
+config.properties
