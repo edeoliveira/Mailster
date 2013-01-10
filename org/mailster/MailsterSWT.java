@@ -11,7 +11,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
@@ -457,7 +456,10 @@ public class MailsterSWT
 	{
 		LOG.debug("Applying startup preferences ...");
 		MailsterPrefStore store = ConfigurationManager.CONFIG_STORE;
-
+		
+		if (!(new File(ConfigurationManager.CONFIGURATION_FILENAME)).exists())
+			return;
+			
 		if (store.getBoolean(ConfigurationManager.APPLY_MAIN_WINDOW_PARAMS_KEY))
 		{
 			pshelfPanel.setToolbarVisible(store.getBoolean(ConfigurationManager.MAIL_PANEL_MINIMIZED_KEY));
