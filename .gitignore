@@ -5,3 +5,4 @@ mailster.log
 autosave.mbx
 *.tmp
 config.properties
+*.obj
