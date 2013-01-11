@@ -155,11 +155,12 @@ public class TableTree
 		table.addListener(SWT.EraseItem, new Listener() {
 			public void handleEvent(Event event)
 			{
+				event.detail &= ~SWT.HOT;
 				boolean selected = (event.detail & SWT.SELECTED) != 0;
 				GC gc = event.gc;
 				Rectangle area = table.getClientArea();
 				TableItem item = (TableItem) event.item;
-				TableTreeItem treeItem = (TableTreeItem) event.item.getData();
+				TableTreeItem treeItem = (TableTreeItem) item.getData();
 
 				Color foreground = gc.getForeground();
 				Color background = gc.getBackground();
@@ -219,7 +220,7 @@ public class TableTree
 				GC gc = event.gc;
 				int column = event.index;
 				TableItem item = (TableItem) event.item;
-				TableTreeItem treeItem = (TableTreeItem) event.item.getData();
+				TableTreeItem treeItem = (TableTreeItem) item.getData();
 				StoredSmtpMessage msg = ((MailBoxItem) treeItem.getData()).getMessage();
 				Image image = item.getImage(column);
 				int x = event.x;
@@ -317,7 +318,7 @@ public class TableTree
 		});
 	}
 
-	int addItem(TableTreeItem item, int index)
+	protected int addItem(TableTreeItem item, int index)
 	{
 		if (index < 0 || index > items.length)
 			throw new SWTError(SWT.ERROR_INVALID_ARGUMENT);
@@ -657,17 +658,17 @@ public class TableTree
 		gc.dispose();
 	}
 
-	Image getPlusImage()
+	protected Image getPlusImage()
 	{
 		return plusImage;
 	}
 
-	Image getMinusImage()
+	protected Image getMinusImage()
 	{
 		return minusImage;
 	}
 
-	void onDispose()
+	private void onDispose()
 	{
 		inDispose = true;
 		for (int i = 0; i < items.length; i++)
@@ -682,13 +683,13 @@ public class TableTree
 		plusImage = minusImage = null;
 	}
 
-	void onResize()
+	private void onResize()
 	{
 		Rectangle area = getClientArea();
 		table.setBounds(0, 0, area.width-1, area.height-1);
 	}
 
-	void onSelection(Event e)
+	private void onSelection(Event e)
 	{
 		Event event = new Event();
 		TableItem tableItem = (TableItem) e.item;
@@ -729,7 +730,7 @@ public class TableTree
 			return null;
 	}
 
-	void onMouseDown(Event event)
+	private void onMouseDown(Event event)
 	{
 		/* If user clicked on the [+] or [-], expand or collapse the tree. */
 		TableItem i = table.getItem(new Point(event.x, event.y));
