@@ -139,6 +139,7 @@ public class MailBoxView
 		tableTree = new TableTree(tableTreeComposite, SWT.NONE | SWT.FULL_SELECTION | SWT.MULTI);
 		table = tableTree.getTable();
 		table.setHeaderVisible(true);
+		MailsterSWT.configureDragAndDrop(tableTree);
 
 		tableTreeComposite.setLayout(LayoutUtils.createGridLayout(1, false, 0, 0, 0, 0, 0, 0, 0, 0));
 		tableTree.setLayoutData(LayoutUtils.createGridData(GridData.FILL, GridData.FILL, true, true, 1, 1));
