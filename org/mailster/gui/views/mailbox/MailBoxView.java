@@ -167,7 +167,7 @@ public class MailBoxView
 		timer.schedule(new TimerTask() {
 			public void run()
 			{
-				MailBoxItem.calculateCategories();
+				MailBoxItem.computeCategories();
 				table.getDisplay().syncExec(new Runnable() {
 					public void run()
 					{
@@ -318,7 +318,7 @@ public class MailBoxView
 
 		public void getPath(List<MailBoxItem> path, MailBoxItem element)
 		{
-			path.add(new MailBoxItem(element.getDateCategory()));
+			path.add(new MailBoxItem(element.getCategoryLabel()));
 			path.add(element);
 		}
 

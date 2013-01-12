@@ -4,6 +4,8 @@ import java.text.DateFormatSymbols;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.mailster.core.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.util.StringUtilities;
@@ -53,30 +55,31 @@ public class MailBoxItem
 	private static long lastMonth;
 	private static long twoMonthsAgo;
 
-	private static String todayLabel = "Aujourd'hui";
+	private static final String todayLabel = "Aujourd'hui";
 	private static String yesterdayLabel;
 	private static String twoDaysAgoLabel;
 	private static String threeDaysAgoLabel;
 	private static String fourDaysAgoLabel;
 	private static String fiveDaysAgoLabel;
 	private static String sixDaysAgoLabel;
-	private static String oneWeekAgoLabel = "Semaine dernière";
-	private static String twoWeeksAgoLabel = "Il y a deux semaines";
-	private static String threeWeeksAgoLabel = "Il y a trois semaines";
-	private static String thisMonthLabel = "Au début du mois";
-	private static String lastMonthLabel = "Mois dernier";
-	private static String twoMonthsAgoLabel = "Il y a deux mois";
-	private static String olderLabel = "Plus vieux";
-	private static final Object LOCK = new Object();
+	private static final String oneWeekAgoLabel = "Semaine dernière";
+	private static final String twoWeeksAgoLabel = "Il y a deux semaines";
+	private static final String threeWeeksAgoLabel = "Il y a trois semaines";
+	private static final String thisMonthLabel = "Au début du mois";
+	private static final String lastMonthLabel = "Mois dernier";
+	private static final String twoMonthsAgoLabel = "Il y a deux mois";
+	private static final String olderLabel = "Plus vieux";
+	
+	private static final Lock LOCK = new ReentrantLock();
 
 	private StoredSmtpMessage message;
-	private String dateCategory;
+	private String categoryLabel;
 	private long category = -1;
 	private boolean root;
 
 	static
 	{
-		calculateCategories(null);
+		computeCategories(null);
 	}
 
 	private static boolean isPreviousDaySunday(Calendar gc)
@@ -122,29 +125,34 @@ public class MailBoxItem
 		return StringUtilities.capitalizeFirstLetter(WEEK_DAYS[day]);
 	}
 
-	static void calculateCategories()
+	protected static void computeCategories()
 	{
-		calculateCategories(null);
+		computeCategories(null);
 	}
 
-	static void calculateCategories(Date date)
+	private static void computeCategories(Date date)
 	{
-		synchronized (LOCK)
+		GregorianCalendar gc = (GregorianCalendar) GregorianCalendar.getInstance();
+
+		if (date != null)
+			gc.setTime(date);
+
+		gc.set(Calendar.HOUR, 0);
+		gc.set(Calendar.AM_PM, Calendar.AM);
+		gc.set(Calendar.MINUTE, 0);
+		gc.set(Calendar.SECOND, 0);
+		gc.set(Calendar.MILLISECOND, 0);
+
+		LOCK.lock();
+		
+		try
 		{
-			GregorianCalendar gc = (GregorianCalendar) GregorianCalendar.getInstance();
-
-			if (date != null)
-				gc.setTime(date);
-
-			gc.set(Calendar.HOUR, 0);
-			gc.set(Calendar.AM_PM, Calendar.AM);
-			gc.set(Calendar.MINUTE, 0);
-			gc.set(Calendar.SECOND, 0);
-			gc.set(Calendar.MILLISECOND, 0);
 			today = gc.getTimeInMillis();
+
 			int currentMonth = gc.get(Calendar.MONTH);
 			gc.add(Calendar.DAY_OF_YEAR, 1);
 			tomorrow = gc.getTimeInMillis();
+			
 			gc.add(Calendar.DAY_OF_YEAR, -1);
 
 			boolean previousWeek = isPreviousDaySunday(gc);
@@ -237,12 +245,17 @@ public class MailBoxItem
 			gc.add(Calendar.MONTH, -1);
 			twoMonthsAgo = gc.getTimeInMillis();
 		}
+		finally 
+		{
+			  LOCK.unlock();
+		}
 	}
 
 	public MailBoxItem(String label)
 	{
+		// root nodes constructor
 		this.root = true;
-		setCategoryOfRoot(label);
+		setCategory(label);
 	}
 
 	public MailBoxItem(StoredSmtpMessage msg)
@@ -255,54 +268,62 @@ public class MailBoxItem
 		return root;
 	}
 
-	private void setCategoryOfRoot(String label)
+	private void setCategory(String label)
 	{
-		dateCategory = label;
-		if (label.equals(todayLabel))
-			category = today;
-		else if (label.equals(yesterdayLabel))
-			category = yesterday;
-		else if (label.equals(twoDaysAgoLabel))
-			category = twoDaysAgo;
-		else if (label.equals(threeDaysAgoLabel))
-			category = threeDaysAgo;
-		else if (label.equals(fourDaysAgoLabel))
-			category = fourDaysAgo;
-		else if (label.equals(fiveDaysAgoLabel))
-			category = fiveDaysAgo;
-		else if (label.equals(sixDaysAgoLabel))
-			category = sixDaysAgo;
-		else if (label.equals(oneWeekAgoLabel))
-			category = oneWeekAgo;
-		else if (label.equals(twoWeeksAgoLabel))
-			category = twoWeeksAgo;
-		else if (label.equals(threeWeeksAgoLabel))
-			category = threeWeeksAgo;
-		else if (label.equals(thisMonthLabel))
-			category = thisMonth;
-		else if (label.equals(lastMonthLabel))
-			category = lastMonth;
-		else if (label.equals(twoMonthsAgoLabel))
-			category = twoMonthsAgo;
-		else
-			category = 0;
+		LOCK.lock();
+		
+		try
+		{
+			categoryLabel = label;
+			if (label.equals(todayLabel))
+				category = today;
+			else if (label.equals(yesterdayLabel))
+				category = yesterday;
+			else if (label.equals(twoDaysAgoLabel))
+				category = twoDaysAgo;
+			else if (label.equals(threeDaysAgoLabel))
+				category = threeDaysAgo;
+			else if (label.equals(fourDaysAgoLabel))
+				category = fourDaysAgo;
+			else if (label.equals(fiveDaysAgoLabel))
+				category = fiveDaysAgo;
+			else if (label.equals(sixDaysAgoLabel))
+				category = sixDaysAgo;
+			else if (label.equals(oneWeekAgoLabel))
+				category = oneWeekAgo;
+			else if (label.equals(twoWeeksAgoLabel))
+				category = twoWeeksAgo;
+			else if (label.equals(threeWeeksAgoLabel))
+				category = threeWeeksAgo;
+			else if (label.equals(thisMonthLabel))
+				category = thisMonth;
+			else if (label.equals(lastMonthLabel))
+				category = lastMonth;
+			else if (label.equals(twoMonthsAgoLabel))
+				category = twoMonthsAgo;
+			else
+				category = 0;			
+		}
+		finally 
+		{
+			  LOCK.unlock();
+		}
 	}
 
 	public boolean resetCategory()
 	{
-		synchronized (LOCK)
-		{
-			String oldDateCategory = dateCategory;
-			dateCategory = null;
-			category = -1;
+		String oldCategoryLabel = categoryLabel;
+		categoryLabel = null;
+		category = -1;
 
-			return !getDateCategory().equals(oldDateCategory);
-		}
+		return !getCategoryLabel().equals(oldCategoryLabel);
 	}
 
 	public long getCategory()
 	{
-		synchronized (LOCK)
+		LOCK.lock();
+		
+		try
 		{
 			if (category == -1 && message != null)
 			{
@@ -338,48 +359,59 @@ public class MailBoxItem
 					category = 0;
 			}
 		}
+		finally 
+		{
+			  LOCK.unlock();
+		}
+
 		return category;
 	}
 
-	public String getDateCategory()
+	public String getCategoryLabel()
 	{
-		synchronized (LOCK)
+		LOCK.lock();
+		
+		try
 		{
-			if (dateCategory == null && message != null)
+			if (categoryLabel == null && message != null)
 			{
 				long d = message.getMessageDate().getTime();
 
 				if (d >= today)
-					dateCategory = todayLabel;
+					categoryLabel = todayLabel;
 				else if (yesterday != null && d >= yesterday)
-					dateCategory = yesterdayLabel;
+					categoryLabel = yesterdayLabel;
 				else if (twoDaysAgo != null && d >= twoDaysAgo)
-					dateCategory = twoDaysAgoLabel;
+					categoryLabel = twoDaysAgoLabel;
 				else if (threeDaysAgo != null && d >= threeDaysAgo)
-					dateCategory = threeDaysAgoLabel;
+					categoryLabel = threeDaysAgoLabel;
 				else if (fourDaysAgo != null && d >= fourDaysAgo)
-					dateCategory = fourDaysAgoLabel;
+					categoryLabel = fourDaysAgoLabel;
 				else if (fiveDaysAgo != null && d >= fiveDaysAgo)
-					dateCategory = fiveDaysAgoLabel;
+					categoryLabel = fiveDaysAgoLabel;
 				else if (sixDaysAgo != null && d >= sixDaysAgo)
-					dateCategory = sixDaysAgoLabel;
+					categoryLabel = sixDaysAgoLabel;
 				else if (oneWeekAgo != null && d >= oneWeekAgo)
-					dateCategory = oneWeekAgoLabel;
+					categoryLabel = oneWeekAgoLabel;
 				else if (twoWeeksAgo != null && d >= twoWeeksAgo)
-					dateCategory = twoWeeksAgoLabel;
+					categoryLabel = twoWeeksAgoLabel;
 				else if (threeWeeksAgo != null && d >= threeWeeksAgo)
-					dateCategory = threeWeeksAgoLabel;
+					categoryLabel = threeWeeksAgoLabel;
 				else if (thisMonth != null && d >= thisMonth)
-					dateCategory = thisMonthLabel;
+					categoryLabel = thisMonthLabel;
 				else if (d >= lastMonth)
-					dateCategory = lastMonthLabel;
+					categoryLabel = lastMonthLabel;
 				else if (d >= twoMonthsAgo)
-					dateCategory = twoMonthsAgoLabel;
+					categoryLabel = twoMonthsAgoLabel;
 				else
-					dateCategory = olderLabel;
+					categoryLabel = olderLabel;
 			}
 
-			return dateCategory;
+			return categoryLabel;
+		}
+		finally 
+		{
+			  LOCK.unlock();
 		}
 	}
 
@@ -388,7 +420,6 @@ public class MailBoxItem
 		return message;
 	}
 
-	@Override
 	public int hashCode()
 	{
 		final int prime = 31;
@@ -399,7 +430,6 @@ public class MailBoxItem
 		return result;
 	}
 
-	@Override
 	public boolean equals(Object obj)
 	{
 		if (this == obj)
@@ -426,7 +456,7 @@ public class MailBoxItem
 	public String toString()
 	{
 		if (message == null)
-			return dateCategory;
+			return categoryLabel;
 		else
 			return message.getMessageSubject();
 	}
@@ -436,7 +466,7 @@ public class MailBoxItem
 		return l == null ? null : new Date(l);
 	}
 
-	private static void catsToString()
+	private static void printCategories()
 	{
 		System.out.println(new Date(tomorrow));
 		System.out.println(todayLabel + "=" + toDate(today));
@@ -456,13 +486,24 @@ public class MailBoxItem
 
 	public static void main(String[] args)
 	{
-		// int day = 20;
+		GregorianCalendar gc = (GregorianCalendar) GregorianCalendar.getInstance();
+		gc.set(Calendar.HOUR, 0);
+		gc.set(Calendar.AM_PM, Calendar.AM);
+		gc.set(Calendar.MINUTE, 0);
+		gc.set(Calendar.SECOND, 0);
+		gc.set(Calendar.MILLISECOND, 0);
+		
+		gc.set(Calendar.YEAR, 2012);
+		gc.set(Calendar.MONTH, 3);
+		gc.set(Calendar.DAY_OF_MONTH, 18);
+
 		for (int i = 0; i < 100; i++)
 		{
-			// Date d = new Date(111, 4, day++);
-			calculateCategories();
-			catsToString();
-			System.out.println("------------------------------------------");
+			gc.add(Calendar.DAY_OF_MONTH, 1);
+			Date d = gc.getTime();
+			computeCategories(d);
+			printCategories();
+			System.out.println("--- \n");
 		}
 	}
 }
