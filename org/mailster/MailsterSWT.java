@@ -7,9 +7,10 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -128,6 +129,8 @@ public class MailsterSWT
 	public static ToolItem serverDebugToolItem;
 	public static ToolItem serverStopToolItem;
 
+	private final ScheduledExecutorService svc = Executors.newSingleThreadScheduledExecutor();
+	
 	// Visual components
 	private Shell sShell;
 	private CoolBar coolBar;
@@ -432,9 +435,7 @@ public class MailsterSWT
 		if (f.exists())
 			ImportExportUtilities.importFromMbox(f.getName());
 
-		Timer timer = new Timer("MailBox autosaver", true);
-		long delay = 10L * 60L * 1000L;
-		timer.schedule(new TimerTask() {
+		svc.schedule(new Runnable() {
 			public void run()
 			{
 				SWTHelper.getDisplay().asyncExec(new Runnable() {
@@ -449,7 +450,7 @@ public class MailsterSWT
 					}
 				});
 			}
-		}, delay, delay);
+		}, 10, TimeUnit.MINUTES);
 	}
 
 	private void applyPreferences()

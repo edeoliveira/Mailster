@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -62,9 +63,11 @@ public class MailBoxView
 {
 	public static final Font NORMAL_FONT = SWTHelper.createFont(new FontData("Segoe UI", 8, SWT.NONE));
 	public static final Font BOLD_FONT = SWTHelper.makeBoldFont(NORMAL_FONT);
+	public static final Image ATTACHED_FILES_IMAGE = SWTHelper.loadImage("attach.gif");
+
+	private final ScheduledExecutorService svc = Executors.newSingleThreadScheduledExecutor();
 	
 	private static final int MIN_WIDTH_FOR_MULTI_COLUMN = 380;
-	public static final Image ATTACHED_FILES_IMAGE = SWTHelper.loadImage("attach.gif");
 
 	private SearchBoxView sbView;
 	private MailBoxTableView tableView;
@@ -163,8 +166,7 @@ public class MailBoxView
 
 		mboxListener = new MailBoxListener(this, tableView, tableView.getEventList());
 		
-		Timer timer = new Timer("MailBox category updater", true);
-		timer.schedule(new TimerTask() {
+		svc.scheduleAtFixedRate(new Runnable() {
 			public void run()
 			{
 				MailBoxItem.computeCategories();
@@ -193,7 +195,7 @@ public class MailBoxView
 					}
 				});
 			}
-		}, MailBoxItem.tomorrow + 1, 24L * 60L * 60L * 1000L);
+		}, ((MailBoxItem.tomorrow + 1) - System.currentTimeMillis()), 24L * 60L * 60L * 1000L, TimeUnit.MILLISECONDS);
 
 		treeList.addListEventListener(new ListEventListener<MailBoxItem>() {
 			public void listChanged(final ListEvent<MailBoxItem> listChanges)
