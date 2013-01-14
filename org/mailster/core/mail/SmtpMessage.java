@@ -39,6 +39,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -89,7 +90,7 @@ public class SmtpMessage implements Serializable
     /**
      * Likewise, a global id for Message-ID generation.
      */
-    private static int id = 0;
+    private final static AtomicLong id = new AtomicLong(0);
 
     /**
      * Constructor. Initializes headers Map and body buffer.
@@ -162,13 +163,20 @@ public class SmtpMessage implements Serializable
             if (messageID == null)
             {
                 StringBuilder s = new StringBuilder(hashCode());
-                s.append('.').append(id++).append(System.currentTimeMillis())
+                s.append('.').append(id.incrementAndGet()).append(System.currentTimeMillis())
                         .append(".Mailster@");
                 try
                 {
                     InetAddress addr = InetAddress.getLocalHost();
                     if (addr != null)
-                        s.append(addr.getAddress());
+                    {
+                    	String h = addr.toString();
+                    	int pos = h.indexOf('/');
+                    	if (pos != -1)
+                    		s.append(h.substring(pos+1));
+                    	else
+                    		s.append(h);
+                    }                        
                     else
                         s.append("localhost");
                 }
