@@ -202,7 +202,7 @@ public class MailBox
         for (StoredSmtpMessage msg : mails.values())
         {
             if (msg.getFlags().contains(Flag.DELETED))
-                mails.remove(msg);
+                mails.remove(msg.getId());
         }
     }
 

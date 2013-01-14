@@ -38,41 +38,41 @@ public class DateUtilities
     /**
      * Advanced day & hour formatter.
      */
-    public final static SimpleDateFormat adf = 
+    public final static SimpleDateFormat ADF_FORMATTER = 
     	new SimpleDateFormat("EEE dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$
     
     /**
      * Simple day & hour formatter.
      */
-    public final static SimpleDateFormat df = 
+    public final static SimpleDateFormat DF_FORMATTER = 
     	new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$
     
     /**
      * Simple GMT day & hour formatter.
      */
-    public final static SimpleDateFormat gmt = 
+    public final static SimpleDateFormat GMT_FORMATTER = 
     	new SimpleDateFormat("dd/MM/yyyy HH:mm:ss z"); //$NON-NLS-1$
     
     static {
-    	gmt.setTimeZone(TimeZone.getTimeZone("GMT"));
+    	GMT_FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
     
 	/**
      * Hour date formatter
      */
-    public final static SimpleDateFormat hourDateFormat = 
+    public final static SimpleDateFormat HOUR_FORMATTER = 
     	new SimpleDateFormat("HH:mm:ss"); //$NON-NLS-1$
     
     /**
      * RFC 822 compliant date formatter
      */
-    public final static SimpleDateFormat rfc822DateFormatter = 
+    public final static SimpleDateFormat RFC822_FORMATTER = 
     	new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", Locale.US);
     
     /**
      * ANSI C's asctime() formatter
      */
-    private final static SimpleDateFormat ascTimeFormatter = 
+    private final static SimpleDateFormat ASCTIME_FORMATTER = 
     	new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy", Locale.US);
 
     /**
@@ -83,7 +83,12 @@ public class DateUtilities
      */
     public static String formatAsFixedWidthAsctime(Date d)
     {
-        String s = ascTimeFormatter.format(d);
+        String s = null;
+        
+        synchronized (ASCTIME_FORMATTER)
+		{
+        	s = ASCTIME_FORMATTER.format(d);	
+		}
 
         // If day of Month value is 0..9 then output string will only be 23
         // chars wide so we pad it manually with a white space as specified by

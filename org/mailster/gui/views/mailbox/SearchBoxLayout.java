@@ -93,7 +93,7 @@ public class SearchBoxLayout
 		Point pt = new Point(size.x - tmp.x - SPACING - (2 * MARGIN), tmp.y);
 
 		int h = t.computeSize(SWT.DEFAULT, SWT.DEFAULT, true).y;
-		if (h % 2 == 1)
+		if (h % 2 != 0)
 			h += 1;
 		t.setBounds(MARGIN, MARGIN + (tmp.y - h) / 2, pt.x, h);
 		canvas.setLocation(pt.x + SPACING + MARGIN, MARGIN);

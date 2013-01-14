@@ -37,7 +37,7 @@ import org.eclipse.swt.widgets.Composite;
  * @author <a href="mailto:Sebastian.Machhausen@gmail.com">Sebastian Machhausen</a>
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  */
-public class DirectoryFieldEditor
+public class EnhancedDirectoryFieldEditor
         extends org.eclipse.jface.preference.DirectoryFieldEditor
 {
     /**
@@ -51,7 +51,7 @@ public class DirectoryFieldEditor
      *            <code>VALIDATE_ON_FOCUS_LOST</code> to perform validation
      *            only after the text has been typed in
      */
-    public DirectoryFieldEditor(String name, String labelText,
+    public EnhancedDirectoryFieldEditor(String name, String labelText,
             Composite parent, int strategy)
     {
         init(name, labelText);

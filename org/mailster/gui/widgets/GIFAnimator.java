@@ -63,6 +63,7 @@ public class GIFAnimator extends Thread
 		
 		this.useGIFBackground = useGIFBackground;
 		gc = new GC(ctrl);
+		display = ctrl.getDisplay();
 		bgColor = ctrl.getBackground();
 		loader = new ImageLoader();
 		imageDataArray = loader.load(SWTHelper.getResourceAsStream(resourceFileName));

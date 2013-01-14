@@ -106,9 +106,9 @@ public class MailUtilities
         {
             if (SmtpHeadersInterface.DATE.equals(headerName))
             {
-            	synchronized(DateUtilities.rfc822DateFormatter)
+            	synchronized(DateUtilities.RFC822_FORMATTER)
             	{
-            		return DateUtilities.rfc822DateFormatter.format(new Date());
+            		return DateUtilities.RFC822_FORMATTER.format(new Date());
             	}
             }
             else if (SmtpHeadersInterface.SUBJECT.equals(headerName))
@@ -566,7 +566,7 @@ public class MailUtilities
         {
             String line = reader.readLine();
 
-            if (line.startsWith(partEndBoundary))
+            if (line == null || line.startsWith(partEndBoundary))
                 break;
             else
             {

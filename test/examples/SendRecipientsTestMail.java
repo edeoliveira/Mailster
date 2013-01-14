@@ -59,7 +59,10 @@ public class SendRecipientsTestMail
 		
 		baseMsg.setSubject(MimeUtility.encodeText("Test                                           recipients       @@@@@         ÈÔ            ÁÁ ‡‡‡              mail                    ok"));
 		baseMsg.setContent("Test content Î", "text/plain; charset=\"ISO-8859-1\"");
-		baseMsg.setHeader("Date", DateUtilities.rfc822DateFormatter.format(new Date()));
+		synchronized (DateUtilities.RFC822_FORMATTER)
+		{
+			baseMsg.setHeader("Date", DateUtilities.RFC822_FORMATTER.format(new Date()));
+		}
 		
         baseMsg.saveChanges();
         Transport.send(baseMsg);

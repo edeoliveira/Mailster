@@ -67,9 +67,9 @@ public class StoredSmtpMessage
 	{
 		try
 		{
-			synchronized (DateUtilities.rfc822DateFormatter)
+			synchronized (DateUtilities.RFC822_FORMATTER)
 			{
-				messageDate = DateUtilities.rfc822DateFormatter.parse(msg.getDate());
+				messageDate = DateUtilities.RFC822_FORMATTER.parse(msg.getDate());
 			}
 		} catch (ParseException e)
 		{

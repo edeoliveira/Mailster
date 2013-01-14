@@ -143,7 +143,10 @@ public class OutlookMailView
 		rawMailView.setText(msg.toString());
 		title.setText(msg.getSubject());
 		from.setText(stored.getMessageFrom());
-		date.setText(DateUtilities.adf.format(stored.getMessageDate()));
+		synchronized(DateUtilities.ADF_FORMATTER)
+		{
+			date.setText(DateUtilities.ADF_FORMATTER.format(stored.getMessageDate()));
+		}
 
 		SmtpHeadersInterface headers = msg.getHeaders();
 		String list = MailUtilities.formatEmailList(headers, SmtpHeadersInterface.TO);

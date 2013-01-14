@@ -68,15 +68,15 @@ public class AuthDigestMD5IoFilter
     private final static String CLIENT_INTEGRITY_KEY 	= AuthDigestMD5IoFilter.class.getName()+".Kic";
     private final static String SERVER_INTEGRITY_KEY 	= AuthDigestMD5IoFilter.class.getName()+".Kis";
 
-    private final static String SEQUENCE_NUMBER 					= AuthDigestMD5IoFilter.class.getName()+".sequenceNumber";
+    private final static String SEQUENCE_NUMBER 		= AuthDigestMD5IoFilter.class.getName()+".sequenceNumber";
     protected final static String PEER_SEQUENCE_NUMBER	= AuthDigestMD5IoFilter.class.getName()+".peerSequenceNumber";
     
-    protected final static String ENCODING_CIPHER 	= AuthDigestMD5IoFilter.class.getName()+".encodingCipher";
-    protected final static String DECODING_CIPHER 	= AuthDigestMD5IoFilter.class.getName()+".decodingCipher";
+    protected final static String ENCODING_CIPHER 		= AuthDigestMD5IoFilter.class.getName()+".encodingCipher";
+    protected final static String DECODING_CIPHER 		= AuthDigestMD5IoFilter.class.getName()+".decodingCipher";
     
-    public final static String DISABLE_FILTER_ONCE = AuthDigestMD5IoFilter.class.getName() + ".DisableFilterOnce";
+    public final static String DISABLE_FILTER_ONCE 		= AuthDigestMD5IoFilter.class.getName() + ".DisableFilterOnce";
     
-    private final static LineDelimiter DELIMITER			= new LineDelimiter("\r\n");
+    private final static LineDelimiter DELIMITER		= new LineDelimiter("\r\n");
     
     /* Mask used to check for parity adjustment */
     private static final byte[] PARITY_BIT_MASK = { (byte)0x80, (byte)0x40, (byte)0x20, (byte)0x10,
@@ -158,7 +158,7 @@ public class AuthDigestMD5IoFilter
         		case DES : return "des";
         		case DES3 : return "3des";
         		default :
-        			return null;
+        			throw new AssertionError("Unknown CIPHER");
         	}
         }
     };

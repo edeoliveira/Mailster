@@ -389,10 +389,13 @@ public class CertificateDialog extends Dialog
         lbl.setLayoutData(LayoutUtils.createGridData(
                 GridData.BEGINNING, GridData.BEGINNING, false, false, 2, 1));
         
-        addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.issuedOn"), //$NON-NLS-1$ 
-                DateUtilities.df.format(cert.getNotBefore()));
-        addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.expiresOn"), //$NON-NLS-1$ 
-                DateUtilities.df.format(cert.getNotAfter()));
+        synchronized (DateUtilities.DF_FORMATTER)
+        {
+	        addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.issuedOn"), //$NON-NLS-1$ 
+	                DateUtilities.DF_FORMATTER.format(cert.getNotBefore()));
+	        addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.expiresOn"), //$NON-NLS-1$ 
+	                DateUtilities.DF_FORMATTER.format(cert.getNotAfter()));
+        }
         
         lbl = new Label(composite, SWT.WRAP);
         lbl.setText(Messages.getString("MailsterSWT.dialog.certificate.fingerprints")); //$NON-NLS-1$
@@ -734,7 +737,23 @@ public class CertificateDialog extends Dialog
     
     private String formatDate(Date d)
     {
-    	return DateUtilities.df.format(d)+"\n("+DateUtilities.gmt.format(d)+")";
+    	StringBuilder sb = new StringBuilder();
+    	
+    	synchronized(DateUtilities.DF_FORMATTER)
+    	{
+    		sb.append(DateUtilities.DF_FORMATTER.format(d));
+    	}
+    	
+    	sb.append("\n(");
+    	
+    	synchronized(DateUtilities.GMT_FORMATTER)
+    	{
+    		sb.append(DateUtilities.GMT_FORMATTER.format(d));
+    	}
+    	
+    	sb.append(")");
+    	
+    	return sb.toString();
     }
     
     private void generateCertificateStructureTree(Tree tree, final Text valueText, Certificate selected)

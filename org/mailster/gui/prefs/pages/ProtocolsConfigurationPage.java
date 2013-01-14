@@ -322,7 +322,7 @@ public class ProtocolsConfigurationPage
         int index = preferredSSLProtocolViewer.getCombo().getSelectionIndex();
         store.setValue(ConfigurationManager.PREFERRED_SSL_PROTOCOL_KEY, index);
         String selection = preferredSSLProtocolViewer.getCombo().getItem(index).toString();
-        SSLProtocol protocol = SSLProtocol.SSL.equals(selection) ? SSLProtocol.SSL : SSLProtocol.TLS;
+        SSLProtocol protocol = SSLProtocol.SSL.toString().equals(selection) ? SSLProtocol.SSL : SSLProtocol.TLS;
         MinaPop3Connection.setupSSLParameters(protocol, authSSLClientsStartEditor.getSelection());
         MailsterSMTPServer.setupSSLParameters(protocol, authSSLClientsStartEditor.getSelection());
         

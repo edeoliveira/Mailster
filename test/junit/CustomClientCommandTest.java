@@ -188,6 +188,7 @@ public class CustomClientCommandTest extends TestCase
     	throws IOException 
     {
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("220 "));
     }
 
@@ -196,6 +197,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println(".");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250 "));
     }
 
@@ -204,6 +206,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("DATA");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("354 "));
     }
 
@@ -212,6 +215,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("EHLO " + hostName);
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250-"));
         while ((response = input.readLine()).charAt(3) == '-')
         	;
@@ -222,6 +226,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("MAIL FROM:<" + fromAddress  + ">");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250 "));
     }
 
@@ -230,6 +235,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("QUIT");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("221 "));
     }
 
@@ -238,6 +244,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("RCPT TO:<" + toAddress  + ">");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250 "));
     }
 
@@ -246,6 +253,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("RSET");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250 "));
     }
 }

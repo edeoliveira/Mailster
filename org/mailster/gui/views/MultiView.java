@@ -358,7 +358,13 @@ public class MultiView
 	{
 		if (log != null && !log.isDisposed() && msg != null)
 		{
-			String date = DateUtilities.df.format(new Date());
+			String date = null;
+			
+			synchronized(DateUtilities.DF_FORMATTER)
+			{
+				date = DateUtilities.DF_FORMATTER.format(new Date());
+			}
+			
 			StringBuilder sb = new StringBuilder(3 + date.length() + msg.length());
 			sb.append('['); //$NON-NLS-1$
 			sb.append(date);
@@ -446,7 +452,8 @@ public class MultiView
 		} catch (SWTError swt)
 		{
 			main.log(swt.getMessage());
-			item.dispose();
+			if (item != null)
+				item.dispose();
 			return;
 		}
 	}

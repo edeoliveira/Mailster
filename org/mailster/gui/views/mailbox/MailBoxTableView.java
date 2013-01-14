@@ -208,7 +208,7 @@ public class MailBoxTableView
 				{
 					TableItem item = (TableItem) event.item;
 
-					if (_table.indexOf(item) % 2 == 1)
+					if (_table.indexOf(item) % 2 != 0)
 						gc.setBackground(tableRowColor);
 					else
 						gc.setBackground(_table.getBackground());
@@ -515,9 +515,19 @@ public class MailBoxTableView
 				Date d = (Date) columnValue;
 				
 	            if (DateUtilities.isCurrentDay(d))
-	            	return DateUtilities.hourDateFormat.format(d);
+	            {
+	            	synchronized(DateUtilities.HOUR_FORMATTER)
+	            	{
+	            		return DateUtilities.HOUR_FORMATTER.format(d);
+	            	}
+	            }
 	            else
-	            	return DateUtilities.df.format(d);
+	            {
+	            	synchronized(DateUtilities.DF_FORMATTER)
+	            	{
+	            		return DateUtilities.DF_FORMATTER.format(d);
+	            	}
+	            }
 			}
 			else
 				return columnValue == null || !(columnValue instanceof String)? 

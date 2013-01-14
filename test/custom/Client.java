@@ -76,6 +76,9 @@ public class Client
 			if (echo)
 				System.out.println(line);
 			
+			if (line == null)
+				break;
+			
 			if (line.charAt(3) != '-')
 				done = true;
 				

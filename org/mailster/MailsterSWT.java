@@ -895,9 +895,12 @@ public class MailsterSWT
 					else
 						msg = Messages.getString("MailView.tray.versioncheck.upToDate"); //$NON-NLS-1$
 
-					showTrayItemTooltipMessage(Messages.getString("MailView.tray.versioncheck.title") //$NON-NLS-1$
-							+ DateUtilities.hourDateFormat.format(new Date()) + ")", //$NON-NLS-1$
+					synchronized (DateUtilities.HOUR_FORMATTER)
+					{
+						showTrayItemTooltipMessage(Messages.getString("MailView.tray.versioncheck.title") //$NON-NLS-1$
+							+ DateUtilities.HOUR_FORMATTER.format(new Date()) + ")", //$NON-NLS-1$
 							msg);
+					}
 
 					if (updateNeeded)
 						Display.getDefault().asyncExec(new Thread() {

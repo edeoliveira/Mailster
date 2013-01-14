@@ -150,9 +150,14 @@ public class MailsterSmtpService
 			if (nb > 0
 					&& ConfigurationManager.CONFIG_STORE
 							.getBoolean(ConfigurationManager.NOTIFY_ON_NEW_MESSAGES_RECEIVED_KEY))
-				main.showTrayItemTooltipMessage(Messages.getString("MailView.trayTooltip.title") //$NON-NLS-1$
-						+ DateUtilities.hourDateFormat.format(new Date()) + ")", //$NON-NLS-1$
-						nb + Messages.getString("MailView.trayTooltip.newMessages")); //$NON-NLS-1$                
+			{
+				synchronized (DateUtilities.HOUR_FORMATTER)
+				{
+					main.showTrayItemTooltipMessage(Messages.getString("MailView.trayTooltip.title") //$NON-NLS-1$
+							+ DateUtilities.HOUR_FORMATTER.format(new Date()) + ")", //$NON-NLS-1$
+							nb + Messages.getString("MailView.trayTooltip.newMessages")); //$NON-NLS-1$
+				}
+			}
 		}
 	}
 

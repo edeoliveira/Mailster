@@ -64,8 +64,7 @@ public class MemoryProgressBar
 				gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
 				
 				long maxMemory = Runtime.getRuntime().maxMemory();
-				int used = Math.round(((maxMemory-Runtime.getRuntime().freeMemory()) * 100) 
-						/ maxMemory);
+				long used = ((maxMemory-Runtime.getRuntime().freeMemory()) * 100) / maxMemory;
 				
 				String title = used+" %";
 				Point size = getSize();
@@ -107,11 +106,10 @@ public class MemoryProgressBar
 							public void run() 
 							{
 								long maxMemory = Runtime.getRuntime().maxMemory();
-								int used = Math.round(((maxMemory-Runtime.getRuntime().freeMemory()) * 100) 
-										/ maxMemory);
+								long used = ((maxMemory-Runtime.getRuntime().freeMemory()) * 100) / maxMemory;
 								
 								if (!isDisposed()) {
-									setSelection(used);
+									setSelection((int) used);
 									redraw();
 								}
 							}

@@ -84,10 +84,11 @@ public class SendMultipleMail
 				baseMsg.setContent(multipart);
 			}
 
-			synchronized(DateUtilities.rfc822DateFormatter)
+			synchronized(DateUtilities.RFC822_FORMATTER)
 			{
-				baseMsg.setHeader("Date", DateUtilities.rfc822DateFormatter.format(getRandomDate()));
+				baseMsg.setHeader("Date", DateUtilities.RFC822_FORMATTER.format(getRandomDate()));
 			}
+			
 	        baseMsg.saveChanges();
 	        
 	        Transport.send(baseMsg);
