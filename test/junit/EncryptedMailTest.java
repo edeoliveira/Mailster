@@ -174,9 +174,12 @@ public class EncryptedMailTest extends TestCase
 	
 	private static Date getRandomDate()
 	{
-		gc.clear();
-		gc.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
-		return gc.getTime();
+		synchronized (gc)
+		{
+			gc.clear();
+			gc.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
+			return gc.getTime();
+		}
 	}
 	
     private static MimeMultipart cryptMessage(MimeBodyPart mbp)
