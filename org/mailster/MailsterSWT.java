@@ -80,6 +80,7 @@ import org.mailster.gui.widgets.PShelfPanelListener;
 import org.mailster.gui.widgets.PshelfPanel;
 import org.mailster.util.DateUtilities;
 import org.mailster.util.StringUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -895,12 +896,9 @@ public class MailsterSWT
 					else
 						msg = Messages.getString("MailView.tray.versioncheck.upToDate"); //$NON-NLS-1$
 
-					synchronized (DateUtilities.HOUR_FORMATTER)
-					{
-						showTrayItemTooltipMessage(Messages.getString("MailView.tray.versioncheck.title") //$NON-NLS-1$
-							+ DateUtilities.HOUR_FORMATTER.format(new Date()) + ")", //$NON-NLS-1$
-							msg);
-					}
+					showTrayItemTooltipMessage(Messages.getString("MailView.tray.versioncheck.title") //$NON-NLS-1$
+						+ DateUtilities.format(DateFormatterEnum.HOUR, new Date()) + ")", //$NON-NLS-1$
+						msg);
 
 					if (updateNeeded)
 						Display.getDefault().asyncExec(new Thread() {

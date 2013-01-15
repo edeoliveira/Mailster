@@ -44,6 +44,7 @@ import org.mailster.gui.SWTHelper;
 import org.mailster.gui.crypto.CertificateDialog;
 import org.mailster.util.DateUtilities;
 import org.mailster.util.MailUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 
 /**
  * ---<br>
@@ -143,10 +144,7 @@ public class OutlookMailView
 		rawMailView.setText(msg.toString());
 		title.setText(msg.getSubject());
 		from.setText(stored.getMessageFrom());
-		synchronized(DateUtilities.ADF_FORMATTER)
-		{
-			date.setText(DateUtilities.ADF_FORMATTER.format(stored.getMessageDate()));
-		}
+		date.setText(DateUtilities.format(DateFormatterEnum.ADF, stored.getMessageDate()));
 
 		SmtpHeadersInterface headers = msg.getHeaders();
 		String list = MailUtilities.formatEmailList(headers, SmtpHeadersInterface.TO);

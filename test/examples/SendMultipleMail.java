@@ -32,6 +32,7 @@ import org.bouncycastle.mail.smime.SMIMESignedGenerator;
 import org.mailster.core.crypto.MailsterKeyStoreFactory;
 import org.mailster.core.smtp.MailsterConstants;
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 
 public class SendMultipleMail 
 {
@@ -84,11 +85,7 @@ public class SendMultipleMail
 				baseMsg.setContent(multipart);
 			}
 
-			synchronized(DateUtilities.RFC822_FORMATTER)
-			{
-				baseMsg.setHeader("Date", DateUtilities.RFC822_FORMATTER.format(getRandomDate()));
-			}
-			
+			baseMsg.setHeader("Date", DateUtilities.format(DateFormatterEnum.RFC822, getRandomDate()));			
 	        baseMsg.saveChanges();
 	        
 	        Transport.send(baseMsg);
@@ -113,9 +110,12 @@ public class SendMultipleMail
 	
 	private static Date getRandomDate()
 	{
-		gc.clear();
-		gc.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
-		return gc.getTime();
+		synchronized (gc)
+		{
+			gc.clear();
+			gc.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
+			return gc.getTime();
+		}
 	}
     
     private static MimeMultipart signMessage(MimeBodyPart mbp)

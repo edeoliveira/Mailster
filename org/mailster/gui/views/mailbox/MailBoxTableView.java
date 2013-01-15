@@ -41,6 +41,7 @@ import org.mailster.gui.SWTHelper;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.gui.views.FilterTreeView;
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 
 import ca.odell.glazedlists.BasicEventList;
 import ca.odell.glazedlists.EventList;
@@ -515,19 +516,9 @@ public class MailBoxTableView
 				Date d = (Date) columnValue;
 				
 	            if (DateUtilities.isCurrentDay(d))
-	            {
-	            	synchronized(DateUtilities.HOUR_FORMATTER)
-	            	{
-	            		return DateUtilities.HOUR_FORMATTER.format(d);
-	            	}
-	            }
+            		return DateUtilities.format(DateFormatterEnum.HOUR, d);
 	            else
-	            {
-	            	synchronized(DateUtilities.DF_FORMATTER)
-	            	{
-	            		return DateUtilities.DF_FORMATTER.format(d);
-	            	}
-	            }
+            		return DateUtilities.format(DateFormatterEnum.DF, d);
 			}
 			else
 				return columnValue == null || !(columnValue instanceof String)? 

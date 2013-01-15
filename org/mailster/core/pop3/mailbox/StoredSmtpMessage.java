@@ -8,6 +8,7 @@ import javax.mail.Flags;
 import org.mailster.core.mail.SmtpHeadersInterface;
 import org.mailster.core.mail.SmtpMessage;
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 
 /**
  * ---<br>
@@ -67,10 +68,7 @@ public class StoredSmtpMessage
 	{
 		try
 		{
-			synchronized (DateUtilities.RFC822_FORMATTER)
-			{
-				messageDate = DateUtilities.RFC822_FORMATTER.parse(msg.getDate());
-			}
+			messageDate = DateUtilities.parse(DateFormatterEnum.RFC822, msg.getDate());
 		} catch (ParseException e)
 		{
 			messageDate = new Date();

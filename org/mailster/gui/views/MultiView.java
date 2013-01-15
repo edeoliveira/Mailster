@@ -32,6 +32,7 @@ import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.gui.views.mailview.OutlookMailView;
 import org.mailster.gui.widgets.GIFAnimator;
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -358,12 +359,7 @@ public class MultiView
 	{
 		if (log != null && !log.isDisposed() && msg != null)
 		{
-			String date = null;
-			
-			synchronized(DateUtilities.DF_FORMATTER)
-			{
-				date = DateUtilities.DF_FORMATTER.format(new Date());
-			}
+			String date = DateUtilities.format(DateFormatterEnum.DF, new Date());
 			
 			StringBuilder sb = new StringBuilder(3 + date.length() + msg.length());
 			sb.append('['); //$NON-NLS-1$

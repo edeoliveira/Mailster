@@ -1,5 +1,6 @@
 package org.mailster.util;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -35,45 +36,111 @@ import java.util.TimeZone;
  */
 public class DateUtilities 
 {
-    /**
+	public enum DateFormatterEnum
+	{
+		ADF(ADF_FORMATTER), 
+		DF(DF_FORMATTER), 
+		GMT(GMT_FORMATTER), 
+		HOUR(HOUR_FORMATTER), 
+		RFC822(RFC822_FORMATTER), 
+		ASCTIME(ASCTIME_FORMATTER);
+		
+		private SimpleDateFormat sdf;
+		
+		private DateFormatterEnum(SimpleDateFormat sdf)
+		{
+			this.sdf = sdf;
+		}
+		
+		protected SimpleDateFormat getFormatter()
+		{
+			return sdf;
+		}
+	}
+	
+	/**
      * Advanced day & hour formatter.
      */
-    public final static SimpleDateFormat ADF_FORMATTER = 
+	private static final SimpleDateFormat ADF_FORMATTER = 
     	new SimpleDateFormat("EEE dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$
     
     /**
      * Simple day & hour formatter.
      */
-    public final static SimpleDateFormat DF_FORMATTER = 
+	private static final SimpleDateFormat DF_FORMATTER = 
     	new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$
     
     /**
      * Simple GMT day & hour formatter.
      */
-    public final static SimpleDateFormat GMT_FORMATTER = 
+    private static final SimpleDateFormat GMT_FORMATTER = 
     	new SimpleDateFormat("dd/MM/yyyy HH:mm:ss z"); //$NON-NLS-1$
-    
-    static {
-    	GMT_FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT"));
-    }
     
 	/**
      * Hour date formatter
      */
-    public final static SimpleDateFormat HOUR_FORMATTER = 
+    private static final SimpleDateFormat HOUR_FORMATTER = 
     	new SimpleDateFormat("HH:mm:ss"); //$NON-NLS-1$
     
     /**
      * RFC 822 compliant date formatter
      */
-    public final static SimpleDateFormat RFC822_FORMATTER = 
+    private static final SimpleDateFormat RFC822_FORMATTER = 
     	new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", Locale.US);
     
     /**
      * ANSI C's asctime() formatter
      */
-    private final static SimpleDateFormat ASCTIME_FORMATTER = 
+    private static final SimpleDateFormat ASCTIME_FORMATTER = 
     	new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy", Locale.US);
+    
+    static {
+    	GMT_FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+    
+    public static String format(DateFormatterEnum en, Date d)
+    {
+    	if (en == null)
+    		throw new IllegalArgumentException("DateFormatterEnum argument can't be null");
+    	
+    	SimpleDateFormat sdf = en.getFormatter(); 
+    	
+    	synchronized(sdf)
+    	{
+    		return sdf.format(d);
+    	}
+    }
+    
+    public static Date parse(DateFormatterEnum en, String s) 
+    	throws ParseException
+    {
+    	if (en == null)
+    		throw new IllegalArgumentException("DateFormatterEnum argument can't be null");
+    	
+    	SimpleDateFormat sdf = en.getFormatter(); 
+    	
+    	synchronized(sdf)
+    	{
+    		return sdf.parse(s);
+    	}
+    }    
+
+    public static String unsafeFormat(DateFormatterEnum en, Date d)
+    {
+    	if (en == null)
+    		throw new IllegalArgumentException("DateFormatterEnum argument can't be null");
+    	    	
+    	return en.getFormatter().format(d);
+    }
+    
+    public static Date unsafeParse(DateFormatterEnum en, String s) 
+    	throws ParseException
+    {
+    	if (en == null)
+    		throw new IllegalArgumentException("DateFormatterEnum argument can't be null");
+    	
+    	return en.getFormatter().parse(s);
+    }
 
     /**
      * Format date as 24 chars wide ANSI C's asctime().

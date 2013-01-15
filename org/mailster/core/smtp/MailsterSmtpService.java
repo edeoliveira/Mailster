@@ -24,6 +24,7 @@ import org.mailster.core.smtp.events.SMTPServerListener;
 import org.mailster.gui.Messages;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,12 +152,9 @@ public class MailsterSmtpService
 					&& ConfigurationManager.CONFIG_STORE
 							.getBoolean(ConfigurationManager.NOTIFY_ON_NEW_MESSAGES_RECEIVED_KEY))
 			{
-				synchronized (DateUtilities.HOUR_FORMATTER)
-				{
-					main.showTrayItemTooltipMessage(Messages.getString("MailView.trayTooltip.title") //$NON-NLS-1$
-							+ DateUtilities.HOUR_FORMATTER.format(new Date()) + ")", //$NON-NLS-1$
-							nb + Messages.getString("MailView.trayTooltip.newMessages")); //$NON-NLS-1$
-				}
+				main.showTrayItemTooltipMessage(Messages.getString("MailView.trayTooltip.title") //$NON-NLS-1$
+						+ DateUtilities.format(DateFormatterEnum.HOUR, new Date()) + ")", //$NON-NLS-1$
+						nb + Messages.getString("MailView.trayTooltip.newMessages")); //$NON-NLS-1$
 			}
 		}
 	}

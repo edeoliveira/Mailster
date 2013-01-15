@@ -23,6 +23,7 @@ import org.mailster.core.mail.SmtpHeaders;
 import org.mailster.core.mail.SmtpHeadersInterface;
 import org.mailster.core.mail.SmtpMessage;
 import org.mailster.core.mail.SmtpMessagePart;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,10 +107,7 @@ public class MailUtilities
         {
             if (SmtpHeadersInterface.DATE.equals(headerName))
             {
-            	synchronized(DateUtilities.RFC822_FORMATTER)
-            	{
-            		return DateUtilities.RFC822_FORMATTER.format(new Date());
-            	}
+           		return DateUtilities.format(DateFormatterEnum.RFC822, new Date());
             }
             else if (SmtpHeadersInterface.SUBJECT.equals(headerName))
                 return "{No subject}";

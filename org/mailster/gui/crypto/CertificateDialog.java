@@ -62,6 +62,7 @@ import org.mailster.gui.SWTHelper;
 import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 
 /**
  * ---<br>
@@ -389,13 +390,10 @@ public class CertificateDialog extends Dialog
         lbl.setLayoutData(LayoutUtils.createGridData(
                 GridData.BEGINNING, GridData.BEGINNING, false, false, 2, 1));
         
-        synchronized (DateUtilities.DF_FORMATTER)
-        {
-	        addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.issuedOn"), //$NON-NLS-1$ 
-	                DateUtilities.DF_FORMATTER.format(cert.getNotBefore()));
-	        addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.expiresOn"), //$NON-NLS-1$ 
-	                DateUtilities.DF_FORMATTER.format(cert.getNotAfter()));
-        }
+        addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.issuedOn"), //$NON-NLS-1$ 
+                DateUtilities.format(DateFormatterEnum.DF, cert.getNotBefore()));
+        addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.expiresOn"), //$NON-NLS-1$ 
+                DateUtilities.format(DateFormatterEnum.DF, cert.getNotAfter()));
         
         lbl = new Label(composite, SWT.WRAP);
         lbl.setText(Messages.getString("MailsterSWT.dialog.certificate.fingerprints")); //$NON-NLS-1$
@@ -739,18 +737,9 @@ public class CertificateDialog extends Dialog
     {
     	StringBuilder sb = new StringBuilder();
     	
-    	synchronized(DateUtilities.DF_FORMATTER)
-    	{
-    		sb.append(DateUtilities.DF_FORMATTER.format(d));
-    	}
-    	
+   		sb.append(DateUtilities.format(DateFormatterEnum.DF, d));
     	sb.append("\n(");
-    	
-    	synchronized(DateUtilities.GMT_FORMATTER)
-    	{
-    		sb.append(DateUtilities.GMT_FORMATTER.format(d));
-    	}
-    	
+   		sb.append(DateUtilities.format(DateFormatterEnum.GMT, d));
     	sb.append(")");
     	
     	return sb.toString();

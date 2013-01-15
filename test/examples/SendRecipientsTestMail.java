@@ -12,6 +12,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
 
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 
 public class SendRecipientsTestMail 
 {
@@ -59,10 +60,7 @@ public class SendRecipientsTestMail
 		
 		baseMsg.setSubject(MimeUtility.encodeText("Test                                           recipients       @@@@@         ÈÔ            ÁÁ ‡‡‡              mail                    ok"));
 		baseMsg.setContent("Test content Î", "text/plain; charset=\"ISO-8859-1\"");
-		synchronized (DateUtilities.RFC822_FORMATTER)
-		{
-			baseMsg.setHeader("Date", DateUtilities.RFC822_FORMATTER.format(new Date()));
-		}
+		baseMsg.setHeader("Date", DateUtilities.format(DateFormatterEnum.RFC822, new Date()));
 		
         baseMsg.saveChanges();
         Transport.send(baseMsg);
