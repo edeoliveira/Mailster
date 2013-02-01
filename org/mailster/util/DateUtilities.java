@@ -52,7 +52,7 @@ public class DateUtilities
 			this.sdf = sdf;
 		}
 		
-		protected SimpleDateFormat getFormatter()
+		private SimpleDateFormat getFormatter()
 		{
 			return sdf;
 		}
