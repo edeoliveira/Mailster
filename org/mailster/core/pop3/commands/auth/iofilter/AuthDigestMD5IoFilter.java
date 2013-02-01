@@ -33,6 +33,8 @@ import org.mailster.core.pop3.commands.auth.AuthDigestMD5Command;
 import org.mailster.core.pop3.commands.auth.AuthException;
 import org.mailster.util.ByteUtilities;
 import org.mailster.util.md5.MD5;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ---<br>
@@ -65,18 +67,20 @@ import org.mailster.util.md5.MD5;
 public class AuthDigestMD5IoFilter 
 	extends CumulativeIoFilter
 {
-    private final static String CLIENT_INTEGRITY_KEY 	= AuthDigestMD5IoFilter.class.getName()+".Kic";
-    private final static String SERVER_INTEGRITY_KEY 	= AuthDigestMD5IoFilter.class.getName()+".Kis";
+	private static final Logger LOG = LoggerFactory.getLogger(AuthDigestMD5IoFilter.class);
+	
+    private static final String CLIENT_INTEGRITY_KEY 	= AuthDigestMD5IoFilter.class.getName()+".Kic";
+    private static final String SERVER_INTEGRITY_KEY 	= AuthDigestMD5IoFilter.class.getName()+".Kis";
 
-    private final static String SEQUENCE_NUMBER 		= AuthDigestMD5IoFilter.class.getName()+".sequenceNumber";
-    protected final static String PEER_SEQUENCE_NUMBER	= AuthDigestMD5IoFilter.class.getName()+".peerSequenceNumber";
+    private static final String SEQUENCE_NUMBER 		= AuthDigestMD5IoFilter.class.getName()+".sequenceNumber";
+    protected static final String PEER_SEQUENCE_NUMBER	= AuthDigestMD5IoFilter.class.getName()+".peerSequenceNumber";
     
-    protected final static String ENCODING_CIPHER 		= AuthDigestMD5IoFilter.class.getName()+".encodingCipher";
-    protected final static String DECODING_CIPHER 		= AuthDigestMD5IoFilter.class.getName()+".decodingCipher";
+    protected static final String ENCODING_CIPHER 		= AuthDigestMD5IoFilter.class.getName()+".encodingCipher";
+    protected static final String DECODING_CIPHER 		= AuthDigestMD5IoFilter.class.getName()+".decodingCipher";
     
-    public final static String DISABLE_FILTER_ONCE 		= AuthDigestMD5IoFilter.class.getName() + ".DisableFilterOnce";
+    public static final String DISABLE_FILTER_ONCE 		= AuthDigestMD5IoFilter.class.getName() + ".DisableFilterOnce";
     
-    private final static LineDelimiter DELIMITER		= new LineDelimiter("\r\n");
+    private static final LineDelimiter DELIMITER		= new LineDelimiter("\r\n");
     
     /* Mask used to check for parity adjustment */
     private static final byte[] PARITY_BIT_MASK = { (byte)0x80, (byte)0x40, (byte)0x20, (byte)0x10,
@@ -109,7 +113,7 @@ public class AuthDigestMD5IoFilter
         	    } 
         	    catch (Exception e) 
         	    {
-        	    	// no implementation found for requested algorithm.
+        	    	LOG.debug("Cipher {} has no implementation available", JCE_CIPHER_NAME[i], e);
         	    }
         	}
         }

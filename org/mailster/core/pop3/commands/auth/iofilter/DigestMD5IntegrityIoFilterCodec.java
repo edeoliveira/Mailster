@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DigestMD5IntegrityIoFilterCodec implements IoFilterCodec 
 {
-    private static final Logger log = LoggerFactory.getLogger(DigestMD5IntegrityIoFilterCodec.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DigestMD5IntegrityIoFilterCodec.class);
     public final static byte[] LINE_TERMINATOR = new byte[] {'\r', '\n'};
     
     protected final IoSession session;
@@ -105,7 +105,7 @@ public class DigestMD5IntegrityIoFilterCodec implements IoFilterCodec
 		} 
     	catch (Exception ex) 
     	{
-    		log.debug(ex.getMessage());
+    		LOG.debug(ex.getMessage());
     		nextFilter.messageReceived(session, "\r\n");
 		}
     	
