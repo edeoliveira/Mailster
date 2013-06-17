@@ -343,15 +343,18 @@ public class MailsterSWT
 					ConfigurationDialog.run(sShell);
 				else if (e.widget == aboutToolItem)
 					(new AboutDialog(sShell, multiView)).open();
-				else if (e.widget == changelogToolItem)
-					multiView.showURL(changeLogImage, "file://" + System.getProperty("user.dir") + File.separator
-							+ "changelog.htm", Messages.getString("MailsterSWT.changelog.tooltip"), false);
-				else if (e.widget == homeToolItem)
-					multiView.showURL(ConfigurationManager.MAILSTER_HOMEPAGE, false, true);
-				else if (e.widget == versionCheckToolItem)
-					versionCheck();
-				else if (e.widget == showLogViewToolItem)
-					getMultiView().createLogConsole(true);
+				else 
+				{
+					if (e.widget == changelogToolItem)
+						multiView.showURL(changeLogImage, "file://" + System.getProperty("user.dir") + File.separator
+								+ "changelog.htm", Messages.getString("MailsterSWT.changelog.tooltip"), false);
+					else if (e.widget == homeToolItem)
+						multiView.showURL(ConfigurationManager.MAILSTER_HOMEPAGE, false, true);
+					else if (e.widget == versionCheckToolItem)
+						versionCheck();
+					else if (e.widget == showLogViewToolItem)
+						multiView.createLogConsole(true);
+				}
 			}
 		};
 

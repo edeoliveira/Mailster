@@ -217,8 +217,11 @@ public class CustomClientCommandTest extends TestCase
         String response = input.readLine();
         assertNotNull(response);
         assertTrue(response, response.startsWith("250-"));
-        while ((response = input.readLine()).charAt(3) == '-')
-        	;
+        do
+        {
+        	response = input.readLine();
+        }
+        while (response != null && response.charAt(3) == '-');
     }
 
     private void sendMailFrom(String fromAddress, PrintWriter output, BufferedReader input) 
