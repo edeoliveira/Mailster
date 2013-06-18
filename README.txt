@@ -1,3 +1,14 @@
+WHAT IS MAILSTER ?
+
+Mailster is a project aimed at testing software mail capabilities. It 
+provides a mail server container to test emails sent by your apps 
+without rewriting your application code.
+
+DEVELOPPERS
+
+Please note that pom.xml is not fully functionnal cause some libs are 
+not available under public maven repositories.
+
 INSTALLATION NOTES for All platforms
 
 - JAVA 1.5 is required.
@@ -22,7 +33,7 @@ INSTALLATION NOTES for Linux
 You will need to install xulrunner which is downloadable 
 from http://developer.mozilla.org/en/docs/XULRunner
 
-http://developer.mozilla.org/en/docs/XULRunner_1.8.0.4_Release_Notes
+https://developer.mozilla.org/en-US/docs/Getting_started_with_XULRunner
 will guide you through installation process
 
 If you're connecting to Internet through a proxy, you'll have to set
@@ -42,8 +53,8 @@ pref("network.proxy.type", 1);
 
 IMPORTANT : <...> notation is used to replace a user custom value
 
-You must run Mailster with an appropriate user because binding to SMTP port 
-needs privileges.
+You must run Mailster with an appropriate user because binding to SMTP or 
+POP3 ports needs privileges.
 
 Currently, i've successfully ran Mailster in the following environments :
 - Mandriva 2007 distribution with xulrunner 1.8.0.4 and jdk 1.5.0_11

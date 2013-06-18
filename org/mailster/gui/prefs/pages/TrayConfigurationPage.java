@@ -65,7 +65,7 @@ import org.mailster.gui.utils.LayoutUtils;
  * application's tray behaviour.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2008/12/06 13:57:16 $
  */
 public class TrayConfigurationPage 
     extends DefaultConfigurationPage 

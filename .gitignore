@@ -1,7 +1,10 @@
 # Garbage files   #
 ###################
 bin/
+mailster.jar
 mailster.log
 autosave.mbx
 *.tmp
 config.properties
+*.obj
+.myeclipse/

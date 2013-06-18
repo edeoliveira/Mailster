@@ -12,10 +12,10 @@ import javax.mail.internet.MimeMessage;
 
 import junit.framework.TestCase;
 
-import org.mailster.message.SmtpMessage;
-import org.mailster.server.MailsterSMTPServer;
-import org.mailster.server.events.SMTPServerAdapter;
-import org.mailster.server.events.SMTPServerEvent;
+import org.mailster.core.mail.SmtpMessage;
+import org.mailster.core.smtp.MailsterSMTPServer;
+import org.mailster.core.smtp.events.SMTPServerAdapter;
+import org.mailster.core.smtp.events.SMTPServerEvent;
 
 /**
  * Check a possible bug in Dumbster SMTP server 

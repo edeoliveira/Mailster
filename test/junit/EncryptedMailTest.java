@@ -33,12 +33,12 @@ import org.bouncycastle.asn1.smime.SMIMECapability;
 import org.bouncycastle.asn1.smime.SMIMECapabilityVector;
 import org.bouncycastle.mail.smime.SMIMEEnvelopedGenerator;
 import org.bouncycastle.mail.smime.SMIMESignedGenerator;
-import org.mailster.crypto.MailsterKeyStoreFactory;
-import org.mailster.message.SmtpMessage;
-import org.mailster.server.MailsterConstants;
-import org.mailster.server.MailsterSMTPServer;
-import org.mailster.server.events.SMTPServerAdapter;
-import org.mailster.server.events.SMTPServerEvent;
+import org.mailster.core.crypto.MailsterKeyStoreFactory;
+import org.mailster.core.mail.SmtpMessage;
+import org.mailster.core.smtp.MailsterConstants;
+import org.mailster.core.smtp.MailsterSMTPServer;
+import org.mailster.core.smtp.events.SMTPServerAdapter;
+import org.mailster.core.smtp.events.SMTPServerEvent;
 
 public class EncryptedMailTest extends TestCase
 {
@@ -174,9 +174,12 @@ public class EncryptedMailTest extends TestCase
 	
 	private static Date getRandomDate()
 	{
-		gc.clear();
-		gc.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
-		return gc.getTime();
+		synchronized (gc)
+		{
+			gc.clear();
+			gc.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
+			return gc.getTime();
+		}
 	}
 	
     private static MimeMultipart cryptMessage(MimeBodyPart mbp)

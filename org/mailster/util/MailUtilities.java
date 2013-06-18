@@ -14,14 +14,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeUtility;
 
-import org.mailster.message.SmtpHeaders;
-import org.mailster.message.SmtpHeadersInterface;
-import org.mailster.message.SmtpMessage;
-import org.mailster.message.SmtpMessagePart;
+import org.mailster.core.mail.SmtpHeaders;
+import org.mailster.core.mail.SmtpHeadersInterface;
+import org.mailster.core.mail.SmtpMessage;
+import org.mailster.core.mail.SmtpMessagePart;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * formatting, writting etc...
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.19 $, $Date: 2009/03/22 21:56:40 $
  */
 public class MailUtilities
 {
@@ -105,10 +107,7 @@ public class MailUtilities
         {
             if (SmtpHeadersInterface.DATE.equals(headerName))
             {
-            	synchronized(DateUtilities.rfc822DateFormatter)
-            	{
-            		return DateUtilities.rfc822DateFormatter.format(new Date());
-            	}
+           		return DateUtilities.format(DateFormatterEnum.RFC822, new Date());
             }
             else if (SmtpHeadersInterface.SUBJECT.equals(headerName))
                 return "{No subject}";
@@ -565,7 +564,7 @@ public class MailUtilities
         {
             String line = reader.readLine();
 
-            if (line.startsWith(partEndBoundary))
+            if (line == null || line.startsWith(partEndBoundary))
                 break;
             else
             {
@@ -597,19 +596,21 @@ public class MailUtilities
         while (reader.ready())
         {
             String line = reader.readLine();
+            
+            if (line == null)
+        	break;
+            
             if (boundary == null && line.startsWith("--"))
             {
                 boundary = line;
                 end = boundary + "--";
             }
             
-            if ((boundary != null && line.equals(end))
-                    || (boundary == null && line == null))
-            {
-                if (boundary != null && line.equals(end))
-                    bodyPart.append(line).append('\n');
+            if (boundary != null && line.equals(end)) {
+                bodyPart.append(line).append('\n');
                 break;
             }
+            
             bodyPart.append(line).append('\n');
         }
 
@@ -779,4 +780,112 @@ public class MailUtilities
 
         return true;
     }
+    
+    private static List<String> extractEmails(String... list)
+    {
+    	List<String> l = new ArrayList<String>();
+    	for (String s : list)
+		{
+			if (s != null && s.length() > 0)
+			{
+				if (s.indexOf(',') >= 0)
+				{
+					StringTokenizer tk = new StringTokenizer(s, ",");
+
+					while (tk.hasMoreTokens())
+					{
+						String email = tk.nextToken().trim();
+						if (!"".equals(email))
+							l.add(email);
+					}
+				}
+				else
+					l.add(s.trim());
+			}
+		}
+    	
+    	return l;
+    }
+    
+	public static String formatEmailList(String[] list)
+	{
+		StringBuilder sb = new StringBuilder();
+		List<String> tmp = extractEmails(list);
+		for (String s : tmp)
+		{
+			if (sb.length() > 0)
+				sb.append(';');
+
+			sb.append(s);
+		}
+
+		return sb.toString();
+	}
+
+	public static String formatEmailList(SmtpHeadersInterface headers, String headerName)
+	{
+		return formatEmailList(headers.getHeaderValues(headerName));
+	}
+
+	public static void removeMatchesFromList(List<String> recipients, SmtpMessage msg, String headerName)
+	{
+		if (recipients.size() <= 0)
+			return;
+
+		List<String> values = extractEmails(msg.getHeaders().getHeaderValues(headerName));
+
+		// Detect recipients formating.
+		boolean withDelimiters = recipients.get(0).contains("<");
+
+		for (String s : values)
+		{
+			if (s != null)
+			{
+				int pos = s.indexOf('<');
+
+				try
+				{
+					if (withDelimiters)
+					{
+						if (pos == -1)
+							s = "<" + s.trim() + ">";
+						else
+							s = s.substring(pos, s.indexOf('>') + 1);
+
+						for (String str : recipients)
+						{
+							if (str != null && str.contains(s))
+							{
+								recipients.remove(str);
+								break;
+							}
+						}
+					}
+					else
+					{
+						if (pos != -1)
+							s = s.substring(pos + 1, s.indexOf('>'));
+						else
+							s = s.trim();
+
+						recipients.remove(s);
+					}
+				} catch (Exception ex)
+				{
+					// Just to prevent malformed email addresses
+					LOG.debug("Malformed email adress", ex);
+				}
+			}
+		}
+	}
+
+	public static String formatBccList(SmtpMessage msg)
+	{
+		List<String> recipients = extractEmails(msg.getRecipients().toArray(new String[msg.getRecipients().size()]));
+
+		removeMatchesFromList(recipients, msg, SmtpHeadersInterface.TO);
+		removeMatchesFromList(recipients, msg, SmtpHeadersInterface.CC);
+
+		return formatEmailList(recipients.toArray(new String[recipients.size()]));
+	}    
 }

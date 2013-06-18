@@ -1,6 +1,8 @@
 package org.mailster.util;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -30,43 +32,115 @@ import java.util.TimeZone;
  * MailUtilities.java - Various methods to help in date formatting and handling.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.6 $, $Date: 2008/12/06 13:57:17 $
  */
 public class DateUtilities 
 {
+	public enum DateFormatterEnum
+	{
+		ADF(ADF_FORMATTER), 
+		DF(DF_FORMATTER), 
+		GMT(GMT_FORMATTER), 
+		HOUR(HOUR_FORMATTER), 
+		RFC822(RFC822_FORMATTER), 
+		ASCTIME(ASCTIME_FORMATTER);
+		
+		private SimpleDateFormat sdf;
+		
+		private DateFormatterEnum(SimpleDateFormat sdf)
+		{
+			this.sdf = sdf;
+		}
+		
+		private SimpleDateFormat getFormatter()
+		{
+			return sdf;
+		}
+	}
+	
+	/**
+     * Advanced day & hour formatter.
+     */
+	private static final SimpleDateFormat ADF_FORMATTER = 
+    	new SimpleDateFormat("EEE dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$
+    
     /**
      * Simple day & hour formatter.
      */
-    public final static SimpleDateFormat df = 
+	private static final SimpleDateFormat DF_FORMATTER = 
     	new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); //$NON-NLS-1$
     
     /**
      * Simple GMT day & hour formatter.
      */
-    public final static SimpleDateFormat gmt = 
+    private static final SimpleDateFormat GMT_FORMATTER = 
     	new SimpleDateFormat("dd/MM/yyyy HH:mm:ss z"); //$NON-NLS-1$
-    
-    static {
-    	gmt.setTimeZone(TimeZone.getTimeZone("GMT"));
-    }
     
 	/**
      * Hour date formatter
      */
-    public final static SimpleDateFormat hourDateFormat = 
+    private static final SimpleDateFormat HOUR_FORMATTER = 
     	new SimpleDateFormat("HH:mm:ss"); //$NON-NLS-1$
     
     /**
      * RFC 822 compliant date formatter
      */
-    public final static SimpleDateFormat rfc822DateFormatter = 
+    private static final SimpleDateFormat RFC822_FORMATTER = 
     	new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", Locale.US);
     
     /**
      * ANSI C's asctime() formatter
      */
-    private final static SimpleDateFormat ascTimeFormatter = 
+    private static final SimpleDateFormat ASCTIME_FORMATTER = 
     	new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy", Locale.US);
+    
+    static {
+    	GMT_FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+    
+    public static String format(DateFormatterEnum en, Date d)
+    {
+    	if (en == null)
+    		throw new IllegalArgumentException("DateFormatterEnum argument can't be null");
+    	
+    	SimpleDateFormat sdf = en.getFormatter(); 
+    	
+    	synchronized(sdf)
+    	{
+    		return sdf.format(d);
+    	}
+    }
+    
+    public static Date parse(DateFormatterEnum en, String s) 
+    	throws ParseException
+    {
+    	if (en == null)
+    		throw new IllegalArgumentException("DateFormatterEnum argument can't be null");
+    	
+    	SimpleDateFormat sdf = en.getFormatter(); 
+    	
+    	synchronized(sdf)
+    	{
+    		return sdf.parse(s);
+    	}
+    }    
+
+    public static String unsafeFormat(DateFormatterEnum en, Date d)
+    {
+    	if (en == null)
+    		throw new IllegalArgumentException("DateFormatterEnum argument can't be null");
+    	    	
+    	return en.getFormatter().format(d);
+    }
+    
+    public static Date unsafeParse(DateFormatterEnum en, String s) 
+    	throws ParseException
+    {
+    	if (en == null)
+    		throw new IllegalArgumentException("DateFormatterEnum argument can't be null");
+    	
+    	return en.getFormatter().parse(s);
+    }
 
     /**
      * Format date as 24 chars wide ANSI C's asctime().
@@ -76,7 +150,12 @@ public class DateUtilities
      */
     public static String formatAsFixedWidthAsctime(Date d)
     {
-        String s = ascTimeFormatter.format(d);
+        String s = null;
+        
+        synchronized (ASCTIME_FORMATTER)
+		{
+        	s = ASCTIME_FORMATTER.format(d);	
+		}
 
         // If day of Month value is 0..9 then output string will only be 23
         // chars wide so we pad it manually with a white space as specified by
@@ -103,4 +182,20 @@ public class DateUtilities
     	
     	return ((int) (compared / 8.64E7)) == ((int) (current / 8.64E7));
     }
+    
+    /**
+     * Return true if <code>d</code> represents a time value on the current
+     * year.
+     *  
+     * @param d the date to compare with today
+     * @return boolean true if <code>d</code> is bounded in the current year
+     */
+    public static boolean isCurrentYear(Date d)
+    {
+    	Calendar cal = Calendar.getInstance();
+    	int y = cal.get(Calendar.YEAR);
+    	cal.setTime(d);
+    	
+    	return cal.get(Calendar.YEAR) == y;
+    }    
 }

@@ -28,12 +28,12 @@ import junit.framework.TestCase;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.columba.ristretto.pop3.POP3Protocol;
-import org.mailster.pop3.MailsterPop3Service;
-import org.mailster.pop3.commands.auth.AuthCramMD5Command;
-import org.mailster.pop3.commands.auth.AuthException;
-import org.mailster.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter;
-import org.mailster.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter.CIPHER;
-import org.mailster.pop3.mailbox.UserManager;
+import org.mailster.core.pop3.MailsterPop3Service;
+import org.mailster.core.pop3.commands.auth.AuthCramMD5Command;
+import org.mailster.core.pop3.commands.auth.AuthException;
+import org.mailster.core.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter;
+import org.mailster.core.pop3.commands.auth.iofilter.AuthDigestMD5IoFilter.CIPHER;
+import org.mailster.core.pop3.mailbox.UserManager;
 import org.mailster.util.ByteUtilities;
 import org.mailster.util.StringUtilities;
 import org.mailster.util.md5.MD5;
@@ -64,7 +64,7 @@ import org.mailster.util.md5.MD5;
  * mechanism.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.5 $, $Date: 2009/02/05 00:26:17 $
  */
 public class Pop3DigestMD5Test extends TestCase 
 {

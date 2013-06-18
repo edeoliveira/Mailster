@@ -29,9 +29,10 @@ import org.bouncycastle.asn1.smime.SMIMECapabilitiesAttribute;
 import org.bouncycastle.asn1.smime.SMIMECapability;
 import org.bouncycastle.asn1.smime.SMIMECapabilityVector;
 import org.bouncycastle.mail.smime.SMIMESignedGenerator;
-import org.mailster.crypto.MailsterKeyStoreFactory;
-import org.mailster.server.MailsterConstants;
+import org.mailster.core.crypto.MailsterKeyStoreFactory;
+import org.mailster.core.smtp.MailsterConstants;
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 
 public class SendMultipleMail 
 {
@@ -46,7 +47,7 @@ public class SendMultipleMail
 		props.setProperty("mail.smtp.host", "localhost");
 		Session session = Session.getInstance(props);
 
-		for (int i=0;i<200;i++)
+		for (int i=0;i<10;i++)
 		{
 			MimeMessage baseMsg = new MimeMessage(session);
 			MimeBodyPart bp1 = new MimeBodyPart();
@@ -84,10 +85,7 @@ public class SendMultipleMail
 				baseMsg.setContent(multipart);
 			}
 
-			synchronized(DateUtilities.rfc822DateFormatter)
-			{
-				baseMsg.setHeader("Date", DateUtilities.rfc822DateFormatter.format(getRandomDate()));
-			}
+			baseMsg.setHeader("Date", DateUtilities.format(DateFormatterEnum.RFC822, getRandomDate()));			
 	        baseMsg.saveChanges();
 	        
 	        Transport.send(baseMsg);
@@ -112,9 +110,12 @@ public class SendMultipleMail
 	
 	private static Date getRandomDate()
 	{
-		gc.clear();
-		gc.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
-		return gc.getTime();
+		synchronized (gc)
+		{
+			gc.clear();
+			gc.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
+			return gc.getTime();
+		}
 	}
     
     private static MimeMultipart signMessage(MimeBodyPart mbp)

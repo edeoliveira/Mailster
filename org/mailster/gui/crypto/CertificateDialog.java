@@ -55,13 +55,14 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-import org.mailster.crypto.CertificateUtilities;
-import org.mailster.crypto.CertificateUtilities.DigestAlgorithm;
+import org.mailster.core.crypto.CertificateUtilities;
+import org.mailster.core.crypto.CertificateUtilities.DigestAlgorithm;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 
 /**
  * ---<br>
@@ -88,7 +89,7 @@ import org.mailster.util.DateUtilities;
  * CertificateDialog.java - A dialog that shows informations about certificates.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.4 $, $Date: 2008/12/06 13:57:17 $
  */
 public class CertificateDialog extends Dialog 
 {   
@@ -390,9 +391,9 @@ public class CertificateDialog extends Dialog
                 GridData.BEGINNING, GridData.BEGINNING, false, false, 2, 1));
         
         addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.issuedOn"), //$NON-NLS-1$ 
-                DateUtilities.df.format(cert.getNotBefore()));
+                DateUtilities.format(DateFormatterEnum.DF, cert.getNotBefore()));
         addCertificateFieldLabel(composite, Messages.getString("MailsterSWT.dialog.certificate.expiresOn"), //$NON-NLS-1$ 
-                DateUtilities.df.format(cert.getNotAfter()));
+                DateUtilities.format(DateFormatterEnum.DF, cert.getNotAfter()));
         
         lbl = new Label(composite, SWT.WRAP);
         lbl.setText(Messages.getString("MailsterSWT.dialog.certificate.fingerprints")); //$NON-NLS-1$
@@ -734,7 +735,14 @@ public class CertificateDialog extends Dialog
     
     private String formatDate(Date d)
     {
-    	return DateUtilities.df.format(d)+"\n("+DateUtilities.gmt.format(d)+")";
+    	StringBuilder sb = new StringBuilder();
+    	
+   		sb.append(DateUtilities.format(DateFormatterEnum.DF, d));
+    	sb.append("\n(");
+   		sb.append(DateUtilities.format(DateFormatterEnum.GMT, d));
+    	sb.append(")");
+    	
+    	return sb.toString();
     }
     
     private void generateCertificateStructureTree(Tree tree, final Text valueText, Certificate selected)

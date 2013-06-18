@@ -12,10 +12,10 @@ import java.util.List;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
-import org.mailster.message.SmtpMessage;
-import org.mailster.server.MailsterSMTPServer;
-import org.mailster.server.events.SMTPServerAdapter;
-import org.mailster.server.events.SMTPServerEvent;
+import org.mailster.core.mail.SmtpMessage;
+import org.mailster.core.smtp.MailsterSMTPServer;
+import org.mailster.core.smtp.events.SMTPServerAdapter;
+import org.mailster.core.smtp.events.SMTPServerEvent;
 
 /**
  * ---<br>
@@ -42,7 +42,7 @@ import org.mailster.server.events.SMTPServerEvent;
  * CustomClientCommandTest.java - Minimal client that tests smtp responses.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.3 $, $Date: 2009/01/31 13:40:37 $
  */
 public class CustomClientCommandTest extends TestCase 
 {
@@ -188,6 +188,7 @@ public class CustomClientCommandTest extends TestCase
     	throws IOException 
     {
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("220 "));
     }
 
@@ -196,6 +197,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println(".");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250 "));
     }
 
@@ -204,6 +206,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("DATA");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("354 "));
     }
 
@@ -212,9 +215,13 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("EHLO " + hostName);
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250-"));
-        while ((response = input.readLine()).charAt(3) == '-')
-        	;
+        do
+        {
+        	response = input.readLine();
+        }
+        while (response != null && response.charAt(3) == '-');
     }
 
     private void sendMailFrom(String fromAddress, PrintWriter output, BufferedReader input) 
@@ -222,6 +229,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("MAIL FROM:<" + fromAddress  + ">");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250 "));
     }
 
@@ -230,6 +238,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("QUIT");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("221 "));
     }
 
@@ -238,6 +247,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("RCPT TO:<" + toAddress  + ">");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250 "));
     }
 
@@ -246,6 +256,7 @@ public class CustomClientCommandTest extends TestCase
     {
         output.println("RSET");
         String response = input.readLine();
+        assertNotNull(response);
         assertTrue(response, response.startsWith("250 "));
     }
 }

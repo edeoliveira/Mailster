@@ -38,7 +38,7 @@ import org.mailster.util.StringUtilities;
  * HostFieldEditor.java - A <code>FieldEditor</code> to edit host/ip addresses.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2008/12/06 13:57:18 $
  */
 public class HostFieldEditor extends StringFieldEditor
 {

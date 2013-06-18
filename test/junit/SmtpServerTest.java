@@ -37,10 +37,10 @@ import junit.framework.TestCase;
 import org.columba.ristretto.message.Address;
 import org.columba.ristretto.smtp.SMTPException;
 import org.columba.ristretto.smtp.SMTPProtocol;
-import org.mailster.message.SmtpMessage;
-import org.mailster.server.MailsterSMTPServer;
-import org.mailster.server.events.SMTPServerAdapter;
-import org.mailster.server.events.SMTPServerEvent;
+import org.mailster.core.mail.SmtpMessage;
+import org.mailster.core.smtp.MailsterSMTPServer;
+import org.mailster.core.smtp.events.SMTPServerAdapter;
+import org.mailster.core.smtp.events.SMTPServerEvent;
 
 public class SmtpServerTest extends TestCase 
 {

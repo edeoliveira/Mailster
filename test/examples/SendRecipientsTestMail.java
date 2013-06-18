@@ -9,8 +9,10 @@ import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
 
 import org.mailster.util.DateUtilities;
+import org.mailster.util.DateUtilities.DateFormatterEnum;
 
 public class SendRecipientsTestMail 
 {
@@ -56,9 +58,9 @@ public class SendRecipientsTestMail
 			}
 		}
 		
-		baseMsg.setSubject("Test recipients mail");
+		baseMsg.setSubject(MimeUtility.encodeText("Test                                           recipients       @@@@@         éï            çç ààà              mail                    ok"));
 		baseMsg.setContent("Test content ë", "text/plain; charset=\"ISO-8859-1\"");
-		baseMsg.setHeader("Date", DateUtilities.rfc822DateFormatter.format(new Date()));
+		baseMsg.setHeader("Date", DateUtilities.format(DateFormatterEnum.RFC822, new Date()));
 		
         baseMsg.saveChanges();
         Transport.send(baseMsg);

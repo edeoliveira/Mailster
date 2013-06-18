@@ -1,5 +1,6 @@
 package org.mailster.util;
 
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 
 /**
@@ -28,48 +29,18 @@ import java.lang.ref.SoftReference;
  * for an object.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.3 $, $Date: 2008/12/06 13:57:17 $
  */
-public abstract class AbstractReloadableSoftReference<E, T> 
+public abstract class AbstractReloadableSoftReference<T> extends SoftReference<T>
 {	
-	private SoftReference<T> ref;
-	private E key;
-
-	public AbstractReloadableSoftReference(E key, T object) 
+	public AbstractReloadableSoftReference(T referent, ReferenceQueue<? super T> q)
 	{
-		this.key = key;
-		this.ref = new SoftReference<T>(object);		
+		super(referent, q);
 	}
-	
+
 	public abstract void store(T object);
 	
 	public abstract T reload();
 	
 	public abstract void delete();
-	
-	/**
-	 * This method may return null if object has been gc'ed.
-	 * @return the object.
-	 */
-	public T get()
-	{
-		return this.ref.get();
-	}
-	
-	public synchronized T getReference() 
-	{
-	    T object = this.ref.get();
-	    if (object == null)
-	    {
-			object = reload();
-			this.ref = new SoftReference<T>(object); 
-	    }
-	    
-	    return object;
-	}
-	
-	public E getKey()
-	{
-		return this.key;
-	}
 }

@@ -56,12 +56,12 @@ public class ConfigurationManager
     /**
      * Application version number
      */
-    public final static String MAILSTER_VERSION_NB	= "v0.9.3";
+    public final static String MAILSTER_VERSION_NB	= "v1.0.0 beta";
 
     /**
      * Application version codename string
      */
-    public final static String MAILSTER_VERSION_CODENAME = " - Codename Weapon X";
+    public final static String MAILSTER_VERSION_CODENAME = " - Codename Professor X";
 
     /**
      * Application version string
@@ -86,7 +86,7 @@ public class ConfigurationManager
     /**
      * Application copyright
      */
-    public final static String MAILSTER_COPYRIGHT = "Copyright (C) De Oliveira Edouard 2007-2009";
+    public final static String MAILSTER_COPYRIGHT = "Copyright (C) De Oliveira Edouard 2007-2013";
 
     /**
      * The url of the application forum
@@ -146,6 +146,11 @@ public class ConfigurationManager
      */
     public final static String GENERAL_OPTIONS_KEY = "generalOptions";
 
+    /**
+     * The key to access the state of the mail panel
+     */
+    public final static String MAIL_PANEL_MINIMIZED_KEY = "window.mail.pshelfpanel.minimized";
+    
     /**
      * The flag to decide whether to ask if a Mail should be really deleted by
      * the help of an user dialog.

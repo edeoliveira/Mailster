@@ -35,7 +35,7 @@ import java.util.TreeSet;
  * output file.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2008/12/06 13:57:17 $
  */
 public class OrderedProperties extends Properties 
 {

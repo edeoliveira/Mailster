@@ -29,7 +29,7 @@ import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
 import org.mailster.gui.prefs.DefaultFieldEditorConfigurationPage;
-import org.mailster.gui.prefs.widgets.DirectoryFieldEditor;
+import org.mailster.gui.prefs.widgets.EnhancedDirectoryFieldEditor;
 
 /**
  * ---<br>
@@ -56,7 +56,7 @@ import org.mailster.gui.prefs.widgets.DirectoryFieldEditor;
  * EnclosuresConfigurationPage.java - Configuration page for enclosures specific settings.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2008/12/06 13:57:16 $
  */
 public class EnclosuresConfigurationPage 
     extends DefaultFieldEditorConfigurationPage 
@@ -65,7 +65,7 @@ public class EnclosuresConfigurationPage
 	 * <code>FieldEditor</code> to select the directory in which to store
 	 * attachments.
 	 */
-	private DirectoryFieldEditor enclosuresDirectoryEditor;
+	private EnhancedDirectoryFieldEditor enclosuresDirectoryEditor;
 
 	/**
 	 * <code>FieldEditor</code> to decide if enclosures should be executed
@@ -94,15 +94,15 @@ public class EnclosuresConfigurationPage
      */    
     public void createFieldEditors() 
     {        
-        enclosuresDirectoryEditor = new DirectoryFieldEditor(
+        enclosuresDirectoryEditor = new EnhancedDirectoryFieldEditor(
                 ConfigurationManager.DEFAULT_ENCLOSURES_DIRECTORY_KEY,
                 Messages.getString("enclosuresDirectoryLabel"), 
                 getFieldEditorParent(),
-                DirectoryFieldEditor.VALIDATE_ON_KEY_STROKE);
+                EnhancedDirectoryFieldEditor.VALIDATE_ON_KEY_STROKE);
         enclosuresDirectoryEditor.setChangeButtonText(Messages
                 .getString("browseButton"));
         enclosuresDirectoryEditor
-                .setTextLimit(DirectoryFieldEditor.UNLIMITED);
+                .setTextLimit(EnhancedDirectoryFieldEditor.UNLIMITED);
         enclosuresDirectoryEditor.setErrorMessage(Messages
                 .getString("invalidDirectoryMessage"));
         addField(enclosuresDirectoryEditor);

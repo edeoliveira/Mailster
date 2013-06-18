@@ -279,12 +279,22 @@ public class LanguageResource implements Comparable<LanguageResource>
      */
     public boolean equals(Object obj)
     {
-        if (obj != null && obj instanceof LanguageResource)
+        if (obj instanceof LanguageResource)
             return getFullISOLanguage().equals(((LanguageResource) obj)
                     .getFullISOLanguage());
         else
             return false;
     }
+    
+
+    @Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + getFullISOLanguage().hashCode();
+		return result;
+	}
 
     /**
      * Compares this <code>LanguageResource</code> with the specified object

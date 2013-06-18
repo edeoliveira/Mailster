@@ -35,7 +35,7 @@ import test.junit.SmtpServerTest;
  * AllTests.java - Launches all test tests.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.4 $, $Date: 2009/02/08 00:43:56 $
  */
 public class AllTests 
 {

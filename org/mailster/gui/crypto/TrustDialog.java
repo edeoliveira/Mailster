@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
-import org.mailster.crypto.CertificateUtilities;
+import org.mailster.core.crypto.CertificateUtilities;
 import org.mailster.gui.Messages;
 import org.mailster.gui.utils.DialogUtils;
 import org.mailster.gui.utils.LayoutUtils;
@@ -45,7 +45,7 @@ import org.mailster.gui.utils.LayoutUtils;
  * TrustDialog.java - A dialog that asks for trusting degree against a certificate.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.3 $, $Date: 2008/12/06 13:57:17 $
  */
 public class TrustDialog extends MessageDialog 
 {   

@@ -29,7 +29,7 @@ import ca.odell.glazedlists.event.ListEvent;
  * BatchEventList.java - Allow to do batch changes to a given source list.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.3 $, $Date: 2008/12/06 13:57:17 $
  */
 public class BatchEventList<S, E> extends TransformedList<S, E> 
 {

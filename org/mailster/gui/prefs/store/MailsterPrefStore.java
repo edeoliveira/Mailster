@@ -22,7 +22,6 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 import org.eclipse.core.commands.common.EventManager;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
@@ -58,7 +57,7 @@ import org.mailster.gui.prefs.ConfigurationManager;
  * persisting the non-default preference values to files or streams.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2009/05/17 20:56:35 $
  */
 /**
  * A concrete preference store implementation based on an internal
@@ -133,7 +132,6 @@ public class MailsterPrefStore extends EventManager implements
      */
     public MailsterPrefStore(String filename) {
         this();        
-        Assert.isNotNull(filename);
         this.filename = filename;
     }
     
@@ -661,7 +659,6 @@ public class MailsterPrefStore extends EventManager implements
      * @param value
      */
     private void setValue(Properties p, String name, double value) {
-        Assert.isTrue(p != null);
         p.put(name, Double.toString(value));
     }
 
@@ -672,7 +669,6 @@ public class MailsterPrefStore extends EventManager implements
      * @param value
      */
     private void setValue(Properties p, String name, float value) {
-        Assert.isTrue(p != null);
         p.put(name, Float.toString(value));
     }
 
@@ -683,7 +679,6 @@ public class MailsterPrefStore extends EventManager implements
      * @param value
      */
     private void setValue(Properties p, String name, int value) {
-        Assert.isTrue(p != null);
         p.put(name, Integer.toString(value));
     }
 
@@ -694,7 +689,6 @@ public class MailsterPrefStore extends EventManager implements
      * @param value
      */
     private void setValue(Properties p, String name, long value) {
-        Assert.isTrue(p != null);
         p.put(name, Long.toString(value));
     }
 
@@ -705,7 +699,6 @@ public class MailsterPrefStore extends EventManager implements
      * @param value
      */
     private void setValue(Properties p, String name, String value) {
-        Assert.isTrue(p != null && value != null);
         p.put(name, value);
     }
 
@@ -716,7 +709,6 @@ public class MailsterPrefStore extends EventManager implements
      * @param value
      */
     private void setValue(Properties p, String name, boolean value) {
-        Assert.isTrue(p != null);
         p.put(name, value == true ? IPreferenceStore.TRUE
                 : IPreferenceStore.FALSE);
     }

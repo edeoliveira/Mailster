@@ -25,7 +25,7 @@ package org.mailster.util;
  * MailUtilities.java - Various methods to help manipulate bytes.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Revision$, $Date$
+ * @version $Revision: 1.4 $, $Date: 2008/12/06 13:57:17 $
  */
 public class ByteUtilities 
 {   

@@ -19,7 +19,7 @@
 		
 		.rbdc
 		{
-			background: #F5F3F1;
+			background: white;
 			padding: 2px 2px 2px 2px;
 			text-align:left;
 		}
@@ -55,8 +55,41 @@
 		}
  	</style>
 </head>
-<body style="background-color:#F5F3F1" ><div id="changelog" class="rbdc">
+<body><div id="changelog" class="rbdc">
 		<dl class="changes">
+		<dt>ver.1.0.0</dt>
+            <dd><strong class="bdx">Released on 2013-01-09 / Codename Tornade</strong></dd>
+			<dd>
+                <strong>NOTES</strong>
+                <ul>
+                	<li>Upgraded swt & jface libs.</li>
+                	<li>Upgraded glazedlists libs.</li>
+					<li>Removed some unnecessary libs.</li>
+					<li>Updated & simplified starting scripts.</li>
+				</ul>
+			</dd>
+			<dd>
+                <strong>GUI</strong>
+                <ul>
+                	<li>Big UI reworking to mimic some cool outlook UI settings.</li>
+					<li>Fixed mail filtering to prevent early reloading of a mail.</li>
+					<li>A fix to a rare layout exception problem.</li>  
+					
+					<li>More efficient TableView resize.</li>
+					<li>Added an autosave/autoload function to try preventing loosing
+						mails.</li>
+					<li>Fixed animated gif thread not disappearing when page loaded.</li>
+  				</ul>
+            </dd>
+            <dd>
+				<strong>Core</strong>
+				<ul>
+					<li>Changed to org.mailster.smtp.debug the name of VM argument
+						that when set means debug info is output to System.err if 
+						autostart was set at command line.</li>
+					<li>A fix to an unusual bug in cc/bcc list calculations.</li>
+  				</ul>
+			</dd>
 		<dt>ver.0.9.3</dt>
             <dd><strong class="bdx">Released on 2009-05-17 / Codename Weapon X</strong></dd>
 			<dd>
@@ -610,3 +643,4 @@
 	</div>
 </body>
 </html>
+

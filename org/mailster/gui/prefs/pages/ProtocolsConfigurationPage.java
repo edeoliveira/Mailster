@@ -14,8 +14,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.mailster.MailsterSWT;
-import org.mailster.crypto.MailsterKeyStoreFactory;
-import org.mailster.crypto.X509SecureSocketFactory.SSLProtocol;
+import org.mailster.core.crypto.MailsterKeyStoreFactory;
+import org.mailster.core.crypto.X509SecureSocketFactory.SSLProtocol;
+import org.mailster.core.pop3.connection.MinaPop3Connection;
+import org.mailster.core.smtp.MailsterSMTPServer;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.prefs.ConfigurationManager;
@@ -23,10 +25,8 @@ import org.mailster.gui.prefs.DefaultConfigurationPage;
 import org.mailster.gui.prefs.store.MailsterPrefStore;
 import org.mailster.gui.prefs.widgets.SpinnerFieldEditor;
 import org.mailster.gui.utils.DialogUtils;
-import org.mailster.gui.utils.GIFAnimator;
 import org.mailster.gui.utils.LayoutUtils;
-import org.mailster.pop3.connection.MinaPop3Connection;
-import org.mailster.server.MailsterSMTPServer;
+import org.mailster.gui.widgets.GIFAnimator;
 
 /**
  * ---<br>
@@ -53,7 +53,7 @@ import org.mailster.server.MailsterSMTPServer;
  * ProtocolsConfigurationPage.java - Configuration page for protocols generic settings.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
- * @version $Author$ / $Date$
+ * @version $Author: kods $ / $Date: 2009/03/24 00:57:08 $
  */
 public class ProtocolsConfigurationPage 
     extends DefaultConfigurationPage 
@@ -80,6 +80,11 @@ public class ProtocolsConfigurationPage
      */
     private ComboViewer preferredSSLProtocolViewer;
 
+    /**
+     * <code>ComboViewer</code> to select the protocols charset.
+     */
+    private ComboViewer preferredCharsetViewer;
+    
     /**
      * <code>FieldEditor</code> to select the crypto strength of the automatically 
      * generated certificates.
@@ -129,10 +134,19 @@ public class ProtocolsConfigurationPage
         startPOP3OnSMTPStartEditor.setLayoutData(
         		LayoutUtils.createGridData(GridData.BEGINNING, 
                 		GridData.CENTER, false, false, 2, 1));
+
+        preferredCharsetViewer = new ComboViewer(generalGroup, SWT.BORDER | SWT.READ_ONLY);
+        preferredCharsetViewer.setContentProvider(new ArrayContentProvider());
+        preferredCharsetViewer.setInput(
+                new String[] {
+                        SSLProtocol.SSL.toString(),
+                        SSLProtocol.TLS.toString(),
+                });
+        //preferredCharsetViewer.getCombo().setEnabled(strongCiphersAllowed);
         
         // Separator
         new Label(content, SWT.NONE);
-        boolean strongCiphersAllowed = !MailsterKeyStoreFactory.getInstance().isPermissionDenied();
+        boolean strongCiphersAllowed = !MailsterKeyStoreFactory.getInstance().isCryptoPermissionDenied();
         
         // Create SSL group
         Group sslGroup = new Group(content, SWT.NONE);
@@ -233,11 +247,11 @@ public class ProtocolsConfigurationPage
 					c.getDisplay().asyncExec(new Runnable() {
 						public void run() {
 							GIFAnimator animator = 
-					        	new GIFAnimator("Thread anim", "load.gif", fixLabel, false); //$NON-NLS-1$			        
+					        	new GIFAnimator("Protocols config animated gif thread", "load.gif", fixLabel, false); //$NON-NLS-1$			        
 					        animator.setOffsetY(3);
 					        animator.setOffsetX(3);
 					        animator.start();
-							animator.switchState();
+							animator.startAnimation();
 							
 							try 
 							{
@@ -245,10 +259,10 @@ public class ProtocolsConfigurationPage
 							} 
 							catch (Exception e) {}
 							
-							animator.switchState();
+							animator.stopAnimation();
 							
 							fixLabel.setVisible(!factory.isStoreLoaded());
-							cryptoErrorLabel.setVisible(factory.isPermissionDenied());
+							cryptoErrorLabel.setVisible(factory.isCryptoPermissionDenied());
 						}
 					});
 					
@@ -308,7 +322,7 @@ public class ProtocolsConfigurationPage
         int index = preferredSSLProtocolViewer.getCombo().getSelectionIndex();
         store.setValue(ConfigurationManager.PREFERRED_SSL_PROTOCOL_KEY, index);
         String selection = preferredSSLProtocolViewer.getCombo().getItem(index).toString();
-        SSLProtocol protocol = SSLProtocol.SSL.equals(selection) ? SSLProtocol.SSL : SSLProtocol.TLS;
+        SSLProtocol protocol = SSLProtocol.SSL.toString().equals(selection) ? SSLProtocol.SSL : SSLProtocol.TLS;
         MinaPop3Connection.setupSSLParameters(protocol, authSSLClientsStartEditor.getSelection());
         MailsterSMTPServer.setupSSLParameters(protocol, authSSLClientsStartEditor.getSelection());
         
