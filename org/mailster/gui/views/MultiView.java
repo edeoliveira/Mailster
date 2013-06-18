@@ -426,17 +426,17 @@ public class MultiView
 			LOG.info(msg);
 	}
 
+	public void showURL(String url, boolean setURLAsTitle, boolean showCloseHandle)
+	{
+		showURL(HOME_IMAGE, url, null, setURLAsTitle, showCloseHandle);
+	}
+	
 	public void showURL(Image img, String url, String title, boolean showCloseHandle)
 	{
 		showURL(img, url, title, false, showCloseHandle);
 	}
 
-	public void showURL(String url, boolean setURLAsTitle, boolean showCloseHandle)
-	{
-		showURL(null, url, null, setURLAsTitle, showCloseHandle);
-	}
-
-	public void showURL(Image img, String url, String title, boolean setURLAsTitle, boolean showCloseHandle)
+	private void showURL(Image img, String url, String title, boolean setURLAsTitle, boolean showCloseHandle)
 	{
 		switchTopControl(false);
 		CTabItem item = null;
