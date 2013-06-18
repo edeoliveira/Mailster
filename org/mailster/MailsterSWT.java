@@ -882,8 +882,15 @@ public class MailsterSWT
 					String ver = line.substring(0, pos);
 					String currentVer = ConfigurationManager.MAILSTER_VERSION_NB.substring(1);
 
-					boolean updateNeeded = currentVer.charAt(0) < ver.charAt(0) || currentVer.charAt(2) < ver.charAt(2)
-							|| currentVer.charAt(4) < ver.charAt(4);
+					boolean updateNeeded = true;
+					if (currentVer.charAt(0) > ver.charAt(0))
+						updateNeeded = false;
+					else
+					if (currentVer.charAt(2) > ver.charAt(2))
+						updateNeeded = false;
+					else
+					if (currentVer.charAt(4) > ver.charAt(4))
+						updateNeeded = false;
 
 					String msg = null;
 
