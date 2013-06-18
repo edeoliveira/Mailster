@@ -299,9 +299,9 @@ public class MailBoxTableView
 
 					_table.setRedraw(false);
 
-					// get the list PRIOR to looping, otherwise it won't be the same list as it's
+					// get the list before looping, otherwise it won't be the same list as it's
 					// modified continuously
-					final List<StoredSmtpMessage> changeList = listChanges.getSourceList();
+					final List<StoredSmtpMessage> changeList = new ArrayList<StoredSmtpMessage>(listChanges.getSourceList());
 
 					while (listChanges.next())
 					{
@@ -315,7 +315,6 @@ public class MailBoxTableView
 								// we need to remove by index which the viewer does not support
 								// and we're removing from the raw list, not the filtered list
 								StoredSmtpMessage o = _eventList.get(sourceIndex);
-								_viewer.remove(o);
 								_viewer.refresh(o, true);
 							break;
 							case ListEvent.INSERT :
