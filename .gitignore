@@ -8,3 +8,5 @@ autosave.mbx
 config.properties
 *.obj
 .myeclipse/
+.settings/
+target/
