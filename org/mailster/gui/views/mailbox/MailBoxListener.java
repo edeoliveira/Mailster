@@ -85,7 +85,7 @@ public class MailBoxListener
 			setRedraw(false);
 			for (StoredSmtpMessage stored : source.getSelection())
 			{
-				stored.setChecked(checked);
+				stored.setChecked(checked && !stored.isChecked());
 				refreshViewers(stored, true);
 			}
 			setRedraw(true);
