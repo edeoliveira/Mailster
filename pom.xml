@@ -4,17 +4,23 @@
   <groupId>Mailster</groupId>
   <artifactId>Mailster</artifactId>
   <version>1.0.0-beta</version>
-  <description>Mailster is a project aimed at testing software mail capabilities. It provides a mail server container to test emails sent by your apps without rewriting your application code.</description>
+  
+  <description>
+	  Mailster is a project aimed at testing software mail capabilities. 
+	  It provides a mail server container to test emails sent by your apps without 
+	  rewriting your application code.
+  </description>
+  
   <dependencies>
     <dependency>
-      <groupId>bouncycastle</groupId>
+      <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15</artifactId>
-      <version>141</version>
+      <version>1.43</version>
     </dependency>
     <dependency>
-      <groupId>bouncycastle</groupId>
+      <groupId>org.bouncycastle</groupId>
       <artifactId>bcmail-jdk15</artifactId>
-      <version>141</version>
+      <version>1.43</version>
     </dependency>
     <dependency>
       <groupId>javax.mail</groupId>
@@ -36,34 +42,20 @@
       <artifactId>mina-core</artifactId>
       <version>2.0.0-M4</version>
     </dependency>
-    <dependency>
-    	<groupId>log4j</groupId>
-    	<artifactId>log4j</artifactId>
-    	<version>1.2.15</version>
-		<exclusions>
-     		<exclusion>
-    			<groupId>com.sun.jdmk</groupId>
-    			<artifactId>jmxtools</artifactId>
-     		</exclusion>
-     		<exclusion>
-     			<groupId>com.sun.jmx</groupId>
-     			<artifactId>jmxri</artifactId>
-     		</exclusion>
-     		<exclusion>
-     			<groupId>javax.jms</groupId>
-     			<artifactId>jms</artifactId>
-     		</exclusion>
-   		</exclusions>    	
-	</dependency>
 	<dependency>
 	    <groupId>org.slf4j</groupId>
 	    <artifactId>slf4j-api</artifactId>
-	    <version>1.5.6</version>
+	    <version>1.7.5</version>
 	</dependency>
 	<dependency>
 	    <groupId>org.slf4j</groupId>
 	    <artifactId>slf4j-log4j12</artifactId>
-	    <version>1.5.6</version>
+	    <version>1.7.5</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.slf4j</groupId>
+	    <artifactId>slf4j-simple</artifactId>
+	    <version>1.7.5</version>
 	</dependency>
 	<dependency>
     	<groupId>commons-lang</groupId>
