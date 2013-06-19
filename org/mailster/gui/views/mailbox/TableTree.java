@@ -194,21 +194,24 @@ public class TableTree
 		gc.setFont(MailBoxView.NORMAL_FONT);
 		final FontMetrics fm = gc.getFontMetrics();
 		final int FONT_HEIGHT = fm.getHeight();
-		final String POINTS = "...";
+		final String POINTS = "..."; //$NON-NLS-1$
 		final int POINTS_WIDTH = gc.textExtent(POINTS).x;
 		final int AVERAGE_CHAR_WIDTH = fm.getAverageCharWidth();
 		gc.dispose();
 
-		final Image MAIL_IMAGE = SWTHelper.loadImage("mail.gif");
-		final int MAIL_IMAGE_WIDTH = MAIL_IMAGE.getBounds().width;
+		final Image MAIL_IMAGE = SWTHelper.loadImage("mail.gif"); //$NON-NLS-1$
+		final Image FLAGGED_IMAGE = SWTHelper.loadImage("flag16.png"); //$NON-NLS-1$
+		Rectangle rc = MAIL_IMAGE.getBounds();
+		final int MAIL_IMAGE_WIDTH = rc.width;
+		final int MAIL_IMAGE_HEIGHT = rc.height;
 		final int ATTACHMENTS_IMAGE_WIDTH = MailBoxView.ATTACHED_FILES_IMAGE.getBounds().width;
 		final int IMAGE_MARGIN = 10;
 		final int IMAGE_PLUS_MARGIN = MAIL_IMAGE_WIDTH + IMAGE_MARGIN;
 		final Color GROUP_COLOR = SWTHelper.createColor(54, 54, 54);
 
-		final SimpleDateFormat OLD_SDF = new SimpleDateFormat("dd/MM/yyyy");
-		final SimpleDateFormat SDF = new SimpleDateFormat("EEE dd/MM");
-		final SimpleDateFormat SIMPLE_SDF = new SimpleDateFormat("HH:mm");
+		final SimpleDateFormat OLD_SDF = new SimpleDateFormat("dd/MM/yyyy"); //$NON-NLS-1$
+		final SimpleDateFormat SDF = new SimpleDateFormat("EEE dd/MM"); //$NON-NLS-1$
+		final SimpleDateFormat SIMPLE_SDF = new SimpleDateFormat("HH:mm"); //$NON-NLS-1$
 		final int[] DASH_LINE = new int[] {2, 2};
 
 		final int TEXT_MARGIN = 3;
@@ -259,8 +262,10 @@ public class TableTree
 					x += event.width;
 					int y = event.y + 2;
 					gc.drawImage(MAIL_IMAGE, 4, y);
-
 					y += 2;
+					
+					if (msg.isChecked())
+						gc.drawImage(FLAGGED_IMAGE, 4, y + MAIL_IMAGE_HEIGHT - 1);
 
 					if (!msg.isSeen())
 						gc.setFont(MailBoxView.BOLD_FONT);
