@@ -8,13 +8,18 @@ NOTES :
 - Updated & simplified starting scripts.
 
 GUI :
-- Big UI reworking to mimic some cool outlook UI settings.
+- Big UI reworking to mimic some cool outlook UI views.
 - Fixed mail filtering to prevent early reloading of a mail.
 - A fix to a rare layout exception problem.
 - More efficient TableView resize.
 - Added an autosave/autoload function to try preventing loosing
   mails.
 - Fixed animated gif thread not disappearing when page loaded.
+- Fixed drag & drop.
+- Improved concurrency & fixed potential threading bugs.
+- Fixed filtering bug crashing UI.
+- Improved version checking code.
+- Browser toolbar is now shared among all browser instances.
 
 CORE :
 - Changed to org.mailster.smtp.debug the name of VM argument
