@@ -128,8 +128,8 @@ public class MailBox
      */
     public StoredSmtpMessage storeMessage(SmtpMessage message)
     {
-	Long id = new Long(counter.getAndIncrement());
-	StoredSmtpMessage stored = new StoredSmtpMessage(message, id);
+    	Long id = new Long(counter.getAndIncrement());
+    	StoredSmtpMessage stored = new StoredSmtpMessage(message, id);
         mails.put(id, stored);
     	
         return stored;
