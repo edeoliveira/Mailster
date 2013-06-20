@@ -164,6 +164,11 @@ public class StoredSmtpMessage
 		return flags.contains(Flags.Flag.SEEN);
 	}
 
+	public void setNotSeen()
+	{
+		flags.remove(Flags.Flag.SEEN);
+	}
+	
 	public void setSeen()
 	{
 		flags.add(Flags.Flag.SEEN);

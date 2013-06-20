@@ -21,8 +21,6 @@ import ca.odell.glazedlists.EventList;
 public class MailBoxListener
 	implements Listener
 {
-	private static final int SWT_BACKSPACE_KEYCODE = 8;
-
 	private MailBoxTableInterface source;
 	private MailBoxTableInterface target;
 
@@ -79,13 +77,29 @@ public class MailBoxListener
 		}
 
 		FilterTreeView treeView = main.getFilterTreeView();
-		if (e.keyCode == ' ' || e.keyCode == SWT_BACKSPACE_KEYCODE)
+		if (e.keyCode == ' ')
 		{
-			boolean checked = e.keyCode == ' ';
 			setRedraw(false);
 			for (StoredSmtpMessage stored : source.getSelection())
 			{
-				stored.setChecked(checked && !stored.isChecked());
+				stored.setChecked(!stored.isChecked());
+				refreshViewers(stored, true);
+			}
+			setRedraw(true);
+			treeView.updateMessageCounts(srcList);
+			return;
+		}
+		
+		if (e.keyCode == 'q')
+		{
+			setRedraw(false);
+			boolean sp = (e.stateMask & SWT.SHIFT) != 0;
+			for (StoredSmtpMessage stored : source.getSelection())
+			{
+				if (sp)
+					stored.setNotSeen();
+				else
+					stored.setSeen();
 				refreshViewers(stored, true);
 			}
 			setRedraw(true);
