@@ -7,6 +7,7 @@ import javax.mail.Flags;
 
 import org.mailster.core.mail.SmtpHeadersInterface;
 import org.mailster.core.mail.SmtpMessage;
+import org.mailster.gui.Messages;
 import org.mailster.util.DateUtilities;
 import org.mailster.util.DateUtilities.DateFormatterEnum;
 
@@ -37,6 +38,8 @@ import org.mailster.util.DateUtilities.DateFormatterEnum;
  */
 public class StoredSmtpMessage
 {
+	private static final String DEFAULT_LABEL = Messages.getString("MailsterSWT.treeView.localNetwork.label"); //$NON-NLS-1$
+	
 	private MailBox mailBox;
 
 	private SoftSmtpMessageReference message;
@@ -53,6 +56,7 @@ public class StoredSmtpMessage
 	private String _msgFrom;
 	private String _msgTo;
 	private String _msgSubject;
+	private String _msgHost;
 	private int _msgSize;
 	private int _msgAttachedFilesCount;
 
@@ -80,7 +84,44 @@ public class StoredSmtpMessage
 		_msgSize = msg.getSize();
 		_msgAttachedFilesCount = msg.getInternalParts().getAttachedFiles().length;
 		_msgFrom = msg.getHeaderValue(SmtpHeadersInterface.FROM);
+		_msgHost = computeHost();
 	}
+	
+	/**
+	 * Retrieves the host of the first email in the TO header.
+	 */
+	private String computeHost()
+	{
+		String email = _msgTo;
+		
+		if (email == null)
+			return DEFAULT_LABEL;
+
+		try
+		{
+			email = email.toLowerCase();
+			int pos = email.indexOf(','); //$NON-NLS-1$
+			if (pos >= 0)
+				email = email.substring(0, pos);
+
+			pos = email.indexOf(';'); //$NON-NLS-1$
+			if (pos >= 0)
+				email = email.substring(0, pos);
+
+			pos = email.lastIndexOf("@"); //$NON-NLS-1$
+			if (pos >= 0)
+			{
+				pos++;
+				int end = email.indexOf(">"); //$NON-NLS-1$
+				return end < 0 ? email.substring(pos) : email.substring(pos, end);
+			}
+			else
+				return DEFAULT_LABEL;
+		} catch (Exception ex)
+		{
+			return DEFAULT_LABEL;
+		}
+	}	
 
 	public Date getMessageDate()
 	{
@@ -95,6 +136,11 @@ public class StoredSmtpMessage
 	public String getMessageId()
 	{
 		return _msgId;
+	}
+	
+	public String getMessageHost()
+	{
+		return _msgHost;
 	}
 
 	public String getMessageFrom()

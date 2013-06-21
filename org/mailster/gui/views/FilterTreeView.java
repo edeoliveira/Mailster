@@ -113,7 +113,7 @@ public class FilterTreeView
 					return msg.isChecked();
 				else
 					return !msg.getFlags().contains(Flags.Flag.FLAGGED)
-							&& ((String) selectedItem.getData()).equals(getEmailHost(msg.getMessageTo()));
+							&& ((String) selectedItem.getData()).equals(msg.getMessageHost());
 			}
 		}
 
@@ -161,7 +161,7 @@ public class FilterTreeView
 			else if (msg.isChecked())
 				return CHECKED_TREEITEM_LABEL;
 			else
-				return getEmailHost(msg.getMessageTo());
+				return msg.getMessageHost();
 		}
 	}
 
@@ -322,40 +322,7 @@ public class FilterTreeView
 		clearQueueToolItem.addSelectionListener(selectionAdapter);
 	}
 
-	/**
-	 * Retrieves the host of the first email in the TO header.
-	 */
-	public static String getEmailHost(String email)
-	{
-		if (email == null)
-			return Messages.getString("MailsterSWT.treeView.localNetwork.label"); //$NON-NLS-1$
 
-		try
-		{
-			email = email.toLowerCase();
-			int pos = email.indexOf(','); //$NON-NLS-1$
-			if (pos >= 0)
-				email = email.substring(0, pos);
-
-			pos = email.indexOf(';'); //$NON-NLS-1$
-			if (pos >= 0)
-				email = email.substring(0, pos);
-
-			pos = email.lastIndexOf("@"); //$NON-NLS-1$
-			if (pos >= 0)
-			{
-				pos++;
-				int end = email.indexOf(">"); //$NON-NLS-1$
-				return end < 0 ? email.substring(pos) : email.substring(pos, end);
-			}
-			else
-				return Messages.getString("MailsterSWT.treeView.localNetwork.label"); //$NON-NLS-1$
-		} catch (Exception ex)
-		{
-			LOG.debug("getmailHost() error:", ex);
-			return Messages.getString("MailsterSWT.treeView.localNetwork.label"); //$NON-NLS-1$
-		}
-	}
 
 	public void updateMessageCounts(EventList<StoredSmtpMessage> eventList)
 	{
@@ -429,7 +396,7 @@ public class FilterTreeView
 					{
 						for (StoredSmtpMessage msg : trash)
 						{
-							if (filterString.equals(getEmailHost(msg.getMessageTo())))
+							if (filterString.equals(msg.getMessageHost()))
 							{
 								found = true;
 								break;
@@ -532,9 +499,9 @@ public class FilterTreeView
 				tree.setRedraw(false);
 				while (listChanges.next())
 				{
-					if (listChanges.getType() == ListEvent.INSERT)
+					if (listChanges.getType() == ListEvent.INSERT || listChanges.getType() == ListEvent.UPDATE)
 					{
-						String host = getEmailHost(eventList.get(listChanges.getIndex()).getMessageTo());
+						String host = eventList.get(listChanges.getIndex()).getMessageHost();
 						addNodeIfNewHost(host);
 					}
 				}
