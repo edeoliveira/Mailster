@@ -69,15 +69,14 @@ public class MailBoxListener
 	public void handleKeyDownEvent(Event e)
 	{
 		MailsterSWT main = MailsterSWT.getInstance();
+		FilterTreeView treeView = main.getFilterTreeView();
+		
 		if (((e.stateMask & SWT.CTRL) != 0) && e.keyCode == 'a')
 		{
 			target.selectAll();
 			source.selectAll();
-			return;
 		}
-
-		FilterTreeView treeView = main.getFilterTreeView();
-		if (e.keyCode == ' ')
+		else if (e.keyCode == ' ')
 		{
 			setRedraw(false);
 			for (StoredSmtpMessage stored : source.getSelection())
@@ -87,10 +86,8 @@ public class MailBoxListener
 			}
 			setRedraw(true);
 			treeView.updateMessageCounts(srcList);
-			return;
 		}
-		
-		if (e.keyCode == 'q')
+		else if (e.keyCode == 'q')
 		{
 			setRedraw(false);
 			boolean sp = (e.stateMask & SWT.SHIFT) != 0;
@@ -104,10 +101,8 @@ public class MailBoxListener
 			}
 			setRedraw(true);
 			treeView.updateMessageCounts(srcList);
-			return;
 		}
-
-		if (e.keyCode == SWT.DEL)
+		else if (e.keyCode == SWT.DEL)
 		{
 			boolean trashSelected = treeView.isTrashFolderSelected();
 			if (trashSelected && (e.stateMask & SWT.CTRL) != 0)
@@ -168,7 +163,6 @@ public class MailBoxListener
 				treeView.filter();
 			}
 			treeView.updateMessageCounts(srcList);
-			return;
 		}
 	}
 
