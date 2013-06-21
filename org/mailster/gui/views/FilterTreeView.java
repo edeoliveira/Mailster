@@ -68,7 +68,7 @@ public class FilterTreeView
 	private static final Logger LOG = LoggerFactory.getLogger(FilterTreeView.class);
 	private static final String DELETED_TREEITEM_LABEL = Messages.getString("MailsterSWT.treeView.trash.label"); //$NON-NLS-1$
 	private static final String CHECKED_TREEITEM_LABEL = Messages.getString("MailsterSWT.treeView.flaggedMail.label"); //$NON-NLS-1$
-	private static final Image FOLDER_IMAGE = SWTHelper.loadImage("folder.gif");
+	private static final Image FOLDER_IMAGE = SWTHelper.loadImage("folder.gif"); //$NON-NLS-1$
 	
 	private TreeItem deletedMailsTreeItem;
 	private TreeItem checkedMailsTreeItem;
@@ -81,7 +81,7 @@ public class FilterTreeView
 	private HostMatcherEditor editor;
 
 	/**
-	 * The count of messages last time a event occured. Prevents from multiple unnecessary updates.
+	 * The count of messages last time a event occurred. Prevents from multiple unnecessary updates.
 	 */
 	private long lastCallCount = 0;
 
@@ -131,13 +131,13 @@ public class FilterTreeView
 			final TreeItem[] selected = mailBoxTree.getSelection();
 			if (selected == null || selected.length == 0)
 			{
-				this.mailBoxTree.setSelection(root);
+				mailBoxTree.setSelection(root);
 				matcher.setSelectedItem(root);
 			}
 			else
 				matcher.setSelectedItem(selected[0]);
 
-			this.fireChanged(matcher);
+			fireChanged(matcher);
 		}
 
 		public void widgetDefaultSelected(SelectionEvent event)
@@ -148,20 +148,6 @@ public class FilterTreeView
 		public void widgetSelected(SelectionEvent event)
 		{
 			filter();
-		}
-	}
-
-	private static class FilterGroupFunction
-		implements FunctionList.Function<StoredSmtpMessage, String>
-	{
-		public String evaluate(StoredSmtpMessage msg)
-		{
-			if (msg.getFlags().contains(Flags.Flag.FLAGGED))
-				return DELETED_TREEITEM_LABEL;
-			else if (msg.isChecked())
-				return CHECKED_TREEITEM_LABEL;
-			else
-				return msg.getMessageHost();
 		}
 	}
 
@@ -182,10 +168,10 @@ public class FilterTreeView
 
 		public void buildMenu()
 		{
-			Image importImage = SWTHelper.decorateImage(SWTHelper.loadImage("folder.gif"), SWTHelper.loadImage("incoming.gif"),
+			Image importImage = SWTHelper.decorateImage(SWTHelper.loadImage("folder.gif"), SWTHelper.loadImage("incoming.gif"), //$NON-NLS-1$ //$NON-NLS-2$ 
 					SWT.BOTTOM | SWT.LEFT);
-			Image exportImage = SWTHelper.decorateImage(SWTHelper.loadImage("folder_closed.gif"), SWTHelper
-					.loadImage("outgoing.gif"), SWT.BOTTOM | SWT.LEFT);
+			Image exportImage = SWTHelper.decorateImage(SWTHelper.loadImage("folder_closed.gif"), SWTHelper //$NON-NLS-1$
+					.loadImage("outgoing.gif"), SWT.BOTTOM | SWT.LEFT); //$NON-NLS-1$
 
 			dropdown.setEnabled(true);
 			dropdown.setToolTipText(Messages.getString("FilterTreeview.toggle.importExportTooltip")); //$NON-NLS-1$
@@ -307,7 +293,7 @@ public class FilterTreeView
 		importExportToolItem.addSelectionListener(dd);
 
 		new ToolItem(toolBar, SWT.SEPARATOR);
-
+ 
 		SelectionAdapter selectionAdapter = new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e)
 			{
@@ -322,8 +308,6 @@ public class FilterTreeView
 		clearQueueToolItem.addSelectionListener(selectionAdapter);
 	}
 
-
-
 	public void updateMessageCounts(EventList<StoredSmtpMessage> eventList)
 	{
 		LOG.debug("Call to updateMessagesCounts()");
@@ -336,7 +320,19 @@ public class FilterTreeView
 		try
 		{
 			lastCallCount = eventList.size();
-			map = GlazedLists.syncEventListToMultiMap(eventList, new FilterGroupFunction());
+			map = GlazedLists.syncEventListToMultiMap(
+					eventList, 
+			new FunctionList.Function<StoredSmtpMessage, String>() {
+				public String evaluate(StoredSmtpMessage msg)
+				{
+					if (msg.getFlags().contains(Flags.Flag.FLAGGED))
+						return DELETED_TREEITEM_LABEL;
+					else if (msg.isChecked())
+						return CHECKED_TREEITEM_LABEL;
+					else
+						return msg.getMessageHost();
+				}
+			});
 		} finally
 		{
 			eventList.getReadWriteLock().readLock().unlock();
@@ -463,28 +459,21 @@ public class FilterTreeView
 
 	private void addNodeIfNewHost(String host)
 	{
-		boolean found = false;
 		for (TreeItem child : root.getItems())
 		{
 			if (((String) child.getData()).equals(host))
-			{
-				found = true;
-				break;
-			}
+				return;
 		}
 
-		if (!found)
+		try
 		{
-			try
-			{
-				TreeItem item = new TreeItem(root, SWT.NONE, 0);
-				item.setImage(FOLDER_IMAGE);
-				item.setText(host);
-				item.setData(host);
-			} catch (Exception e)
-			{
-				e.printStackTrace();
-			}
+			TreeItem item = new TreeItem(root, SWT.NONE, 0);
+			item.setImage(FOLDER_IMAGE);
+			item.setText(host);
+			item.setData(host);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 	}
 

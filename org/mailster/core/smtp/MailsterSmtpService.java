@@ -128,10 +128,11 @@ public class MailsterSmtpService
 
 			int nb = 0;
 
+			EventList<StoredSmtpMessage> list = main.getMailBoxView().getEventList();
+			list.getReadWriteLock().writeLock().lock();
+			
 			synchronized (receivedMessages)
 			{
-				EventList<StoredSmtpMessage> list = main.getMailBoxView().getEventList();
-				list.getReadWriteLock().writeLock().lock();
 				try
 				{
 					list.addAll(receivedMessages);

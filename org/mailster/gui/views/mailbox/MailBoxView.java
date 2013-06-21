@@ -203,9 +203,9 @@ public class MailBoxView
 				table.setRedraw(false);
 				int countSelected = table.getSelectionCount();
 
-				// get the list PRIOR to looping, otherwise
+				// get the list before looping, otherwise
 				// it won't be the same list as it's modified continuously
-				final List<MailBoxItem> changeList = listChanges.getSourceList();
+				final List<MailBoxItem> changeList = new ArrayList<MailBoxItem>(listChanges.getSourceList());
 
 				while (listChanges.next())
 				{
@@ -390,7 +390,6 @@ public class MailBoxView
 	{
 		List<StoredSmtpMessage> l = new ArrayList<StoredSmtpMessage>(table.getSelectionCount());
 		for (int idx : table.getSelectionIndices())
-			//l.add(((MailBoxItem)((TableTreeItem)table.getItem(idx).getData()).getData()).getMessage());
 			l.add(treeList.get(idx).getMessage());
 
 		return l;
