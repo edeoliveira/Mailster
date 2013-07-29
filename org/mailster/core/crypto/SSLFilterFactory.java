@@ -2,7 +2,7 @@ package org.mailster.core.crypto;
 
 import org.apache.mina.filter.ssl.SslFilter;
 import org.mailster.core.crypto.X509SecureSocketFactory.SSLProtocol;
-import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
+import org.mailster.gui.dialogs.SWTCertificateTrustCallBackHandler;
 
 /**
  * ---<br>

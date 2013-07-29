@@ -41,7 +41,7 @@ import org.mailster.core.mail.SmtpMessagePart;
 import org.mailster.core.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
-import org.mailster.gui.crypto.CertificateDialog;
+import org.mailster.gui.dialogs.CertificateDialog;
 import org.mailster.util.DateUtilities;
 import org.mailster.util.MailUtilities;
 import org.mailster.util.DateUtilities.DateFormatterEnum;

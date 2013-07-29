@@ -15,7 +15,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.mailster.gui.crypto.SWTCertificateTrustCallBackHandler;
+import org.mailster.gui.dialogs.SWTCertificateTrustCallBackHandler;
 
 /**
  * ---<br>

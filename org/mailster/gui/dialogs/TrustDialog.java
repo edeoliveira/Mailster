@@ -1,4 +1,4 @@
-package org.mailster.gui.crypto;
+package org.mailster.gui.dialogs;
 
 import java.security.Security;
 import java.security.cert.Certificate;

@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SWTHelper
 {
-	private static final Logger log = LoggerFactory.getLogger(SWTHelper.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SWTHelper.class);
 
 	static
 	{
@@ -66,7 +66,7 @@ public class SWTHelper
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 			public void run()
 			{
-				log.debug("Disposing system resources ...");
+				LOG.debug("Disposing system resources ...");
 				disposeAll();
 			}
 		}));
@@ -228,7 +228,7 @@ public class SWTHelper
 
 		if (o == null || !(o instanceof Image))
 		{
-			log.info("Image {} did not load", fileName);
+			LOG.info("Image {} did not load", fileName);
 			return null;
 		}
 		else

@@ -45,14 +45,14 @@ public class Messages
      * The default base name of the language resources, a fully qualified class 
      * name.
      */
-    private final static String DEFAULT_RESOURCE_BASE = 
+    private static final String DEFAULT_RESOURCE_BASE = 
         "org.mailster.gui.resources.messages";
     
     /**
      * Stores the single <code>LanguageResource</code> objects in a sorted
      * <code>TreeMap</code> data structure
      */
-    private final static TreeMap<String, LanguageResource> LANGUAGE_RESOURCES;
+    private static final TreeMap<String, LanguageResource> LANGUAGE_RESOURCES;
     
     /**
      * <p>

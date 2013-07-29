@@ -1,9 +1,8 @@
-package org.mailster.gui.crypto;
+package org.mailster.gui.utils;
 
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.mailster.MailsterSWT;
-import org.mailster.core.crypto.UICertificateTrustCallBackHandler;
-import org.mailster.gui.SWTHelper;
+import ca.odell.glazedlists.EventList;
+import ca.odell.glazedlists.TransformedList;
+import ca.odell.glazedlists.event.ListEvent;
 
 /**
  * ---<br>
@@ -27,26 +26,36 @@ import org.mailster.gui.SWTHelper;
  * Web Site</a> <br>
  * ---
  * <p>
- * SWTCertificateTrustCallBackHandler.java - SWT Implementation of the 
- * <code>UICertificateTrustCallBackHandler</code> interface.
+ * BatchEventList.java - Allow to do batch changes to a given source list.
  * 
  * @author <a href="mailto:doe_wanted@yahoo.fr">Edouard De Oliveira</a>
  * @version $Revision: 1.3 $, $Date: 2008/12/06 13:57:17 $
  */
-public class SWTCertificateTrustCallBackHandler
-        extends UICertificateTrustCallBackHandler
+public class BatchEventList<S, E> extends TransformedList<S, E> 
 {
-    public void run()
-    {
-        SWTHelper.getDisplay().asyncExec(new Runnable() 
-        {
-            public void run()
-            {
-                TrustDialog dialog = new TrustDialog(MailsterSWT.getInstance().getShell(), chain);
-                cancelled = dialog.open() != IDialogConstants.OK_ID;
-                returnCode = dialog.getChainAcceptationReturnCode();
-                sem.release();
-            }
-        });
-    }
+	public BatchEventList(EventList<S> source) 
+	{
+		super(source);
+		source.addListEventListener(this);
+	}
+
+	public void listChanged(ListEvent<S> e) 
+	{
+		updates.forwardEvent(e);
+	}
+
+	protected boolean isWritable() 
+	{
+		return true;
+	}
+
+	public void beginBatch() 
+	{
+		updates.beginEvent(true);
+	}
+
+	public void commitBatch() 
+	{
+		updates.commitEvent();
+	}
 }
