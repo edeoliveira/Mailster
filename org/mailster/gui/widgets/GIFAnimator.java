@@ -10,6 +10,8 @@ import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.mailster.gui.SWTHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ---<br>
@@ -41,6 +43,8 @@ import org.mailster.gui.SWTHelper;
  */
 public class GIFAnimator extends Thread
 {
+	private static final Logger LOG = LoggerFactory.getLogger(GIFAnimator.class);
+	
 	private ImageLoader loader;
 	private ImageData[] imageDataArray;
 	private Image image;
@@ -200,7 +204,8 @@ public class GIFAnimator extends Thread
 		} 
 		catch (SWTException ex) 
 		{
-			System.out.println("There was an error animating the GIF");
+			LOG.debug("There was an error animating the GIF on thread {}", 
+					Thread.currentThread().getName(), ex);
 		} 
 		finally 
 		{
