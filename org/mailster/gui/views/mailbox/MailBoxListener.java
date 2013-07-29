@@ -60,10 +60,10 @@ public class MailBoxListener
 		target.setTableRedraw(redraw);
 	}
 
-	private void refreshViewers(Object elt, boolean updateLabels)
+	private void refreshViewers(StoredSmtpMessage msg, boolean updateLabels)
 	{
-		source.refreshViewer(elt, updateLabels);
-		target.refreshViewer(elt, updateLabels);
+		source.refreshViewer(msg, updateLabels);
+		target.refreshViewer(msg, updateLabels);
 	}
 	
 	public void handleKeyDownEvent(Event e)
@@ -114,7 +114,7 @@ public class MailBoxListener
 					refreshViewers(stored, true);
 				}
 				setRedraw(true);
-				treeView.filter();
+				treeView.updateMessageCounts(srcList);
 			}
 			else if (trashSelected || (e.stateMask & SWT.SHIFT) != 0)
 			{

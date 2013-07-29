@@ -110,7 +110,8 @@ public class FilterTreeView
 				else if (selectedItem == deletedMailsTreeItem)
 					return msg.getFlags().contains(Flags.Flag.FLAGGED);
 				else if (selectedItem == checkedMailsTreeItem)
-					return msg.isChecked();
+					return !msg.getFlags().contains(Flags.Flag.FLAGGED) 
+							&& msg.isChecked();
 				else
 					return !msg.getFlags().contains(Flags.Flag.FLAGGED)
 							&& ((String) selectedItem.getData()).equals(msg.getMessageHost());
@@ -118,7 +119,7 @@ public class FilterTreeView
 		}
 
 		private Tree mailBoxTree;
-		private HostMatcher matcher = new HostMatcher();
+		private final HostMatcher matcher = new HostMatcher();
 
 		public HostMatcherEditor(Tree mailBoxTree)
 		{
@@ -130,14 +131,12 @@ public class FilterTreeView
 		{
 			final TreeItem[] selected = mailBoxTree.getSelection();
 			if (selected == null || selected.length == 0)
-			{
 				mailBoxTree.setSelection(root);
-				matcher.setSelectedItem(root);
-			}
 			else
+			{
 				matcher.setSelectedItem(selected[0]);
-
-			fireChanged(matcher);
+				fireChanged(matcher);
+			}
 		}
 
 		public void widgetDefaultSelected(SelectionEvent event)
@@ -229,8 +228,6 @@ public class FilterTreeView
 		}
 	}
 
-	private FilterList<StoredSmtpMessage> checkedList;
-
 	public FilterTreeView(Composite parent, boolean enableToolbar)
 	{
 		super(parent, enableToolbar);
@@ -307,12 +304,12 @@ public class FilterTreeView
 		refreshToolItem.addSelectionListener(selectionAdapter);
 		clearQueueToolItem.addSelectionListener(selectionAdapter);
 	}
-
+	
 	public void updateMessageCounts(EventList<StoredSmtpMessage> eventList)
 	{
 		LOG.debug("Call to updateMessagesCounts()");
 
-		String filterString;
+		String filter;
 		List<StoredSmtpMessage> l;
 		DisposableMap<String, List<StoredSmtpMessage>> map;
 
@@ -322,17 +319,15 @@ public class FilterTreeView
 			lastCallCount = eventList.size();
 			map = GlazedLists.syncEventListToMultiMap(
 					eventList, 
-			new FunctionList.Function<StoredSmtpMessage, String>() {
-				public String evaluate(StoredSmtpMessage msg)
-				{
-					if (msg.getFlags().contains(Flags.Flag.FLAGGED))
-						return DELETED_TREEITEM_LABEL;
-					else if (msg.isChecked())
-						return CHECKED_TREEITEM_LABEL;
-					else
-						return msg.getMessageHost();
-				}
-			});
+					new FunctionList.Function<StoredSmtpMessage, String>() {
+						public String evaluate(StoredSmtpMessage msg)
+						{
+							if (msg.getFlags().contains(Flags.Flag.FLAGGED))
+								return DELETED_TREEITEM_LABEL;
+							else
+								return msg.getMessageHost();
+						}
+					});
 		} finally
 		{
 			eventList.getReadWriteLock().readLock().unlock();
@@ -342,21 +337,18 @@ public class FilterTreeView
 		for (TreeItem child : root.getItems())
 		{
 			if (child == checkedMailsTreeItem)
-			{
-				filterString = CHECKED_TREEITEM_LABEL;
-				l = checkedList;
-			}
+				continue;
 			else
 			{
-				filterString = (String) child.getData();
-				l = map == null ? null : map.get(filterString);
+				filter = (String) child.getData();
+				l = map == null ? null : map.get(filter);
 			}
 
 			long count = l == null ? 0 : l.size();
 
 			if (count > 0)
 			{
-				StringBuilder countLabel = new StringBuilder(filterString);
+				StringBuilder countLabel = new StringBuilder(filter);
 
 				count = 0;
 				eventList.getReadWriteLock().readLock().lock();
@@ -372,51 +364,54 @@ public class FilterTreeView
 				{
 					eventList.getReadWriteLock().readLock().unlock();
 				}
+
 				if (count > 0)
-				{
-					countLabel.append(" (").append(count);
-					if (child == checkedMailsTreeItem)
-						countLabel.append('/').append(lastCallCount);
-					countLabel.append(')');
-				}
+					countLabel.append(" (").append(count).append(')');
+				
 				child.setText(countLabel.toString());
 			}
-			else if (l == null && filterString != DELETED_TREEITEM_LABEL)
+			else if (l == null && !DELETED_TREEITEM_LABEL.equals(filter))
 			{
-				boolean found = false;
-				eventList.getReadWriteLock().writeLock().lock();
-				try
-				{
-					List<StoredSmtpMessage> trash = map.get(DELETED_TREEITEM_LABEL);
-					if (trash != null)
-					{
-						for (StoredSmtpMessage msg : trash)
-						{
-							if (filterString.equals(msg.getMessageHost()))
-							{
-								found = true;
-								break;
-							}
-						}
-					}
-					if (!found)
-						child.dispose();
-				}
-				finally
-				{
-					eventList.getReadWriteLock().writeLock().unlock();
-				}
+				if (!findInFolder(CHECKED_TREEITEM_LABEL, eventList, map, filter) &&
+						!findInFolder(DELETED_TREEITEM_LABEL, eventList, map, filter))
+					child.dispose();
 			}
 			else
-				child.setText(filterString);
+				child.setText(filter);
 		}
 		tree.setRedraw(true);
 		map.dispose();
 	}
 
-	public void installListeners(EventList<StoredSmtpMessage> eventList, final EventList<StoredSmtpMessage> baseList)
+	private boolean findInFolder(String folderLabel, 
+			EventList<StoredSmtpMessage> eventList, 
+			DisposableMap<String, List<StoredSmtpMessage>> map,
+			String host)
 	{
-		eventList.addListEventListener(new ListEventListener<StoredSmtpMessage>() {
+		eventList.getReadWriteLock().readLock().lock();
+		try
+		{
+			List<StoredSmtpMessage> folder = map.get(folderLabel);
+			if (folder != null)
+			{
+				for (StoredSmtpMessage msg : folder)
+				{
+					if (host.equals(msg.getMessageHost()))
+						return true;
+				}
+			}
+		}
+		finally
+		{
+			eventList.getReadWriteLock().readLock().unlock();
+		}
+		
+		return false;
+	}
+	
+	public void installListeners(EventList<StoredSmtpMessage> filterList, final EventList<StoredSmtpMessage> baseList)
+	{
+		filterList.addListEventListener(new ListEventListener<StoredSmtpMessage>() {
 			public void listChanged(ListEvent<StoredSmtpMessage> listChanges)
 			{
 				baseList.getReadWriteLock().readLock().lock();
@@ -441,20 +436,6 @@ public class FilterTreeView
 				exportAsMailBoxItem.setEnabled(notEmpty);
 			}
 		});
-
-		baseList.getReadWriteLock().writeLock().lock();
-		try
-		{
-			checkedList = new FilterList<StoredSmtpMessage>(baseList, new Matcher<StoredSmtpMessage>() {
-				public boolean matches(StoredSmtpMessage stored)
-				{
-					return stored.isChecked();
-				}
-			});
-		} finally
-		{
-			baseList.getReadWriteLock().writeLock().unlock();
-		}
 	}
 
 	private void addNodeIfNewHost(String host)

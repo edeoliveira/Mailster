@@ -371,7 +371,7 @@ public class MailBoxTableView
 							StoredSmtpMessage stored = (StoredSmtpMessage) item.getData();
 							stored.setChecked(!stored.isChecked());
 							_viewer.refresh(stored, true);
-							MailsterSWT.getInstance().getFilterTreeView().updateMessageCounts(_eventList);
+							treeView.updateMessageCounts(_eventList);
 							return;
 						}
 						if (!visible && rect.intersects(clientArea))
