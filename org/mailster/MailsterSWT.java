@@ -16,12 +16,6 @@ import org.apache.commons.lang.time.DateFormatUtils;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.FileTransfer;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.PaintEvent;
@@ -40,7 +34,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.CoolItem;
 import org.eclipse.swt.widgets.Display;
@@ -939,28 +932,5 @@ public class MailsterSWT
 	public void showTrayItemTooltipMessage(final String title, final String message)
 	{
 		MailsterSWTTrayItem.showTrayItemTooltipMessage(trayItem, title, message);
-	}
-
-	public static void configureDragAndDrop(Control ctrl)
-	{
-		DropTarget dt = new DropTarget(ctrl, DND.DROP_DEFAULT | DND.DROP_MOVE);
-		dt.setTransfer(new Transfer[] {FileTransfer.getInstance()});
-		dt.addDropListener(new DropTargetAdapter() {
-			public void drop(DropTargetEvent event)
-			{
-				FileTransfer ft = FileTransfer.getInstance();
-				if (ft.isSupportedType(event.currentDataType))
-				{
-					String[] files = (String[]) event.data;
-					for (String file : files)
-					{
-						if (file.toLowerCase().endsWith(".eml"))
-							ImportExportUtilities.importFromEmailFile(file);
-						else if (file.toLowerCase().endsWith(".mbx"))
-							ImportExportUtilities.importFromMbox(file);
-					}
-				}
-			}
-		});
 	}
 }

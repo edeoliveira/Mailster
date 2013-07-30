@@ -5,6 +5,13 @@ import java.util.List;
 import javax.mail.Flags;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -269,8 +276,63 @@ public class FilterTreeView
 					item.setFont(tree.getFont());
 			}
 		});
-		MailsterSWT.configureDragAndDrop(tree);
-	}
+		
+		setupDragAndDrop();
+    }
+    
+    private void setupDragAndDrop()
+    {
+    	DropTarget target = new DropTarget(tree, DND.DROP_MOVE);
+     	target.setTransfer(new Transfer[] {FileTransfer.getInstance(), TextTransfer.getInstance()});
+    	target.addDropListener(new DropTargetAdapter() {
+			/**
+    		@Override
+			public void dragEnter(DropTargetEvent evt)
+			{
+				if (tree.getSelection()[0] != deletedMailsTreeItem)
+					evt.detail = DND.DROP_NONE;
+			}
+
+			@Override
+			public void dragOver(DropTargetEvent evt)
+			{
+				if (tree.getSelection()[0] == deletedMailsTreeItem)
+				{
+					if (evt.item == root)
+						evt.detail = DND.DROP_MOVE;
+					else
+						evt.detail = DND.DROP_NONE;
+				}
+			}**/
+
+			@Override
+			public void drop(DropTargetEvent evt)
+			{
+				/**
+				if (TextTransfer.getInstance().isSupportedType(evt.currentDataType))
+				{
+					TreeItem item = (TreeItem) evt.item;
+					System.out.println("source ="+tree.getSelection()[0].getText()); 
+					System.out.println("Data dropped: "+evt.data);
+					System.out.println("|-target="+item.getText());
+				}
+				else**/
+				{
+					if (FileTransfer.getInstance().isSupportedType(evt.currentDataType))
+					{
+						String[] files = (String[]) evt.data;
+						for (String file : files)
+						{
+							if (file.toLowerCase().endsWith(".eml"))
+								ImportExportUtilities.importFromEmailFile(file);
+							else if (file.toLowerCase().endsWith(".mbx"))
+								ImportExportUtilities.importFromMbox(file);
+						}
+					}					
+				}
+			}
+		});
+    }
 
 	protected void customizeToolbar(ToolBar toolBar)
 	{

@@ -9,6 +9,12 @@ import java.util.Date;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TreeListener;
 import org.eclipse.swt.graphics.Color;
@@ -125,16 +131,43 @@ public class TableTree
 		addListener(SWT.Resize, listener);
 		addListener(SWT.FocusIn, listener);
 
-		configureCustomPaint();
+		setupCustomPaint();
+		setupDragAndDrop();
 	}
 
+    private void setupDragAndDrop()
+    {
+    	DragSource source = new DragSource(table, DND.DROP_MOVE);
+    	source.setTransfer(new Transfer[] {TextTransfer.getInstance()});
+    	source.addDragListener(new DragSourceAdapter() {
+			@Override
+			public void dragSetData(DragSourceEvent evt)
+			{
+				if (TextTransfer.getInstance().isSupportedType(evt.dataType))
+				{
+					TableItem[] items = table.getSelection();
+					StringBuilder sb = new StringBuilder("{mails=");
+					
+					for (TableItem item : items)
+					{
+						StoredSmtpMessage msg = ((MailBoxItem) ((TableTreeItem) item.getData()).getData()).getMessage();
+						sb.append(" {id=").append(msg.getMessageId()).append("},");
+					}
+					sb.deleteCharAt(sb.length()-1);
+					sb.append('}');
+					evt.data = sb.toString();
+				}
+			}
+		});
+    }
+    
 	public void setRedraw(boolean redraw)
 	{
 		super.setRedraw(redraw);
 		table.setRedraw(redraw);
 	}
 
-	private void configureCustomPaint()
+	private void setupCustomPaint()
 	{
 		table.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event)
