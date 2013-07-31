@@ -396,10 +396,10 @@ public class MailBoxTableView
 		_table.setSortDirection(SWT.DOWN);
 		
 		treeView.installListeners(_filterList, _eventList);
-		setupFileDragAndDrop(_table);
+		setupFileDrop(_table);
 	}
 
-	public static void setupFileDragAndDrop(Control ctrl)
+	public static void setupFileDrop(Control ctrl)
 	{
 		DropTarget dt = new DropTarget(ctrl, DND.DROP_DEFAULT | DND.DROP_MOVE);
 		dt.setTransfer(new Transfer[] {FileTransfer.getInstance()});

@@ -285,25 +285,30 @@ public class FilterTreeView
     	DropTarget target = new DropTarget(tree, DND.DROP_MOVE);
      	target.setTransfer(new Transfer[] {FileTransfer.getInstance(), TextTransfer.getInstance()});
     	target.addDropListener(new DropTargetAdapter() {
-			/**
     		@Override
 			public void dragEnter(DropTargetEvent evt)
 			{
-				if (tree.getSelection()[0] != deletedMailsTreeItem)
-					evt.detail = DND.DROP_NONE;
+    			if (TextTransfer.getInstance().isSupportedType(evt.currentDataType))
+    			{
+    				if (tree.getSelection()[0] != deletedMailsTreeItem)
+    					evt.detail = DND.DROP_NONE;
+    			}
 			}
 
 			@Override
 			public void dragOver(DropTargetEvent evt)
 			{
-				if (tree.getSelection()[0] == deletedMailsTreeItem)
+				if (TextTransfer.getInstance().isSupportedType(evt.currentDataType))
 				{
-					if (evt.item == root)
-						evt.detail = DND.DROP_MOVE;
-					else
-						evt.detail = DND.DROP_NONE;
+					if (tree.getSelection()[0] == deletedMailsTreeItem)
+					{
+						if (evt.item == root)
+							evt.detail = DND.DROP_MOVE;
+						else
+							evt.detail = DND.DROP_NONE;
+					}
 				}
-			}**/
+			}
 
 			@Override
 			public void drop(DropTargetEvent evt)
