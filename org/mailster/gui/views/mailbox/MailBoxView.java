@@ -58,7 +58,7 @@ public class MailBoxView
 	public static final Font BOLD_FONT = SWTHelper.makeBoldFont(NORMAL_FONT);
 	public static final Image ATTACHED_FILES_IMAGE = SWTHelper.loadImage("attach.gif");
 
-	protected static final int MIN_WIDTH_FOR_MULTI_COLUMN = 380;
+	private static final int MIN_WIDTH_FOR_MULTI_COLUMN = 380;
 
 	private SearchBoxView sbView;
 	private MailBoxTableView tableView;

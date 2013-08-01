@@ -144,22 +144,7 @@ public class MailBoxTableTree
 			public void dragSetData(DragSourceEvent evt)
 			{
 				if (TextTransfer.getInstance().isSupportedType(evt.dataType))
-				{
 					evt.data = "drag";
-					/**
-					TableItem[] items = table.getSelection();
-					StringBuilder sb = new StringBuilder("{src=MailBoxTableTree, mails=");
-					
-					for (TableItem item : items)
-					{
-						StoredSmtpMessage msg = ((MailBoxItem) ((MailBoxTableTreeItem) item.getData()).getData()).getMessage();
-						sb.append(" {id=").append(msg.getId()).append("},");
-					}
-					sb.deleteCharAt(sb.length()-1);
-					sb.append('}');
-					evt.data = sb.toString();
-					*/
-				}
 			}
     	});
     }

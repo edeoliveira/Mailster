@@ -407,22 +407,7 @@ public class MailBoxTableView
 			public void dragSetData(DragSourceEvent evt)
 			{
 				if (TextTransfer.getInstance().isSupportedType(evt.dataType))
-				{
 					evt.data = "drag";
-					/**
-					TableItem[] items = _table.getSelection();
-					StringBuilder sb = new StringBuilder("{src=MailBoxTableView.Table, mails=");
-					
-					for (TableItem item : items)
-					{
-						StoredSmtpMessage msg = (StoredSmtpMessage) item.getData();
-						sb.append(" {id=").append(msg.getId()).append("},");
-					}
-					sb.deleteCharAt(sb.length()-1);
-					sb.append('}');
-					evt.data = sb.toString();
-					*/
-				}
 			}
 		});
     }
