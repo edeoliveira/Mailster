@@ -14,19 +14,19 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
 /**
- * A TableTreeItem is a selectable user interface object that represents an item in a hierarchy of
- * items in a TableTree.
+ * A MailBoxTableTreeItem is a selectable user interface object that represents an item in a hierarchy of
+ * items in a MailBoxTableTree.
  */
-public class TableTreeItem
+public class MailBoxTableTreeItem
 	extends Item
 {
 	static final String[] EMPTY_TEXTS = new String[0];
 	static final Image[] EMPTY_IMAGES = new Image[0];
 
 	TableItem tableItem;
-	TableTree parent;
-	TableTreeItem parentItem;
-	TableTreeItem[] items = TableTree.EMPTY_ITEMS;
+	MailBoxTableTree parent;
+	MailBoxTableTreeItem parentItem;
+	MailBoxTableTreeItem[] items = MailBoxTableTree.EMPTY_ITEMS;
 	String[] texts = EMPTY_TEXTS;
 	Image[] images = EMPTY_IMAGES;
 	Object data;
@@ -37,11 +37,11 @@ public class TableTreeItem
 	 * Create a new instance of a root item.
 	 * 
 	 * @param parent
-	 *            the TableTree that contains this root item
+	 *            the MailBoxTableTree that contains this root item
 	 * @param style
 	 *            the bitwise OR'ing of widget styles
 	 */
-	public TableTreeItem(TableTree parent, int style)
+	public MailBoxTableTreeItem(MailBoxTableTree parent, int style)
 	{
 		this(parent, style, parent.getItemCount());
 	}
@@ -50,13 +50,13 @@ public class TableTreeItem
 	 * Create a new instance of a root item in the position indicated by the specified index.
 	 * 
 	 * @param parent
-	 *            the TableTree that contains this root item
+	 *            the MailBoxTableTree that contains this root item
 	 * @param style
 	 *            the bitwise OR'ing of widget styles
 	 * @param index
-	 *            specifies the position of this item in the TableTree relative to other root items
+	 *            specifies the position of this item in the MailBoxTableTree relative to other root items
 	 */
-	public TableTreeItem(TableTree parent, int style, int index)
+	public MailBoxTableTreeItem(MailBoxTableTree parent, int style, int index)
 	{
 		this(parent, null, style, index);
 	}
@@ -65,11 +65,11 @@ public class TableTreeItem
 	 * Create a new instance of a sub item.
 	 * 
 	 * @param parent
-	 *            this item's parent in the hierarchy of TableTree items
+	 *            this item's parent in the hierarchy of MailBoxTableTree items
 	 * @param style
 	 *            the bitwise OR'ing of widget styles
 	 */
-	public TableTreeItem(TableTreeItem parent, int style)
+	public MailBoxTableTreeItem(MailBoxTableTreeItem parent, int style)
 	{
 		this(parent, style, parent.getItemCount());
 	}
@@ -78,19 +78,19 @@ public class TableTreeItem
 	 * Create a new instance of a sub item in the position indicated by the specified index.
 	 * 
 	 * @param parent
-	 *            this item's parent in the hierarchy of TableTree items
+	 *            this item's parent in the hierarchy of MailBoxTableTree items
 	 * @param style
 	 *            the bitwise OR'ing of widget styles
 	 * @param index
-	 *            specifies the position of this item in the TableTree relative to other children of
+	 *            specifies the position of this item in the MailBoxTableTree relative to other children of
 	 *            the same parent
 	 */
-	public TableTreeItem(TableTreeItem parent, int style, int index)
+	public MailBoxTableTreeItem(MailBoxTableTreeItem parent, int style, int index)
 	{
 		this(parent.getParent(), parent, style, index);
 	}
 
-	TableTreeItem(TableTree parent, TableTreeItem parentItem, int style, int index)
+	MailBoxTableTreeItem(MailBoxTableTree parent, MailBoxTableTreeItem parentItem, int style, int index)
 	{
 		super(parent, style);
 		this.parent = parent;
@@ -128,7 +128,7 @@ public class TableTreeItem
 		tableItem.setChecked(checked);
 	}
 
-	void addItem(TableTreeItem item, int index)
+	void addItem(MailBoxTableTreeItem item, int index)
 	{
 		if (item == null)
 			throw new SWTError(SWT.ERROR_NULL_ARGUMENT);
@@ -136,7 +136,7 @@ public class TableTreeItem
 			throw new SWTError(SWT.ERROR_INVALID_ARGUMENT, index + "");
 
 		/* Put the item in the items list */
-		TableTreeItem[] newItems = new TableTreeItem[items.length + 1];
+		MailBoxTableTreeItem[] newItems = new MailBoxTableTreeItem[items.length + 1];
 		System.arraycopy(items, 0, newItems, 0, index);
 		newItems[index] = item;
 		System.arraycopy(items, index, newItems, index + 1, items.length - index);
@@ -270,14 +270,14 @@ public class TableTreeItem
 	 * 
 	 * @return the sub items
 	 */
-	public TableTreeItem[] getItems()
+	public MailBoxTableTreeItem[] getItems()
 	{
-		TableTreeItem[] newItems = new TableTreeItem[items.length];
+		MailBoxTableTreeItem[] newItems = new MailBoxTableTreeItem[items.length];
 		System.arraycopy(items, 0, newItems, 0, items.length);
 		return newItems;
 	}
 
-	TableTreeItem getItem(TableItem tableItem)
+	MailBoxTableTreeItem getItem(TableItem tableItem)
 	{
 		if (tableItem == null)
 			return null;
@@ -285,7 +285,7 @@ public class TableTreeItem
 			return this;
 		for (int i = 0; i < items.length; i++)
 		{
-			TableTreeItem item = items[i].getItem(tableItem);
+			MailBoxTableTreeItem item = items[i].getItem(tableItem);
 			if (item != null)
 				return item;
 		}
@@ -298,7 +298,7 @@ public class TableTreeItem
 	 * 
 	 * @return the parent
 	 */
-	public TableTree getParent()
+	public MailBoxTableTree getParent()
 	{
 		return parent;
 	}
@@ -309,7 +309,7 @@ public class TableTreeItem
 	 * 
 	 * @return the parent item.
 	 */
-	public TableTreeItem getParentItem()
+	public MailBoxTableTreeItem getParentItem()
 	{
 		return parentItem;
 	}
@@ -374,7 +374,7 @@ public class TableTreeItem
 	 * @return the index of the item or -1 if the item is not found
 	 * 
 	 */
-	public int indexOf(TableTreeItem item)
+	public int indexOf(MailBoxTableTreeItem item)
 	{
 		for (int i = 0; i < items.length; i++)
 		{
@@ -384,7 +384,7 @@ public class TableTreeItem
 		return -1;
 	}
 
-	int expandedIndexOf(TableTreeItem item)
+	int expandedIndexOf(MailBoxTableTreeItem item)
 	{
 		int index = 0;
 		for (int i = 0; i < items.length; i++)
@@ -439,7 +439,7 @@ public class TableTreeItem
 		tableItem = null;
 	}
 
-	void removeItem(TableTreeItem item)
+	void removeItem(MailBoxTableTreeItem item)
 	{
 		int index = 0;
 		while (index < items.length && items[index] != item)
@@ -447,7 +447,7 @@ public class TableTreeItem
 		if (index == items.length)
 			return;
 
-		TableTreeItem[] newItems = new TableTreeItem[items.length - 1];
+		MailBoxTableTreeItem[] newItems = new MailBoxTableTreeItem[items.length - 1];
 		System.arraycopy(items, 0, newItems, 0, index);
 		System.arraycopy(items, index + 1, newItems, index, items.length - index - 1);
 		items = newItems;

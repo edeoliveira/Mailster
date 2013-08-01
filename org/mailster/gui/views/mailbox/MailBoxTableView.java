@@ -16,10 +16,10 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -32,7 +32,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Region;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -47,7 +46,6 @@ import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
 import org.mailster.gui.utils.LayoutUtils;
 import org.mailster.gui.views.FilterTreeView;
-import org.mailster.gui.views.ImportExportUtilities;
 import org.mailster.util.DateUtilities;
 import org.mailster.util.DateUtilities.DateFormatterEnum;
 
@@ -396,32 +394,39 @@ public class MailBoxTableView
 		_table.setSortDirection(SWT.DOWN);
 		
 		treeView.installListeners(_filterList, _eventList);
-		setupFileDrop(_table);
+		MailBoxView.setupFileDrop(_table);
+		setupAsDragSource();
 	}
 
-	public static void setupFileDrop(Control ctrl)
-	{
-		DropTarget dt = new DropTarget(ctrl, DND.DROP_DEFAULT | DND.DROP_MOVE);
-		dt.setTransfer(new Transfer[] {FileTransfer.getInstance()});
-		dt.addDropListener(new DropTargetAdapter() {
-			public void drop(DropTargetEvent event)
+    private void setupAsDragSource()
+    {
+    	DragSource source = new DragSource(_table, DND.DROP_MOVE);
+    	source.setTransfer(new Transfer[] {TextTransfer.getInstance()});
+    	source.addDragListener(new DragSourceAdapter() {
+			@Override
+			public void dragSetData(DragSourceEvent evt)
 			{
-				FileTransfer ft = FileTransfer.getInstance();
-				if (ft.isSupportedType(event.currentDataType))
+				if (TextTransfer.getInstance().isSupportedType(evt.dataType))
 				{
-					String[] files = (String[]) event.data;
-					for (String file : files)
+					evt.data = "drag";
+					/**
+					TableItem[] items = _table.getSelection();
+					StringBuilder sb = new StringBuilder("{src=MailBoxTableView.Table, mails=");
+					
+					for (TableItem item : items)
 					{
-						if (file.toLowerCase().endsWith(".eml"))
-							ImportExportUtilities.importFromEmailFile(file);
-						else if (file.toLowerCase().endsWith(".mbx"))
-							ImportExportUtilities.importFromMbox(file);
+						StoredSmtpMessage msg = (StoredSmtpMessage) item.getData();
+						sb.append(" {id=").append(msg.getId()).append("},");
 					}
+					sb.deleteCharAt(sb.length()-1);
+					sb.append('}');
+					evt.data = sb.toString();
+					*/
 				}
 			}
 		});
-	}
-	
+    }
+
 	private void sortColumn(int col)
 	{
 		int dir = SWT.UP;

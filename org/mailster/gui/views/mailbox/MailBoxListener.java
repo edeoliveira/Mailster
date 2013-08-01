@@ -207,4 +207,9 @@ public class MailBoxListener
 			source.focus();
 		}
 	}
+
+	protected MailBoxTableInterface getSource()
+	{
+		return source;
+	}
 }

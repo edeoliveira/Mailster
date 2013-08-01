@@ -3,6 +3,7 @@ package org.mailster.gui.views;
 import java.util.List;
 
 import javax.mail.Flags;
+import javax.mail.Flags.Flag;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -31,6 +32,7 @@ import org.mailster.MailsterSWT;
 import org.mailster.core.pop3.mailbox.StoredSmtpMessage;
 import org.mailster.gui.Messages;
 import org.mailster.gui.SWTHelper;
+import org.mailster.gui.views.mailbox.MailBoxView;
 import org.mailster.gui.widgets.DropDownListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -285,16 +287,6 @@ public class FilterTreeView
     	DropTarget target = new DropTarget(tree, DND.DROP_MOVE);
      	target.setTransfer(new Transfer[] {FileTransfer.getInstance(), TextTransfer.getInstance()});
     	target.addDropListener(new DropTargetAdapter() {
-    		@Override
-			public void dragEnter(DropTargetEvent evt)
-			{
-    			if (TextTransfer.getInstance().isSupportedType(evt.currentDataType))
-    			{
-    				if (tree.getSelection()[0] != deletedMailsTreeItem)
-    					evt.detail = DND.DROP_NONE;
-    			}
-			}
-
 			@Override
 			public void dragOver(DropTargetEvent evt)
 			{
@@ -307,21 +299,49 @@ public class FilterTreeView
 						else
 							evt.detail = DND.DROP_NONE;
 					}
+					else if (tree.getSelection()[0] != checkedMailsTreeItem)
+					{
+						if (evt.item == deletedMailsTreeItem || evt.item == checkedMailsTreeItem)
+							evt.detail = DND.DROP_MOVE;
+						else
+							evt.detail = DND.DROP_NONE;
+					}						
 				}
 			}
 
 			@Override
 			public void drop(DropTargetEvent evt)
 			{
-				/**
 				if (TextTransfer.getInstance().isSupportedType(evt.currentDataType))
 				{
-					TreeItem item = (TreeItem) evt.item;
-					System.out.println("source ="+tree.getSelection()[0].getText()); 
-					System.out.println("Data dropped: "+evt.data);
-					System.out.println("|-target="+item.getText());
+					TreeItem target = (TreeItem) evt.item;
+					MailBoxView view = MailsterSWT.getInstance().getMailBoxView();
+					EventList<StoredSmtpMessage> l = view.getEventList();
+					l.getReadWriteLock().writeLock().lock();
+					try
+					{
+						for (StoredSmtpMessage m : view.getSelection())
+						{
+							if (target == root)
+							{
+								m.getFlags().remove(Flag.FLAGGED);
+								m.setChecked(false);
+							}
+							else if (target == deletedMailsTreeItem)
+								m.getFlags().add(Flag.FLAGGED);
+							else if (target == checkedMailsTreeItem)
+								m.setChecked(true);
+							
+							l.set(l.indexOf(m), m);
+							view.refreshViewer(m, false);
+						}
+					}
+					finally
+					{
+						l.getReadWriteLock().writeLock().unlock();
+					}					
 				}
-				else**/
+				else
 				{
 					if (FileTransfer.getInstance().isSupportedType(evt.currentDataType))
 					{

@@ -39,11 +39,11 @@ import org.mailster.gui.SWTHelper;
 import org.mailster.util.DateUtilities;
 
 /**
- * A TableTree is a selectable user interface object that displays a hierarchy of items, and issues
- * notification when an item is selected. A TableTree may be single or multi select.
+ * A MailBoxTableTree is a selectable user interface object that displays a hierarchy of items, and issues
+ * notification when an item is selected. A MailBoxTableTree may be single or multi select.
  * <p>
  * The item children that may be added to instances of this class must be of type
- * <code>TableTreeItem</code>.
+ * <code>MailBoxTableTreeItem</code>.
  * </p>
  * <p>
  * Note that although this class is a subclass of <code>Composite</code>, it does not make sense to
@@ -57,28 +57,28 @@ import org.mailster.util.DateUtilities;
  * <dd>Selection, DefaultSelection, Collapse, Expand
  * </dl>
  */
-public class TableTree
+public class MailBoxTableTree
 	extends Composite
 {
-	static final TableTreeItem[] EMPTY_ITEMS = new TableTreeItem[0];
+	static final MailBoxTableTreeItem[] EMPTY_ITEMS = new MailBoxTableTreeItem[0];
 
 	static final int IMAGE_SIZE = 16;
 	static final int IMAGE_MARGIN = 5;
 	static final int IMAGE_ICON_SIZE = 6;
 
 	Table table;
-	TableTreeItem[] items = EMPTY_ITEMS;
+	MailBoxTableTreeItem[] items = EMPTY_ITEMS;
 	Image plusImage, minusImage;
 
 	/*
-	 * TableTreeItems are not treated as children but rather as items. When the TableTree is
-	 * disposed, all children are disposed because TableTree inherits this behaviour from Composite.
-	 * The items must be disposed separately. Because TableTree is not part of the
+	 * TableTreeItems are not treated as children but rather as items. When the MailBoxTableTree is
+	 * disposed, all children are disposed because MailBoxTableTree inherits this behaviour from Composite.
+	 * The items must be disposed separately. Because MailBoxTableTree is not part of the
 	 * org.eclipse.swt.widgets package, the method releaseWidget can not be overriden (this is how
 	 * items are disposed of in Table and Tree). Instead, the items are disposed of in response to
-	 * the dispose event on the TableTree. The "inDispose" flag is used to distinguish between
-	 * disposing one TableTreeItem (e.g. when removing an entry from the TableTree) and disposing
-	 * the entire TableTree.
+	 * the dispose event on the MailBoxTableTree. The "inDispose" flag is used to distinguish between
+	 * disposing one MailBoxTableTreeItem (e.g. when removing an entry from the MailBoxTableTree) and disposing
+	 * the entire MailBoxTableTree.
 	 */
 	boolean inDispose = false;
 
@@ -90,7 +90,7 @@ public class TableTree
 	 * @param style
 	 *            the bitwise OR'ing of widget styles
 	 */
-	public TableTree(Composite parent, int style)
+	public MailBoxTableTree(Composite parent, int style)
 	{
 		super(parent, SWT.NONE);
 		table = new Table(this, style);
@@ -132,10 +132,10 @@ public class TableTree
 		addListener(SWT.FocusIn, listener);
 
 		setupCustomPaint();
-		setupDragAndDrop();
+		setupAsDragSource();
 	}
 
-    private void setupDragAndDrop()
+    private void setupAsDragSource()
     {
     	DragSource source = new DragSource(table, DND.DROP_MOVE);
     	source.setTransfer(new Transfer[] {TextTransfer.getInstance()});
@@ -145,20 +145,23 @@ public class TableTree
 			{
 				if (TextTransfer.getInstance().isSupportedType(evt.dataType))
 				{
+					evt.data = "drag";
+					/**
 					TableItem[] items = table.getSelection();
-					StringBuilder sb = new StringBuilder("{mails=");
+					StringBuilder sb = new StringBuilder("{src=MailBoxTableTree, mails=");
 					
 					for (TableItem item : items)
 					{
-						StoredSmtpMessage msg = ((MailBoxItem) ((TableTreeItem) item.getData()).getData()).getMessage();
-						sb.append(" {id=").append(msg.getMessageId()).append("},");
+						StoredSmtpMessage msg = ((MailBoxItem) ((MailBoxTableTreeItem) item.getData()).getData()).getMessage();
+						sb.append(" {id=").append(msg.getId()).append("},");
 					}
 					sb.deleteCharAt(sb.length()-1);
 					sb.append('}');
 					evt.data = sb.toString();
+					*/
 				}
 			}
-		});
+    	});
     }
     
 	public void setRedraw(boolean redraw)
@@ -193,7 +196,7 @@ public class TableTree
 				GC gc = event.gc;
 				Rectangle area = table.getClientArea();
 				TableItem item = (TableItem) event.item;
-				TableTreeItem treeItem = (TableTreeItem) item.getData();
+				MailBoxTableTreeItem treeItem = (MailBoxTableTreeItem) item.getData();
 
 				Color foreground = gc.getForeground();
 				Color background = gc.getBackground();
@@ -256,7 +259,7 @@ public class TableTree
 				GC gc = event.gc;
 				int column = event.index;
 				TableItem item = (TableItem) event.item;
-				TableTreeItem treeItem = (TableTreeItem) item.getData();
+				MailBoxTableTreeItem treeItem = (MailBoxTableTreeItem) item.getData();
 				StoredSmtpMessage msg = ((MailBoxItem) treeItem.getData()).getMessage();
 				Image image = item.getImage(column);
 				int x = event.x;
@@ -356,11 +359,11 @@ public class TableTree
 		});
 	}
 
-	protected int addItem(TableTreeItem item, int index)
+	protected int addItem(MailBoxTableTreeItem item, int index)
 	{
 		if (index < 0 || index > items.length)
 			throw new SWTError(SWT.ERROR_INVALID_ARGUMENT);
-		TableTreeItem[] newItems = new TableTreeItem[items.length + 1];
+		MailBoxTableTreeItem[] newItems = new MailBoxTableTreeItem[items.length + 1];
 		System.arraycopy(items, 0, newItems, 0, index);
 		newItems[index] = item;
 		System.arraycopy(items, index, newItems, index + 1, items.length - index);
@@ -489,7 +492,7 @@ public class TableTree
 	/**
 	 * Expands upward from the specified leaf item.
 	 */
-	void expandItem(TableTreeItem item)
+	void expandItem(MailBoxTableTreeItem item)
 	{
 		if (item == null)
 			return;
@@ -500,7 +503,7 @@ public class TableTree
 		notifyListeners(SWT.Expand, event);
 	}
 
-	public TableTreeItem insertAtRealIndex(int index, int style)
+	public MailBoxTableTreeItem insertAtRealIndex(int index, int style)
 	{
 		int idx = 0;
 		for (int i = 0; i < items.length; i++)
@@ -510,29 +513,29 @@ public class TableTree
 			if (style == SWT.MULTI)
 			{
 				if (idx == index)
-					return new TableTreeItem(this, style, i);
+					return new MailBoxTableTreeItem(this, style, i);
 			}
 			else
 			{
 				if (count + idx + 1 == index)
-					return new TableTreeItem(items[i], style);
+					return new MailBoxTableTreeItem(items[i], style);
 				if (count + idx >= index)
-					return new TableTreeItem(items[i], style, index - idx - 1);
+					return new MailBoxTableTreeItem(items[i], style, index - idx - 1);
 			}
 			idx += count + 1;
 		}
 		if (index == idx)
 		{
 			if (style == SWT.NONE)
-				return new TableTreeItem(items[items.length - 1], style);
+				return new MailBoxTableTreeItem(items[items.length - 1], style);
 			else
-				return new TableTreeItem(this, style);
+				return new MailBoxTableTreeItem(this, style);
 		}
 		else
 			throw new SWTError(SWT.ERROR_INVALID_ARGUMENT, "insertAtRealIndex(" + index + ")");
 	}
 
-	public TableTreeItem getByRealIndex(int index)
+	public MailBoxTableTreeItem getByRealIndex(int index)
 	{
 		int idx = 0;
 		for (int i = 0; i < items.length; i++)
@@ -617,9 +620,9 @@ public class TableTree
 	 * @return the items in the widget
 	 * 
 	 */
-	public TableTreeItem[] getItems()
+	public MailBoxTableTreeItem[] getItems()
 	{
-		TableTreeItem[] newItems = new TableTreeItem[items.length];
+		MailBoxTableTreeItem[] newItems = new MailBoxTableTreeItem[items.length];
 		System.arraycopy(items, 0, newItems, 0, items.length);
 		return newItems;
 	}
@@ -638,13 +641,13 @@ public class TableTree
 	 *                ERROR_CANNOT_GET_SELECTION when the operation fails</li>
 	 *                </ul>
 	 */
-	public TableTreeItem[] getSelectedItems()
+	public MailBoxTableTreeItem[] getSelectedItems()
 	{
 		TableItem[] selection = table.getSelection();
-		TableTreeItem[] result = new TableTreeItem[selection.length];
+		MailBoxTableTreeItem[] result = new MailBoxTableTreeItem[selection.length];
 		for (int i = 0; i < selection.length; i++)
 		{
-			result[i] = (TableTreeItem) selection[i].getData();
+			result[i] = (MailBoxTableTreeItem) selection[i].getData();
 		}
 		return result;
 	}
@@ -731,7 +734,7 @@ public class TableTree
 	{
 		Event event = new Event();
 		TableItem tableItem = (TableItem) e.item;
-		TableTreeItem item = getItem(tableItem);
+		MailBoxTableTreeItem item = getItem(tableItem);
 		event.item = item;
 
 		if (e.type == SWT.Selection && e.detail == SWT.CHECK && item != null)
@@ -742,28 +745,28 @@ public class TableTree
 		notifyListeners(e.type, event);
 	}
 
-	public TableTreeItem getItem(int index)
+	public MailBoxTableTreeItem getItem(int index)
 	{
 		TableItem item = table.getItem(index);
 		if (item != null)
-			return (TableTreeItem) item.getData();
+			return (MailBoxTableTreeItem) item.getData();
 		else
 			return null;
 	}
 
-	public TableTreeItem getItem(Point point)
+	public MailBoxTableTreeItem getItem(Point point)
 	{
 		TableItem item = table.getItem(point);
 		if (item != null)
-			return (TableTreeItem) item.getData();
+			return (MailBoxTableTreeItem) item.getData();
 		else
 			return null;
 	}
 
-	private TableTreeItem getItem(TableItem tableItem)
+	private MailBoxTableTreeItem getItem(TableItem tableItem)
 	{
 		if (tableItem != null)
-			return (TableTreeItem) tableItem.getData();
+			return (MailBoxTableTreeItem) tableItem.getData();
 		else
 			return null;
 	}
@@ -777,7 +780,7 @@ public class TableTree
 		Rectangle rect = i.getImageBounds(0);
 		if (rect != null && rect.contains(event.x, event.y))
 		{
-			TableTreeItem item = (TableTreeItem) i.getData();
+			MailBoxTableTreeItem item = (MailBoxTableTreeItem) i.getData();
 			event = new Event();
 			event.item = item;
 			item.setExpanded(!item.isExpanded());
@@ -811,7 +814,7 @@ public class TableTree
 		setRedraw(true);
 	}
 
-	public void removeItem(TableTreeItem item)
+	public void removeItem(MailBoxTableTreeItem item)
 	{
 		int index = 0;
 		while (index < items.length && items[index] != item)
@@ -819,7 +822,7 @@ public class TableTree
 		if (index == items.length)
 			return;
 
-		TableTreeItem[] newItems = new TableTreeItem[items.length - 1];
+		MailBoxTableTreeItem[] newItems = new MailBoxTableTreeItem[items.length - 1];
 		System.arraycopy(items, 0, newItems, 0, index);
 		System.arraycopy(items, index + 1, newItems, index, items.length - index - 1);
 		items = newItems;
@@ -985,7 +988,7 @@ public class TableTree
 	 *                ERROR_NULL_ARGUMENT when items is null
 	 *                </ul>
 	 */
-	public void setSelection(TableTreeItem[] items)
+	public void setSelection(MailBoxTableTreeItem[] items)
 	{
 		TableItem[] tableItems = new TableItem[items.length];
 		for (int i = 0; i < items.length; i++)
@@ -1032,7 +1035,7 @@ public class TableTree
 	 *                ERROR_NULL_ARGUMENT when item is null
 	 *                </ul>
 	 */
-	public void showItem(TableTreeItem item)
+	public void showItem(MailBoxTableTreeItem item)
 	{
 		if (item == null)
 			throw new SWTError(SWT.ERROR_NULL_ARGUMENT);
