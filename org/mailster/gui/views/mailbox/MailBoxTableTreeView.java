@@ -198,7 +198,9 @@ public class MailBoxTableTreeView
 					}
 				});
 			}
-		}, ((MailBoxItem.tomorrow + 1) - System.currentTimeMillis()), 24L * 60L * 60L * 1000L, TimeUnit.MILLISECONDS);
+		}, ((MailBoxItem.categories.getTomorrow() + 1) - System.currentTimeMillis()), 
+			24L * 60L * 60L * 1000L,
+			TimeUnit.MILLISECONDS);
 
 		treeList.addListEventListener(new ListEventListener<MailBoxItem>() {
 			public void listChanged(final ListEvent<MailBoxItem> listChanges)
