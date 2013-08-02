@@ -20,6 +20,7 @@ GUI :
 - Fixed filtering bug crashing UI.
 - Improved version checking code.
 - Browser toolbar is now shared among all browser instances.
+- Added drag and drop between tree and mailbox view.
 
 CORE :
 - Changed to org.mailster.smtp.debug the name of VM argument
