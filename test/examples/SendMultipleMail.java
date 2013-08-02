@@ -125,7 +125,7 @@ public class SendMultipleMail
     	char[] pwd = "password".toCharArray();
     	
         KeyStore ks = MailsterKeyStoreFactory.loadKeyStore("PKCS12", "clients.p12", pwd);
-        String alias = MailsterKeyStoreFactory.TED_CERT_ALIAS;
+        String alias = MailsterKeyStoreFactory.DEFAULT_CERT_ALIAS;
         Certificate[] chain = ks.getCertificateChain(alias);
         PrivateKey privateKey = (PrivateKey) ks.getKey(alias, pwd);
 

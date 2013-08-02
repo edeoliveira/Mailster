@@ -42,7 +42,7 @@ import org.mailster.core.smtp.events.SMTPServerEvent;
 
 public class EncryptedMailTest extends TestCase
 {
-	  private static GregorianCalendar gc = new GregorianCalendar();
+	  private static final GregorianCalendar GC = new GregorianCalendar();
 	  private static final int SMTP_PORT = 1082;
 	  
 	  private MailsterSMTPServer server;
@@ -67,7 +67,7 @@ public class EncryptedMailTest extends TestCase
 	      server.start();
 	  }
 
-	  protected void tearDown() 
+	  protected void tearDown()
 	  	throws Exception 
 	  {
 	      super.tearDown();
@@ -174,11 +174,11 @@ public class EncryptedMailTest extends TestCase
 	
 	private static Date getRandomDate()
 	{
-		synchronized (gc)
+		synchronized (GC)
 		{
-			gc.clear();
-			gc.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
-			return gc.getTime();
+			GC.clear();
+			GC.set(2008, rnd(11), rnd(28), rnd(23), rnd(59), rnd(59));
+			return GC.getTime();
 		}
 	}
 	
@@ -191,7 +191,7 @@ public class EncryptedMailTest extends TestCase
 		KeyStore ks = MailsterKeyStoreFactory.loadKeyStore("PKCS12", "clients.p12", pwd);    	
     	SMIMEEnvelopedGenerator  gen = new SMIMEEnvelopedGenerator();
         
-        gen.addKeyTransRecipient((X509Certificate) ks.getCertificate(MailsterKeyStoreFactory.TED_CERT_ALIAS));
+        gen.addKeyTransRecipient((X509Certificate) ks.getCertificate(MailsterKeyStoreFactory.DEFAULT_CERT_ALIAS));
 
         // generate the enveloped message
         MimeBodyPart envPart = gen.generate(mbp, SMIMEEnvelopedGenerator.AES256_CBC, "BC");
@@ -208,7 +208,7 @@ public class EncryptedMailTest extends TestCase
     	char[] pwd = "password".toCharArray();
     	
         KeyStore ks = MailsterKeyStoreFactory.loadKeyStore("PKCS12", "clients.p12", pwd);
-        String alias = MailsterKeyStoreFactory.TED_CERT_ALIAS;
+        String alias = MailsterKeyStoreFactory.DEFAULT_CERT_ALIAS;
         Certificate[] chain = ks.getCertificateChain(alias);
         PrivateKey privateKey = (PrivateKey) ks.getKey(alias, pwd);
 

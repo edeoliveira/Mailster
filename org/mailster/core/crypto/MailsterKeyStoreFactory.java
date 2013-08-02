@@ -79,28 +79,27 @@ public class MailsterKeyStoreFactory
 	 */
 	private static final Logger LOG = LoggerFactory.getLogger(MailsterKeyStoreFactory.class);
 
-	private final static String KEYSTORE_FILENAME = "Mailster.p12";
-	private final static String SSL_CERT_FILENAME = "ssl_server.crt";
-	private final static String CLI_KEYSTORE_FILENAME = "clients.p12";
+	private static final String KEYSTORE_FILENAME = "Mailster.p12";
+	private static final String SSL_CERT_FILENAME = "ssl_server.crt";
+	private static final String CLI_KEYSTORE_FILENAME = "clients.p12";
 
-	private final static String KEYSTORE_FULL_PATH = getFullPath(KEYSTORE_FILENAME);
-	private final static String SSL_CERT_FULL_PATH = getFullPath(SSL_CERT_FILENAME);
-	private final static String CLI_KEYSTORE_FULL_PATH = getFullPath(CLI_KEYSTORE_FILENAME);
+	private static final String KEYSTORE_FULL_PATH = getFullPath(KEYSTORE_FILENAME);
+	private static final String SSL_CERT_FULL_PATH = getFullPath(SSL_CERT_FILENAME);
+	private static final String CLI_KEYSTORE_FULL_PATH = getFullPath(CLI_KEYSTORE_FILENAME);
 
-	private final static String DN_ORGANISATION = "O=Mailster.org";
-	private final static String DN_ORGANISATION_UNIT = "OU=http://tedorg.free.fr/en/projects.php";
-	private final static String DN_COUNTRY = "C=FR";
-	private final static String DN_ROOT = DN_ORGANISATION + ", " + DN_ORGANISATION_UNIT + ", " + DN_COUNTRY;
+	private static final String DN_ORGANISATION = "O=Mailster.org";
+	private static final String DN_ORGANISATION_UNIT = "OU=http://tedorg.free.fr/en/projects.php";
+	private static final String DN_COUNTRY = "C=FR";
+	private static final String DN_ROOT = DN_ORGANISATION + ", " + DN_ORGANISATION_UNIT + ", " + DN_COUNTRY;
 
 	private static final String ROOT_CA_ALIAS = "root";
 	private static final String INTERMEDIATE_CA_ALIAS = "intermediate_CA";
 	private static final String MAILSTER_SSL_ALIAS = "ssl_cert";
 	private static final String DUMMY_SSL_CLIENT_ALIAS = "ssl_dummy_client_cert";
 
-	// TOSEE
-	public static final String TED_CERT_ALIAS = "ted_cert";
+	public static final String DEFAULT_CERT_ALIAS = "ted_cert";
 
-	protected final static char[] KEYSTORE_PASSWORD = new char[] {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
+	protected static final char[] KEYSTORE_PASSWORD = new char[] {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
 
 	private static MailsterKeyStoreFactory _instance;
 	private KeyStore store;
@@ -260,7 +259,7 @@ public class MailsterKeyStoreFactory
 			final String DN = "EmailAddress=ted@home.com, CN=DE OLIVEIRA Edouard, " + DN_ROOT;
 
 			X500PrivateCredential endCredential = CertificateUtilities.createEntityCredential(keySize, interCredential
-					.getPrivateKey(), interCredential.getCertificate(), TED_CERT_ALIAS, DN, true);
+					.getPrivateKey(), interCredential.getCertificate(), DEFAULT_CERT_ALIAS, DN, true);
 
 			// Generate store
 			store.load(null, null);
